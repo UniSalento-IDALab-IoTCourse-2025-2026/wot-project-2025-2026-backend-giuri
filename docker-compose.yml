@@ -1,0 +1,44 @@
+services:
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: cardiosense-mosquitto
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/logs:/mosquitto/log
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7.0
+    container_name: cardiosense-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: cardiosense2026
+      MONGO_INITDB_DATABASE: cardiosense
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: cardiosense-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: cardiosense2026
+      MYSQL_DATABASE: cardiosense
+      MYSQL_USER: cardiosense
+      MYSQL_PASSWORD: cardiosense2026
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  mysql_data:

@@ -1,0 +1,21 @@
+# Ignora i dati grezzi dei database
+mosquitto/data/
+mosquitto/log/
+
+# Se i volumi di mysql e mongo salvano i dati in cartelle locali, ignorale
+mysql_data/
+mongo_data/
+.database_data/
+
+# File di ambiente con password o chiavi segrete
+.env
+
+# Cache di Python e ambienti virtuali
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.vscode/
+
+dataset/

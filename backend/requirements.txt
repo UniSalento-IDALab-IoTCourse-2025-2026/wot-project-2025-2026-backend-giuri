@@ -1,0 +1,30 @@
+# MQTT
+paho-mqtt==2.1.0
+
+# API
+fastapi==0.115.0
+uvicorn==0.30.0
+pydantic==2.8.0
+
+# Database
+pymongo==4.8.0
+mysql-connector-python==9.0.0
+sqlalchemy==2.0.0
+
+# AI / ML
+scikit-learn==1.5.0
+numpy==1.26.0
+pandas==2.2.0
+joblib==1.4.0
+wfdb==4.1.0
+
+# Autenticazione
+python-jose==3.3.0
+passlib==1.7.4
+bcrypt==4.0.1
+
+# Notifiche web push
+pywebpush==2.0.0
+
+# Utilità
+python-dotenv==1.0.0
