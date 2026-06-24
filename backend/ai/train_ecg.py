@@ -1,6 +1,7 @@
 import wfdb
 import numpy as np
 import joblib
+import os
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
@@ -12,9 +13,9 @@ from sklearn.metrics import classification_report
 # Record disponibili nel database chfdb su PhysioNet
 # Sono 15 pazienti, ciascuno con un ID
 RECORDS = [
-    'chf201', 'chf202', 'chf203', 'chf204', 'chf205',
-    'chf206', 'chf207', 'chf208', 'chf209', 'chf210',
-    'chf211', 'chf212', 'chf213', 'chf214', 'chf215'
+    'chf01', 'chf02', 'chf03', 'chf04', 'chf05',
+    'chf06', 'chf07', 'chf08', 'chf09', 'chf10',
+    'chf11', 'chf12', 'chf13', 'chf14', 'chf15'
 ]
 
 # Cartella PhysioNet da cui scaricare (on-demand, no download manuale)
@@ -166,6 +167,15 @@ def train():
     # --------------------------------------------------------
     # Salva il modello addestrato
     # --------------------------------------------------------
+    
+    # Estrae la cartella di destinazione dal percorso del modello ('backend/ai/trained')
+    dir_modello = os.path.dirname(MODEL_PATH)
+    
+    # Crea la cartella e le sue sottocartelle se non esistono già
+    if dir_modello and not os.path.exists(dir_modello):
+        os.makedirs(dir_modello)
+        print(f"Cartella creata: {dir_modello}")
+        
     joblib.dump(modello, MODEL_PATH)
     print(f"\nModello salvato in: {MODEL_PATH}")
 
