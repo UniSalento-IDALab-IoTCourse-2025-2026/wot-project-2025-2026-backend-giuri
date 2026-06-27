@@ -259,11 +259,12 @@ def lista_pazienti(
 
 @app.get("/anomalie", tags=["Annotazioni"])
 def get_anomalie_non_validate(
-    medico: Medico = Depends(get_medico_corrente)
+    medico: Medico = Depends(get_medico_corrente),
+    session=Depends(get_session)
 ):
     db = get_db()
     repo = AnnotationRepository(db)
-    
+
     service = AnnotationService(
         annotation_repo=repo,
         ecg_classifier=ml_models["ecg"],
@@ -272,8 +273,18 @@ def get_anomalie_non_validate(
     )
     anomalie = service.get_anomalie_non_validate()
 
+    # Arricchisci ogni anomalia con nome e cognome del paziente da MySQL.
+    # paziente_id corrisponde al codice_accesso nella tabella Paziente.
+    user_repo = UserRepository(session)
     for a in anomalie:
         a["_id"] = str(a["_id"])
+        paziente = user_repo.find_paziente_by_codice(a.get("paziente_id", ""))
+        if paziente:
+            a["paziente_nome"] = paziente.nome
+            a["paziente_cognome"] = paziente.cognome
+        else:
+            a["paziente_nome"] = None
+            a["paziente_cognome"] = None
 
     return anomalie
 

@@ -20,6 +20,11 @@ let validazioneCorrente = null; // { id, data } per il modal
 // Contatori per i KPI
 let kpiValidateOggi = 0;
 
+// Notifiche desktop — toggle lato JS
+// (il permesso OS non è revocabile da codice, ma possiamo
+//  smettere di chiamare new Notification() quando disattivate)
+let notificheAbilitate = false;
+
 // ============================================================
 // GUARD: redirect se non autenticato
 // ============================================================
@@ -165,6 +170,12 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
 // nativa di Windows/macOS anche se la tab non è in primo piano
 // (basta che il browser sia aperto). Richiede HTTPS o localhost
 // e il permesso esplicito dell'utente.
+//
+// NOTA SUL TOGGLE: il permesso OS non è revocabile via JavaScript
+// per scelta intenzionale del browser (sicurezza). Il toggle lato
+// JS agisce sulla variabile notificheAbilitate: quando false,
+// mostraNotificaSistema() esce subito senza creare nulla.
+// Stessa strategia usata da Slack, Gmail, ecc.
 
 function aggiornaBottoneNotifiche() {
     const btn = document.getElementById('btn-notifiche');
@@ -176,15 +187,16 @@ function aggiornaBottoneNotifiche() {
         return;
     }
 
-    switch (Notification.permission) {
-        case 'granted':
-            btn.textContent = '🔔 Notifiche attive';
-            break;
-        case 'denied':
-            btn.textContent = '🔕 Bloccate (sblocca dal browser)';
-            break;
-        default:
-            btn.textContent = '🔔 Attiva notifiche desktop';
+    if (Notification.permission === 'denied') {
+        btn.textContent = '🔕 Bloccate (sblocca dal browser)';
+        notificheAbilitate = false;
+        return;
+    }
+
+    if (Notification.permission === 'granted' && notificheAbilitate) {
+        btn.textContent = '🔔 Notifiche attive — clicca per disattivare';
+    } else {
+        btn.textContent = '🔔 Attiva notifiche desktop';
     }
 }
 
@@ -194,27 +206,46 @@ async function richiediPermessoNotifiche() {
         return;
     }
 
+    if (Notification.permission === 'denied') {
+        showToast('alarm', 'Permesso negato',
+            'Clicca sull\'icona del lucchetto nella barra degli indirizzi → Notifiche → Consenti, poi ricarica la pagina');
+        return;
+    }
+
+    // Se il permesso è già concesso e le notifiche sono attive → disattiva (toggle off)
+    if (Notification.permission === 'granted' && notificheAbilitate) {
+        notificheAbilitate = false;
+        aggiornaBottoneNotifiche();
+        showToast('success', 'Notifiche disattivate', 'Non riceverai più notifiche desktop per i nuovi allarmi');
+        return;
+    }
+
+    // Prima richiesta o riattivazione dopo disattivazione
     if (Notification.permission === 'default') {
         await Notification.requestPermission();
     }
-    aggiornaBottoneNotifiche();
 
     if (Notification.permission === 'granted') {
-        // Notifica di TEST immediata, indipendente da MQTT — se non la vedi ora,
+        notificheAbilitate = true;
+        aggiornaBottoneNotifiche();
+        // Notifica di TEST immediata — se non la vedi ora,
         // il problema è nel browser/OS, non nella pipeline degli allarmi.
         mostraNotificaSistema(
             '✓ Notifiche desktop attive',
-            'Se vedi questo messaggio come notifica di Windows, è tutto configurato correttamente.'
+            'Riceverai una notifica per ogni nuova anomalia ECG rilevata.'
         );
     } else if (Notification.permission === 'denied') {
+        notificheAbilitate = false;
+        aggiornaBottoneNotifiche();
         showToast('alarm', 'Permesso negato',
-            'Clicca sull\'icona del lucchetto/info nella barra degli indirizzi → Notifiche → Consenti, poi ricarica la pagina');
+            'Clicca sull\'icona del lucchetto nella barra degli indirizzi → Notifiche → Consenti, poi ricarica la pagina');
     }
 }
 
 function mostraNotificaSistema(titolo, corpo) {
     if (!('Notification' in window)) return;
     if (Notification.permission !== 'granted') return;
+    if (!notificheAbilitate) return;   // rispetta il toggle lato JS
 
     try {
         const notif = new Notification(titolo, {
@@ -359,6 +390,18 @@ function aggiornaContatoreBadge(n, setAssoluto = false) {
 }
 
 // ============================================================
+// HELPER — label paziente con nome/cognome se disponibili
+// ============================================================
+
+function labelPaziente(a) {
+    if (a.paziente_nome && a.paziente_cognome) {
+        return `${a.paziente_nome} ${a.paziente_cognome}
+            <span style="display:block;font-family:var(--mono);font-size:0.7rem;color:var(--text-muted)">${a.paziente_id}</span>`;
+    }
+    return `<span style="font-family:var(--mono);font-size:0.8rem">${a.paziente_id}</span>`;
+}
+
+// ============================================================
 // RENDER — tabella anomalie (panoramica, max 5)
 // ============================================================
 
@@ -375,7 +418,7 @@ function renderTabellaAnomalieCompatta(lista) {
 
     tbody.innerHTML = lista.map(a => `
         <tr>
-            <td><span style="font-family:var(--mono);font-size:0.8rem">${a.paziente_id}</span></td>
+            <td>${labelPaziente(a)}</td>
             <td><span class="pill pill-red">anomalo</span></td>
             <td><span class="pill pill-muted">${a.postura_label || '—'}</span></td>
             <td>${renderTempPill(a.temperatura_label)}</td>
@@ -407,7 +450,7 @@ function renderTabellaAnomalie(lista) {
 
     tbody.innerHTML = lista.map(a => `
         <tr>
-            <td><span style="font-family:var(--mono);font-size:0.8rem">${a.paziente_id}</span></td>
+            <td>${labelPaziente(a)}</td>
             <td>
                 <div style="display:flex;align-items:center;gap:0.5rem">
                     <span class="pill pill-red">anomalo</span>
@@ -613,7 +656,6 @@ function renderGraficoRR(rrIntervals) {
 
     const polyline = punti.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 
-    // Range fisiologico tipico a riposo per intervalli R-R
     const normMin = 0.6, normMax = 1.0;
     const yNormMin = height - padding - ((normMin - min) / range) * (height - padding * 2);
     const yNormMax = height - padding - ((normMax - min) / range) * (height - padding * 2);
@@ -653,8 +695,11 @@ function apriModal(annotationId, data) {
     validazioneCorrente = { id: annotationId, data };
     esitoSelezionato = null;
 
-    document.getElementById('modal-paziente-info').textContent =
-        `Paziente: ${data.paziente_id}`;
+    // Intestazione modal: mostra nome/cognome se disponibili
+    const intestazione = (data.paziente_nome && data.paziente_cognome)
+        ? `${data.paziente_nome} ${data.paziente_cognome} (${data.paziente_id})`
+        : data.paziente_id;
+    document.getElementById('modal-paziente-info').textContent = `Paziente: ${intestazione}`;
 
     document.getElementById('modal-details').innerHTML = `
         ${renderGraficoRR(data.rr_intervals)}
