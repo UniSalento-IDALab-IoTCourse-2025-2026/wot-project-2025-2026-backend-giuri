@@ -1,13 +1,14 @@
 import os
+import bcrypt  # <--- Sostituito passlib con bcrypt nativo
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
-from passlib.context import CryptContext
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pydantic import BaseModel
 from typing import Optional
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 
 from db.mongo_client import get_db
 from db.mysql_client import get_session, init_db
@@ -30,8 +31,34 @@ SECRET_KEY = os.getenv("JWT_SECRET", "cambia_questa_chiave")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 ore
 
-ECG_MODEL_PATH = "backend/ai/trained/ecg_model.pkl"
-POSTURA_MODEL_PATH = "backend/ai/trained/postura_model.pkl"
+ECG_MODEL_PATH = "ai/trained/ecg_model.pkl"
+POSTURA_MODEL_PATH = "ai/trained/postura_model.pkl"
+
+# Dizionario globale per mantenere i classificatori in memoria
+ml_models = {}
+
+# ============================================================
+# LIFESPAN (Gestione di Startup e Shutdown unificata)
+# ============================================================
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # --- STARTUP ---
+    init_db()
+    
+    # Carica i modelli di IA in memoria UNA VOLTA SOLA
+    ml_models["ecg"] = ECGClassifier(ECG_MODEL_PATH)
+    ml_models["postura"] = PosturaClassifier(POSTURA_MODEL_PATH)
+    ml_models["temperatura"] = TemperaturaClassifier()
+    
+    print("CardioSense API avviata e modelli IA caricati correttamente")
+    
+    yield
+    
+    # --- SHUTDOWN ---
+    ml_models.clear()
+    print("CardioSense API spenta")
+
 
 # ============================================================
 # APP FASTAPI
@@ -40,10 +67,11 @@ POSTURA_MODEL_PATH = "backend/ai/trained/postura_model.pkl"
 app = FastAPI(
     title="CardioSense API",
     description="API per il monitoraggio dello scompenso cardiaco",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
-# CORS — permette alla dashboard web di chiamare le API
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -53,24 +81,30 @@ app.add_middleware(
 )
 
 # ============================================================
-# AUTENTICAZIONE JWT
+# AUTENTICAZIONE JWT (Modificata con Bcrypt nativo)
 # ============================================================
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
+    """Genera l'hash della password usando direttamente bcrypt."""
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    """Verifica la password in chiaro contro l'hash memorizzato."""
+    try:
+        return bcrypt.checkpw(plain.encode('utf-8'), hashed.encode('utf-8'))
+    except Exception:
+        return False
 
 
 def crea_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -79,10 +113,6 @@ def get_medico_corrente(
     token: str = Depends(oauth2_scheme),
     session=Depends(get_session)
 ):
-    """
-    Dependency injection — verifica il JWT e restituisce
-    il medico autenticato. Usata per proteggere gli endpoint.
-    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Token non valido o scaduto",
@@ -104,7 +134,7 @@ def get_medico_corrente(
 
 
 # ============================================================
-# SCHEMI PYDANTIC PER REQUEST/RESPONSE
+# SCHEMI PYDANTIC
 # ============================================================
 
 class LoginResponse(BaseModel):
@@ -137,19 +167,6 @@ class ValidazioneRequest(BaseModel):
 
 
 # ============================================================
-# STARTUP
-# ============================================================
-
-@app.on_event("startup")
-async def startup():
-    """
-    Inizializza il database MySQL all'avvio.
-    """
-    init_db()
-    print("CardioSense API avviata")
-
-
-# ============================================================
 # ENDPOINT AUTENTICAZIONE
 # ============================================================
 
@@ -158,12 +175,7 @@ def registra_medico(
     body: RegistrazioneRequest,
     session=Depends(get_session)
 ):
-    """
-    Registra un nuovo medico nel sistema.
-    """
     repo = UserRepository(session)
-
-    # Verifica che l'email non sia già registrata
     esistente = repo.find_medico_by_email(body.email)
     if esistente:
         raise HTTPException(
@@ -186,9 +198,6 @@ def login(
     form: OAuth2PasswordRequestForm = Depends(),
     session=Depends(get_session)
 ):
-    """
-    Login medico — restituisce JWT.
-    """
     repo = UserRepository(session)
     medico = repo.find_medico_by_email(form.username)
 
@@ -212,10 +221,6 @@ def crea_paziente(
     medico: Medico = Depends(get_medico_corrente),
     session=Depends(get_session)
 ):
-    """
-    Crea un nuovo paziente associato al medico autenticato.
-    Restituisce il codice di accesso generato.
-    """
     repo = UserRepository(session)
     paziente = repo.save_paziente(
         nome=body.nome,
@@ -235,9 +240,6 @@ def lista_pazienti(
     medico: Medico = Depends(get_medico_corrente),
     session=Depends(get_session)
 ):
-    """
-    Restituisce tutti i pazienti del medico autenticato.
-    """
     repo = UserRepository(session)
     pazienti = repo.find_pazienti_by_medico(medico.id)
     return [
@@ -259,21 +261,17 @@ def lista_pazienti(
 def get_anomalie_non_validate(
     medico: Medico = Depends(get_medico_corrente)
 ):
-    """
-    Restituisce le anomalie non ancora validate dal medico.
-    Usato dalla dashboard per il polling.
-    """
     db = get_db()
     repo = AnnotationRepository(db)
+    
     service = AnnotationService(
         annotation_repo=repo,
-        ecg_classifier=ECGClassifier(ECG_MODEL_PATH),
-        postura_classifier=PosturaClassifier(POSTURA_MODEL_PATH),
-        temperatura_classifier=TemperaturaClassifier()
+        ecg_classifier=ml_models["ecg"],
+        postura_classifier=ml_models["postura"],
+        temperatura_classifier=ml_models["temperatura"]
     )
     anomalie = service.get_anomalie_non_validate()
 
-    # Converti ObjectId in stringa per la serializzazione JSON
     for a in anomalie:
         a["_id"] = str(a["_id"])
 
@@ -286,16 +284,14 @@ def get_storico_paziente(
     limit: int = 50,
     medico: Medico = Depends(get_medico_corrente)
 ):
-    """
-    Restituisce lo storico delle annotazioni di un paziente.
-    """
     db = get_db()
     repo = AnnotationRepository(db)
+    
     service = AnnotationService(
         annotation_repo=repo,
-        ecg_classifier=ECGClassifier(ECG_MODEL_PATH),
-        postura_classifier=PosturaClassifier(POSTURA_MODEL_PATH),
-        temperatura_classifier=TemperaturaClassifier()
+        ecg_classifier=ml_models["ecg"],
+        postura_classifier=ml_models["postura"],
+        temperatura_classifier=ml_models["temperatura"]
     )
     storico = service.get_storico_paziente(paziente_id, limit)
 
@@ -311,17 +307,14 @@ def valida_anomalia(
     body: ValidazioneRequest,
     medico: Medico = Depends(get_medico_corrente)
 ):
-    """
-    Il medico approva o nega un'anomalia.
-    Aggiorna il documento MongoDB con esito_medico.
-    """
     db = get_db()
     repo = AnnotationRepository(db)
+    
     service = AnnotationService(
         annotation_repo=repo,
-        ecg_classifier=ECGClassifier(ECG_MODEL_PATH),
-        postura_classifier=PosturaClassifier(POSTURA_MODEL_PATH),
-        temperatura_classifier=TemperaturaClassifier()
+        ecg_classifier=ml_models["ecg"],
+        postura_classifier=ml_models["postura"],
+        temperatura_classifier=ml_models["temperatura"]
     )
     successo = service.valida_anomalia(
         annotation_id,
@@ -346,7 +339,7 @@ def valida_anomalia(
 def health_check():
     return {
         "status": "ok",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
 

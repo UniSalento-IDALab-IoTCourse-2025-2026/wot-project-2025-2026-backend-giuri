@@ -22,8 +22,8 @@ load_dotenv()
 TOPIC_DATI = "cardiosense/dati"
 TOPIC_ALLARMI = "cardiosense/allarmi"
 
-ECG_MODEL_PATH = "backend/ai/trained/ecg_model.pkl"
-POSTURA_MODEL_PATH = "backend/ai/trained/postura_model.pkl"
+ECG_MODEL_PATH = "ai/trained/ecg_model.pkl"
+POSTURA_MODEL_PATH = "ai/trained/postura_model.pkl"
 
 # ============================================================
 # INIZIALIZZAZIONE COMPONENTI

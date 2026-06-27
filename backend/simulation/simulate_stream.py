@@ -13,91 +13,55 @@ load_dotenv()
 # ============================================================
 
 TOPIC_DATI = "cardiosense/dati"
-PAZIENTE_ID = "A3KX9BPQ"  # codice paziente di test
+PAZIENTE_ID = "OMU9YFPR"  # codice paziente di test
 
 # Frequenza di pubblicazione messaggi (secondi)
 INTERVALLO_PUBBLICAZIONE = 1.0
 
 # ============================================================
-# GENERATORI DI SEGNALI SINTETICI
+# GENERATORI DI SEGNALI SINTETICI (Corretti per Data Science)
 # ============================================================
 
 def genera_ecg_normale(n_campioni: int = 10) -> list:
     """
-    Genera campioni ECG sintetici che simulano un ritmo sinusale normale.
-    I picchi R sono regolari con leggera variabilità (HRV fisiologica).
+    Genera intervalli R-R stabili (intorno a 0.8 secondi).
+    Bassa variabilità = Ritmo normale.
     """
-    baseline = 1024
-    campioni = []
-
-    for i in range(n_campioni):
-        # Simula un QRS con picco ogni ~250 campioni (1 Hz a 250 Hz)
-        fase = (i % 25) / 25.0
-        if 0.4 < fase < 0.6:
-            # Picco R
-            valore = baseline + int(500 * np.sin(np.pi * (fase - 0.4) / 0.2))
-        else:
-            # Baseline con rumore fisiologico
-            valore = baseline + random.randint(-20, 20)
-        campioni.append(valore)
-
-    return campioni
+    return [round(random.uniform(0.78, 0.82), 2) for _ in range(n_campioni)]
 
 
 def genera_ecg_anomalo(n_campioni: int = 10) -> list:
     """
-    Genera campioni ECG sintetici che simulano un ritmo irregolare
-    (es. aritmia) con picchi casuali e variabilità elevata.
+    Genera intervalli R-R caotici e instabili.
+    Forte variabilità (battiti accelerati alternati a pause lunghe) = Aritmia.
     """
-    baseline = 1024
-    campioni = []
-
-    for i in range(n_campioni):
-        # Picchi irregolari e rumore elevato
-        if random.random() < 0.3:
-            valore = baseline + random.randint(300, 700)
-        else:
-            valore = baseline + random.randint(-100, 100)
-        campioni.append(valore)
-
-    return campioni
+    opzioni_aritmia = [0.42, 0.45, 1.35, 0.49, 1.41, 0.52, 1.15, 0.41, 1.38, 0.44]
+    return [random.choice(opzioni_aritmia) for _ in range(n_campioni)]
 
 
 def genera_accelerometro_normale() -> dict:
-    """
-    Simula accelerometro di una persona ferma o in leggero movimento.
-    La componente z è dominante (gravità ~1g).
-    """
     return {
-        "acc_x": round(random.uniform(-0.1, 0.1), 3),
-        "acc_y": round(random.uniform(-0.1, 0.1), 3),
-        "acc_z": round(random.uniform(0.95, 1.05), 3)
+        "acc_x": round(random.uniform(-0.05, 0.05), 3),
+        "acc_y": round(random.uniform(-0.05, 0.05), 3),
+        "acc_z": round(random.uniform(0.98, 1.02), 3)
     }
 
 
 def genera_accelerometro_movimento() -> dict:
-    """
-    Simula accelerometro durante movimento (camminata).
-    """
     return {
-        "acc_x": round(random.uniform(-0.5, 0.5), 3),
-        "acc_y": round(random.uniform(-0.5, 0.5), 3),
-        "acc_z": round(random.uniform(0.7, 1.3), 3)
+        "acc_x": round(random.uniform(-0.6, 0.6), 3),
+        "acc_y": round(random.uniform(-0.6, 0.6), 3),
+        "acc_z": round(random.uniform(0.5, 1.5), 3)
     }
 
 
 def genera_temperatura_normale() -> float:
-    """
-    Simula temperatura corporea normale.
-    """
-    return round(random.uniform(36.2, 37.2), 1)
+    return round(random.uniform(36.4, 36.9), 1)
 
 
 def genera_temperatura_febbre() -> float:
-    """
-    Simula temperatura febbrile.
-    """
-    return round(random.uniform(37.5, 38.5), 1)
+    # Portiamo la febbre a un valore indubitabilmente alto (39.2°C)
+    return round(random.uniform(38.8, 39.5), 1)
 
 
 # ============================================================
@@ -138,14 +102,16 @@ SCENARI = {
 
 def costruisci_payload(scenario: str) -> dict:
     """
-    Costruisce il payload MQTT per lo scenario scelto.
+    Costruisce il payload MQTT includendo la chiave rr_intervals attesa dall'IA.
     """
     s = SCENARI[scenario]
     acc = s["acc_fn"]()
+    dati_ecg = s["ecg_fn"]() # Genera la lista di 10 valori
 
     return {
         "paziente_id": PAZIENTE_ID,
-        "ecg_raw": s["ecg_fn"](),
+        "ecg_raw": dati_ecg,
+        "rr_intervals": dati_ecg,  # <--- QUESTA CHIAVE SBLOCCHERÀ L'IA
         "acc_x": acc["acc_x"],
         "acc_y": acc["acc_y"],
         "acc_z": acc["acc_z"],

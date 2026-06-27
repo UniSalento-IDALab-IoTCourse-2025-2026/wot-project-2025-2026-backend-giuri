@@ -26,6 +26,9 @@ class NotificationService:
             os.getenv("MQTT_BROKER", "localhost"),
             int(os.getenv("MQTT_PORT", 1883))
         )
+        # Senza il network loop in background, connect() apre solo il socket:
+        # publish() accoderebbe i messaggi senza mai scriverli realmente.
+        self.client.loop_start()
 
     def notifica_anomalia(self, annotation: Annotation) -> None:
         """

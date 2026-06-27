@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardioSense — Accesso</title>
+    <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:        #080c14;
+            --surface:   #0e1420;
+            --surface2:  #141b2d;
+            --border:    #1e2a40;
+            --red:       #e53e3e;
+            --red-dim:   #c53030;
+            --red-glow:  rgba(229, 62, 62, 0.15);
+            --teal:      #4fd1c5;
+            --amber:     #f6ad55;
+            --text:      #e2e8f0;
+            --text-muted:#64748b;
+            --mono:      'JetBrains Mono', monospace;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Animated ECG background */
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            opacity: 0.07;
+            pointer-events: none;
+        }
+
+        .login-wrap {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            padding: 1.5rem;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: 0 0 60px rgba(229,62,62,0.08), 0 24px 48px rgba(0,0,0,0.4);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--red);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 0 20px var(--red-glow);
+            animation: pulse-icon 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-icon {
+            0%, 100% { box-shadow: 0 0 20px var(--red-glow); }
+            50% { box-shadow: 0 0 35px rgba(229,62,62,0.4); }
+        }
+
+        .brand-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-name span { color: var(--red); }
+
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            letter-spacing: -0.02em;
+        }
+
+        .login-subtitle {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+        }
+
+        .field {
+            margin-bottom: 1.25rem;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.5rem;
+        }
+
+        .field input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        .field input:focus {
+            border-color: var(--red);
+            box-shadow: 0 0 0 3px var(--red-glow);
+        }
+
+        .btn-login {
+            width: 100%;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.85rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+            margin-top: 0.5rem;
+            letter-spacing: 0.01em;
+        }
+
+        .btn-login:hover {
+            background: var(--red-dim);
+            box-shadow: 0 0 20px var(--red-glow);
+        }
+
+        .btn-login:active { transform: scale(0.98); }
+
+        .error {
+            background: rgba(229,62,62,0.1);
+            border: 1px solid rgba(229,62,62,0.3);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: #fc8181;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 2rem 0 1.5rem;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--teal);
+            box-shadow: 0 0 6px var(--teal);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas class="bg-canvas" id="bg"></canvas>
+
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="brand">
+            <div class="brand-icon">❤️</div>
+            <div class="brand-name">Cardio<span>Sense</span></div>
+        </div>
+
+        <h1 class="login-title">Bentornato</h1>
+        <p class="login-subtitle">Accedi all'area riservata medici</p>
+
+        <div class="field">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="medico@ospedale.it" />
+        </div>
+
+        <div class="field">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="••••••••" />
+        </div>
+
+        <button class="btn-login" id="btn-login">Accedi</button>
+        <div class="error" id="error">Credenziali non valide. Riprova.</div>
+
+        <div class="divider"></div>
+
+        <div class="status-row">
+            <div class="status-dot"></div>
+            Sistema operativo — Tutti i servizi attivi
+        </div>
+    </div>
+</div>
+
+<script>
+    // ECG background animation
+    const canvas = document.getElementById('bg');
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    let offset = 0;
+
+    function ecgPoint(x) {
+        const t = (x + offset) * 0.02;
+        const cycle = t % (Math.PI * 2);
+        if (cycle < 0.3) return Math.sin(cycle * 10) * 30;
+        if (cycle < 0.5) return Math.sin(cycle * 20) * 120;
+        if (cycle < 0.7) return -Math.sin(cycle * 15) * 40;
+        return Math.sin(cycle * 5) * 5;
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#e53e3e';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+
+        for (let x = 0; x < canvas.width; x++) {
+            const y = canvas.height / 2 + ecgPoint(x);
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Second line offset
+        ctx.strokeStyle = '#4fd1c5';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let x = 0; x < canvas.width; x++) {
+            const y = canvas.height * 0.3 + ecgPoint(x + 200) * 0.5;
+            x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        offset += 2;
+        requestAnimationFrame(draw);
+    }
+    draw();
+
+    // Login
+    const API = 'http://localhost:8000';
+
+    document.getElementById('btn-login').addEventListener('click', async () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const errorEl = document.getElementById('error');
+
+        try {
+            const res = await fetch(`${API}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+            });
+
+            if (!res.ok) {
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const data = await res.json();
+            localStorage.setItem('cs_token', data.access_token);
+            window.location.href = 'medico.html';
+
+        } catch (err) {
+            errorEl.textContent = 'Errore di connessione al server.';
+            errorEl.style.display = 'block';
+        }
+    });
+
+    document.getElementById('password').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('btn-login').click();
+    });
+</script>
+
+</body>
+</html>

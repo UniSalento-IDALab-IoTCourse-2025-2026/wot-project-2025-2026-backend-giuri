@@ -7,3 +7,1855 @@
 1782227047: Saving in-memory database to /mosquitto/data//mosquitto.db.
 1782248212: mosquitto version 2.0.22 terminating
 1782248212: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782395680: mosquitto version 2.0.22 starting
+1782395680: Config loaded from /mosquitto/config/mosquitto.conf.
+1782395680: Opening ipv4 listen socket on port 1883.
+1782395680: Opening ipv6 listen socket on port 1883.
+1782395680: mosquitto version 2.0.22 running
+1782395829: New connection from 172.18.0.1:39442 on port 1883.
+1782395829: New client connected from 172.18.0.1:39442 as notification_service (p2, c1, k60).
+1782395829: No will message specified.
+1782395829: Sending CONNACK to notification_service (0, 0)
+1782395829: New connection from 172.18.0.1:39452 on port 1883.
+1782395829: New client connected from 172.18.0.1:39452 as cardiosense_subscriber (p2, c1, k60).
+1782395829: No will message specified.
+1782395829: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782395829: Received SUBSCRIBE from cardiosense_subscriber
+1782395829: 	cardiosense/dati (QoS 1)
+1782395829: cardiosense_subscriber 1 cardiosense/dati
+1782395829: Sending SUBACK to cardiosense_subscriber
+1782395889: Received PINGREQ from cardiosense_subscriber
+1782395889: Sending PINGRESP to cardiosense_subscriber
+1782395919: Client notification_service has exceeded timeout, disconnecting.
+1782395950: Received PINGREQ from cardiosense_subscriber
+1782395950: Sending PINGRESP to cardiosense_subscriber
+1782395965: New connection from 172.18.0.1:38838 on port 1883.
+1782395965: New client connected from 172.18.0.1:38838 as cardiosense_simulator (p2, c1, k60).
+1782395965: No will message specified.
+1782395965: Sending CONNACK to cardiosense_simulator (0, 0)
+1782395965: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (170 bytes))
+1782395965: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (170 bytes))
+1782395965: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782395965: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782395966: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (167 bytes))
+1782395966: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (167 bytes))
+1782395966: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782395966: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782395967: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (166 bytes))
+1782395967: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (166 bytes))
+1782395967: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782395967: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782395968: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m4, 'cardiosense/dati', ... (167 bytes))
+1782395968: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m4, 'cardiosense/dati', ... (167 bytes))
+1782395968: Sending PUBACK to cardiosense_simulator (m4, rc0)
+1782395968: Received PUBACK from cardiosense_subscriber (Mid: 4, RC:0)
+1782395969: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m5, 'cardiosense/dati', ... (167 bytes))
+1782395969: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m5, 'cardiosense/dati', ... (167 bytes))
+1782395969: Sending PUBACK to cardiosense_simulator (m5, rc0)
+1782395969: Received PUBACK from cardiosense_subscriber (Mid: 5, RC:0)
+1782395970: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m6, 'cardiosense/dati', ... (168 bytes))
+1782395970: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m6, 'cardiosense/dati', ... (168 bytes))
+1782395970: Sending PUBACK to cardiosense_simulator (m6, rc0)
+1782395970: Received PUBACK from cardiosense_subscriber (Mid: 6, RC:0)
+1782395971: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m7, 'cardiosense/dati', ... (166 bytes))
+1782395971: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m7, 'cardiosense/dati', ... (166 bytes))
+1782395971: Sending PUBACK to cardiosense_simulator (m7, rc0)
+1782395971: Received PUBACK from cardiosense_subscriber (Mid: 7, RC:0)
+1782395972: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m8, 'cardiosense/dati', ... (167 bytes))
+1782395972: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m8, 'cardiosense/dati', ... (167 bytes))
+1782395972: Sending PUBACK to cardiosense_simulator (m8, rc0)
+1782395972: Received PUBACK from cardiosense_subscriber (Mid: 8, RC:0)
+1782395973: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m9, 'cardiosense/dati', ... (166 bytes))
+1782395973: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m9, 'cardiosense/dati', ... (166 bytes))
+1782395973: Sending PUBACK to cardiosense_simulator (m9, rc0)
+1782395973: Received PUBACK from cardiosense_subscriber (Mid: 9, RC:0)
+1782395974: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m10, 'cardiosense/dati', ... (168 bytes))
+1782395974: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m10, 'cardiosense/dati', ... (168 bytes))
+1782395974: Sending PUBACK to cardiosense_simulator (m10, rc0)
+1782395974: Received PUBACK from cardiosense_subscriber (Mid: 10, RC:0)
+1782395975: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m11, 'cardiosense/dati', ... (169 bytes))
+1782395975: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m11, 'cardiosense/dati', ... (169 bytes))
+1782395975: Sending PUBACK to cardiosense_simulator (m11, rc0)
+1782395975: Received PUBACK from cardiosense_subscriber (Mid: 11, RC:0)
+1782395976: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m12, 'cardiosense/dati', ... (168 bytes))
+1782395976: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m12, 'cardiosense/dati', ... (168 bytes))
+1782395976: Sending PUBACK to cardiosense_simulator (m12, rc0)
+1782395976: Received PUBACK from cardiosense_subscriber (Mid: 12, RC:0)
+1782395977: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m13, 'cardiosense/dati', ... (170 bytes))
+1782395977: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m13, 'cardiosense/dati', ... (170 bytes))
+1782395977: Sending PUBACK to cardiosense_simulator (m13, rc0)
+1782395977: Received PUBACK from cardiosense_subscriber (Mid: 13, RC:0)
+1782395978: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m14, 'cardiosense/dati', ... (169 bytes))
+1782395978: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m14, 'cardiosense/dati', ... (169 bytes))
+1782395978: Sending PUBACK to cardiosense_simulator (m14, rc0)
+1782395978: Received PUBACK from cardiosense_subscriber (Mid: 14, RC:0)
+1782395979: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m15, 'cardiosense/dati', ... (166 bytes))
+1782395979: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m15, 'cardiosense/dati', ... (166 bytes))
+1782395979: Sending PUBACK to cardiosense_simulator (m15, rc0)
+1782395979: Received PUBACK from cardiosense_subscriber (Mid: 15, RC:0)
+1782395980: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m16, 'cardiosense/dati', ... (168 bytes))
+1782395980: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m16, 'cardiosense/dati', ... (168 bytes))
+1782395980: Sending PUBACK to cardiosense_simulator (m16, rc0)
+1782395980: Received PUBACK from cardiosense_subscriber (Mid: 16, RC:0)
+1782395981: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m17, 'cardiosense/dati', ... (170 bytes))
+1782395981: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m17, 'cardiosense/dati', ... (170 bytes))
+1782395981: Sending PUBACK to cardiosense_simulator (m17, rc0)
+1782395981: Received PUBACK from cardiosense_subscriber (Mid: 17, RC:0)
+1782395982: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m18, 'cardiosense/dati', ... (169 bytes))
+1782395982: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m18, 'cardiosense/dati', ... (169 bytes))
+1782395982: Sending PUBACK to cardiosense_simulator (m18, rc0)
+1782395982: Received PUBACK from cardiosense_subscriber (Mid: 18, RC:0)
+1782395983: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m19, 'cardiosense/dati', ... (165 bytes))
+1782395983: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m19, 'cardiosense/dati', ... (165 bytes))
+1782395983: Sending PUBACK to cardiosense_simulator (m19, rc0)
+1782395983: Received PUBACK from cardiosense_subscriber (Mid: 19, RC:0)
+1782395984: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m20, 'cardiosense/dati', ... (167 bytes))
+1782395984: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m20, 'cardiosense/dati', ... (167 bytes))
+1782395984: Sending PUBACK to cardiosense_simulator (m20, rc0)
+1782395984: Received PUBACK from cardiosense_subscriber (Mid: 20, RC:0)
+1782395985: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m21, 'cardiosense/dati', ... (166 bytes))
+1782395985: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m21, 'cardiosense/dati', ... (166 bytes))
+1782395985: Sending PUBACK to cardiosense_simulator (m21, rc0)
+1782395985: Received PUBACK from cardiosense_subscriber (Mid: 21, RC:0)
+1782395986: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m22, 'cardiosense/dati', ... (166 bytes))
+1782395986: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m22, 'cardiosense/dati', ... (166 bytes))
+1782395986: Sending PUBACK to cardiosense_simulator (m22, rc0)
+1782395986: Received PUBACK from cardiosense_subscriber (Mid: 22, RC:0)
+1782395987: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m23, 'cardiosense/dati', ... (164 bytes))
+1782395987: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m23, 'cardiosense/dati', ... (164 bytes))
+1782395987: Sending PUBACK to cardiosense_simulator (m23, rc0)
+1782395987: Received PUBACK from cardiosense_subscriber (Mid: 23, RC:0)
+1782395988: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m24, 'cardiosense/dati', ... (168 bytes))
+1782395988: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m24, 'cardiosense/dati', ... (168 bytes))
+1782395988: Sending PUBACK to cardiosense_simulator (m24, rc0)
+1782395988: Received PUBACK from cardiosense_subscriber (Mid: 24, RC:0)
+1782395989: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m25, 'cardiosense/dati', ... (167 bytes))
+1782395989: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m25, 'cardiosense/dati', ... (167 bytes))
+1782395989: Sending PUBACK to cardiosense_simulator (m25, rc0)
+1782395989: Received PUBACK from cardiosense_subscriber (Mid: 25, RC:0)
+1782395990: Received DISCONNECT from cardiosense_simulator
+1782395990: Client cardiosense_simulator disconnected.
+1782396010: Received PINGREQ from cardiosense_subscriber
+1782396010: Sending PINGRESP to cardiosense_subscriber
+1782396071: Received PINGREQ from cardiosense_subscriber
+1782396071: Sending PINGRESP to cardiosense_subscriber
+1782396131: Received PINGREQ from cardiosense_subscriber
+1782396131: Sending PINGRESP to cardiosense_subscriber
+1782396192: Received PINGREQ from cardiosense_subscriber
+1782396192: Sending PINGRESP to cardiosense_subscriber
+1782396252: Received PINGREQ from cardiosense_subscriber
+1782396252: Sending PINGRESP to cardiosense_subscriber
+1782396312: Received PINGREQ from cardiosense_subscriber
+1782396312: Sending PINGRESP to cardiosense_subscriber
+1782396327: Received DISCONNECT from cardiosense_subscriber
+1782396327: Client cardiosense_subscriber disconnected.
+1782396340: New connection from 172.18.0.1:38324 on port 1883.
+1782396340: New client connected from 172.18.0.1:38324 as notification_service (p2, c1, k60).
+1782396340: No will message specified.
+1782396340: Sending CONNACK to notification_service (0, 0)
+1782396340: New connection from 172.18.0.1:38330 on port 1883.
+1782396340: New client connected from 172.18.0.1:38330 as cardiosense_subscriber (p2, c1, k60).
+1782396340: No will message specified.
+1782396340: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782396340: Received SUBSCRIBE from cardiosense_subscriber
+1782396340: 	cardiosense/dati (QoS 1)
+1782396340: cardiosense_subscriber 1 cardiosense/dati
+1782396340: Sending SUBACK to cardiosense_subscriber
+1782396400: Received PINGREQ from cardiosense_subscriber
+1782396400: Sending PINGRESP to cardiosense_subscriber
+1782396430: Client notification_service has exceeded timeout, disconnecting.
+1782396461: Received PINGREQ from cardiosense_subscriber
+1782396461: Sending PINGRESP to cardiosense_subscriber
+1782396521: Received PINGREQ from cardiosense_subscriber
+1782396521: Sending PINGRESP to cardiosense_subscriber
+1782396581: Received PINGREQ from cardiosense_subscriber
+1782396581: Sending PINGRESP to cardiosense_subscriber
+1782396642: Received PINGREQ from cardiosense_subscriber
+1782396642: Sending PINGRESP to cardiosense_subscriber
+1782396702: Received PINGREQ from cardiosense_subscriber
+1782396702: Sending PINGRESP to cardiosense_subscriber
+1782396707: New connection from 172.18.0.1:52034 on port 1883.
+1782396707: New client connected from 172.18.0.1:52034 as cardiosense_simulator (p2, c1, k60).
+1782396707: No will message specified.
+1782396707: Sending CONNACK to cardiosense_simulator (0, 0)
+1782396707: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (167 bytes))
+1782396707: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (167 bytes))
+1782396707: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782396708: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782396708: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (168 bytes))
+1782396708: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (168 bytes))
+1782396708: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782396708: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782396709: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (165 bytes))
+1782396709: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (165 bytes))
+1782396709: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782396709: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782396710: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m4, 'cardiosense/dati', ... (166 bytes))
+1782396710: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m4, 'cardiosense/dati', ... (166 bytes))
+1782396710: Sending PUBACK to cardiosense_simulator (m4, rc0)
+1782396710: Received PUBACK from cardiosense_subscriber (Mid: 4, RC:0)
+1782396711: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m5, 'cardiosense/dati', ... (167 bytes))
+1782396711: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m5, 'cardiosense/dati', ... (167 bytes))
+1782396711: Sending PUBACK to cardiosense_simulator (m5, rc0)
+1782396711: Received PUBACK from cardiosense_subscriber (Mid: 5, RC:0)
+1782396712: Received DISCONNECT from cardiosense_simulator
+1782396712: Client cardiosense_simulator disconnected.
+1782396763: Received PINGREQ from cardiosense_subscriber
+1782396763: Sending PINGRESP to cardiosense_subscriber
+1782396823: Received PINGREQ from cardiosense_subscriber
+1782396823: Sending PINGRESP to cardiosense_subscriber
+1782396884: Received PINGREQ from cardiosense_subscriber
+1782396884: Sending PINGRESP to cardiosense_subscriber
+1782396944: Received PINGREQ from cardiosense_subscriber
+1782396944: Sending PINGRESP to cardiosense_subscriber
+1782397004: Received PINGREQ from cardiosense_subscriber
+1782397004: Sending PINGRESP to cardiosense_subscriber
+1782397065: Received PINGREQ from cardiosense_subscriber
+1782397065: Sending PINGRESP to cardiosense_subscriber
+1782397125: Received PINGREQ from cardiosense_subscriber
+1782397125: Sending PINGRESP to cardiosense_subscriber
+1782397186: Received PINGREQ from cardiosense_subscriber
+1782397186: Sending PINGRESP to cardiosense_subscriber
+1782397246: Received PINGREQ from cardiosense_subscriber
+1782397246: Sending PINGRESP to cardiosense_subscriber
+1782397306: Received PINGREQ from cardiosense_subscriber
+1782397306: Sending PINGRESP to cardiosense_subscriber
+1782397367: Received PINGREQ from cardiosense_subscriber
+1782397367: Sending PINGRESP to cardiosense_subscriber
+1782397427: Received PINGREQ from cardiosense_subscriber
+1782397427: Sending PINGRESP to cardiosense_subscriber
+1782397480: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782397488: Received PINGREQ from cardiosense_subscriber
+1782397488: Sending PINGRESP to cardiosense_subscriber
+1782397548: Received PINGREQ from cardiosense_subscriber
+1782397548: Sending PINGRESP to cardiosense_subscriber
+1782397609: Received PINGREQ from cardiosense_subscriber
+1782397609: Sending PINGRESP to cardiosense_subscriber
+1782397669: Received PINGREQ from cardiosense_subscriber
+1782397669: Sending PINGRESP to cardiosense_subscriber
+1782397730: Received PINGREQ from cardiosense_subscriber
+1782397730: Sending PINGRESP to cardiosense_subscriber
+1782397790: Received PINGREQ from cardiosense_subscriber
+1782397790: Sending PINGRESP to cardiosense_subscriber
+1782397850: Received PINGREQ from cardiosense_subscriber
+1782397850: Sending PINGRESP to cardiosense_subscriber
+1782397911: Received PINGREQ from cardiosense_subscriber
+1782397911: Sending PINGRESP to cardiosense_subscriber
+1782397971: Received PINGREQ from cardiosense_subscriber
+1782397971: Sending PINGRESP to cardiosense_subscriber
+1782398032: Received PINGREQ from cardiosense_subscriber
+1782398032: Sending PINGRESP to cardiosense_subscriber
+1782398092: Received PINGREQ from cardiosense_subscriber
+1782398092: Sending PINGRESP to cardiosense_subscriber
+1782398153: Received PINGREQ from cardiosense_subscriber
+1782398153: Sending PINGRESP to cardiosense_subscriber
+1782398213: Received PINGREQ from cardiosense_subscriber
+1782398213: Sending PINGRESP to cardiosense_subscriber
+1782398274: Received PINGREQ from cardiosense_subscriber
+1782398274: Sending PINGRESP to cardiosense_subscriber
+1782398334: Received PINGREQ from cardiosense_subscriber
+1782398334: Sending PINGRESP to cardiosense_subscriber
+1782398394: Received PINGREQ from cardiosense_subscriber
+1782398394: Sending PINGRESP to cardiosense_subscriber
+1782398455: Received PINGREQ from cardiosense_subscriber
+1782398455: Sending PINGRESP to cardiosense_subscriber
+1782398515: Received PINGREQ from cardiosense_subscriber
+1782398515: Sending PINGRESP to cardiosense_subscriber
+1782398576: Received PINGREQ from cardiosense_subscriber
+1782398576: Sending PINGRESP to cardiosense_subscriber
+1782398636: Received PINGREQ from cardiosense_subscriber
+1782398636: Sending PINGRESP to cardiosense_subscriber
+1782398697: Received PINGREQ from cardiosense_subscriber
+1782398697: Sending PINGRESP to cardiosense_subscriber
+1782398708: mosquitto version 2.0.22 terminating
+1782398708: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782478329: mosquitto version 2.0.22 starting
+1782478329: Config loaded from /mosquitto/config/mosquitto.conf.
+1782478329: Opening ipv4 listen socket on port 1883.
+1782478329: Opening ipv6 listen socket on port 1883.
+1782478329: Opening websockets listen socket on port 9001.
+1782478329: mosquitto version 2.0.22 running
+1782480510: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782480806: mosquitto version 2.0.22 terminating
+1782480806: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782482097: mosquitto version 2.0.22 starting
+1782482097: Config loaded from /mosquitto/config/mosquitto.conf.
+1782482097: Opening ipv4 listen socket on port 1883.
+1782482097: Opening ipv6 listen socket on port 1883.
+1782482097: Opening websockets listen socket on port 9001.
+1782482097: mosquitto version 2.0.22 running
+1782483683: New connection from 172.18.0.1:37190 on port 1883.
+1782483683: New connection from 172.18.0.1:37198 on port 1883.
+1782483683: New client connected from 172.18.0.1:37190 as notification_service (p2, c1, k60).
+1782483683: No will message specified.
+1782483683: Sending CONNACK to notification_service (0, 0)
+1782483683: New client connected from 172.18.0.1:37198 as cardiosense_subscriber (p2, c1, k60).
+1782483683: No will message specified.
+1782483683: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782483683: Received SUBSCRIBE from cardiosense_subscriber
+1782483683: 	cardiosense/dati (QoS 1)
+1782483683: cardiosense_subscriber 1 cardiosense/dati
+1782483683: Sending SUBACK to cardiosense_subscriber
+1782483743: Received PINGREQ from cardiosense_subscriber
+1782483743: Sending PINGRESP to cardiosense_subscriber
+1782483773: Client notification_service has exceeded timeout, disconnecting.
+1782483804: Received PINGREQ from cardiosense_subscriber
+1782483804: Sending PINGRESP to cardiosense_subscriber
+1782483838: New connection from 172.18.0.1:41414 on port 1883.
+1782483838: New client connected from 172.18.0.1:41414 as cardiosense_simulator (p2, c1, k60).
+1782483838: No will message specified.
+1782483838: Sending CONNACK to cardiosense_simulator (0, 0)
+1782483838: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (169 bytes))
+1782483838: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (169 bytes))
+1782483838: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782483838: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782483839: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (169 bytes))
+1782483839: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (169 bytes))
+1782483839: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782483839: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782483840: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (168 bytes))
+1782483840: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (168 bytes))
+1782483840: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782483840: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782483841: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m4, 'cardiosense/dati', ... (168 bytes))
+1782483841: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m4, 'cardiosense/dati', ... (168 bytes))
+1782483841: Sending PUBACK to cardiosense_simulator (m4, rc0)
+1782483841: Received PUBACK from cardiosense_subscriber (Mid: 4, RC:0)
+1782483842: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m5, 'cardiosense/dati', ... (169 bytes))
+1782483842: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m5, 'cardiosense/dati', ... (169 bytes))
+1782483842: Sending PUBACK to cardiosense_simulator (m5, rc0)
+1782483842: Received PUBACK from cardiosense_subscriber (Mid: 5, RC:0)
+1782483843: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m6, 'cardiosense/dati', ... (170 bytes))
+1782483843: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m6, 'cardiosense/dati', ... (170 bytes))
+1782483843: Sending PUBACK to cardiosense_simulator (m6, rc0)
+1782483843: Received PUBACK from cardiosense_subscriber (Mid: 6, RC:0)
+1782483844: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m7, 'cardiosense/dati', ... (167 bytes))
+1782483844: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m7, 'cardiosense/dati', ... (167 bytes))
+1782483844: Sending PUBACK to cardiosense_simulator (m7, rc0)
+1782483844: Received PUBACK from cardiosense_subscriber (Mid: 7, RC:0)
+1782483845: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m8, 'cardiosense/dati', ... (166 bytes))
+1782483845: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m8, 'cardiosense/dati', ... (166 bytes))
+1782483845: Sending PUBACK to cardiosense_simulator (m8, rc0)
+1782483845: Received PUBACK from cardiosense_subscriber (Mid: 8, RC:0)
+1782483846: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m9, 'cardiosense/dati', ... (169 bytes))
+1782483846: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m9, 'cardiosense/dati', ... (169 bytes))
+1782483846: Sending PUBACK to cardiosense_simulator (m9, rc0)
+1782483846: Received PUBACK from cardiosense_subscriber (Mid: 9, RC:0)
+1782483847: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m10, 'cardiosense/dati', ... (165 bytes))
+1782483847: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m10, 'cardiosense/dati', ... (165 bytes))
+1782483847: Sending PUBACK to cardiosense_simulator (m10, rc0)
+1782483847: Received PUBACK from cardiosense_subscriber (Mid: 10, RC:0)
+1782483848: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m11, 'cardiosense/dati', ... (165 bytes))
+1782483848: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m11, 'cardiosense/dati', ... (165 bytes))
+1782483848: Sending PUBACK to cardiosense_simulator (m11, rc0)
+1782483848: Received PUBACK from cardiosense_subscriber (Mid: 11, RC:0)
+1782483849: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m12, 'cardiosense/dati', ... (167 bytes))
+1782483849: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m12, 'cardiosense/dati', ... (167 bytes))
+1782483849: Sending PUBACK to cardiosense_simulator (m12, rc0)
+1782483849: Received PUBACK from cardiosense_subscriber (Mid: 12, RC:0)
+1782483850: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m13, 'cardiosense/dati', ... (166 bytes))
+1782483850: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m13, 'cardiosense/dati', ... (166 bytes))
+1782483850: Sending PUBACK to cardiosense_simulator (m13, rc0)
+1782483850: Received PUBACK from cardiosense_subscriber (Mid: 13, RC:0)
+1782483851: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m14, 'cardiosense/dati', ... (167 bytes))
+1782483851: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m14, 'cardiosense/dati', ... (167 bytes))
+1782483851: Sending PUBACK to cardiosense_simulator (m14, rc0)
+1782483851: Received PUBACK from cardiosense_subscriber (Mid: 14, RC:0)
+1782483852: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m15, 'cardiosense/dati', ... (166 bytes))
+1782483852: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m15, 'cardiosense/dati', ... (166 bytes))
+1782483852: Sending PUBACK to cardiosense_simulator (m15, rc0)
+1782483852: Received PUBACK from cardiosense_subscriber (Mid: 15, RC:0)
+1782483853: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m16, 'cardiosense/dati', ... (167 bytes))
+1782483853: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m16, 'cardiosense/dati', ... (167 bytes))
+1782483853: Sending PUBACK to cardiosense_simulator (m16, rc0)
+1782483853: Received PUBACK from cardiosense_subscriber (Mid: 16, RC:0)
+1782483854: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m17, 'cardiosense/dati', ... (167 bytes))
+1782483854: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m17, 'cardiosense/dati', ... (167 bytes))
+1782483854: Sending PUBACK to cardiosense_simulator (m17, rc0)
+1782483854: Received PUBACK from cardiosense_subscriber (Mid: 17, RC:0)
+1782483855: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m18, 'cardiosense/dati', ... (167 bytes))
+1782483855: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m18, 'cardiosense/dati', ... (167 bytes))
+1782483855: Sending PUBACK to cardiosense_simulator (m18, rc0)
+1782483855: Received PUBACK from cardiosense_subscriber (Mid: 18, RC:0)
+1782483856: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m19, 'cardiosense/dati', ... (168 bytes))
+1782483856: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m19, 'cardiosense/dati', ... (168 bytes))
+1782483856: Sending PUBACK to cardiosense_simulator (m19, rc0)
+1782483856: Received PUBACK from cardiosense_subscriber (Mid: 19, RC:0)
+1782483857: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m20, 'cardiosense/dati', ... (165 bytes))
+1782483857: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m20, 'cardiosense/dati', ... (165 bytes))
+1782483857: Sending PUBACK to cardiosense_simulator (m20, rc0)
+1782483857: Received PUBACK from cardiosense_subscriber (Mid: 20, RC:0)
+1782483858: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m21, 'cardiosense/dati', ... (168 bytes))
+1782483858: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m21, 'cardiosense/dati', ... (168 bytes))
+1782483858: Sending PUBACK to cardiosense_simulator (m21, rc0)
+1782483858: Received PUBACK from cardiosense_subscriber (Mid: 21, RC:0)
+1782483859: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m22, 'cardiosense/dati', ... (168 bytes))
+1782483859: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m22, 'cardiosense/dati', ... (168 bytes))
+1782483859: Sending PUBACK to cardiosense_simulator (m22, rc0)
+1782483859: Received PUBACK from cardiosense_subscriber (Mid: 22, RC:0)
+1782483860: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m23, 'cardiosense/dati', ... (169 bytes))
+1782483860: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m23, 'cardiosense/dati', ... (169 bytes))
+1782483860: Sending PUBACK to cardiosense_simulator (m23, rc0)
+1782483860: Received PUBACK from cardiosense_subscriber (Mid: 23, RC:0)
+1782483861: Received DISCONNECT from cardiosense_simulator
+1782483861: Client cardiosense_simulator disconnected.
+1782483864: Received PINGREQ from cardiosense_subscriber
+1782483864: Sending PINGRESP to cardiosense_subscriber
+1782483898: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782483924: Received PINGREQ from cardiosense_subscriber
+1782483924: Sending PINGRESP to cardiosense_subscriber
+1782483985: Received PINGREQ from cardiosense_subscriber
+1782483985: Sending PINGRESP to cardiosense_subscriber
+1782484045: Received PINGREQ from cardiosense_subscriber
+1782484045: Sending PINGRESP to cardiosense_subscriber
+1782484106: Received PINGREQ from cardiosense_subscriber
+1782484106: Sending PINGRESP to cardiosense_subscriber
+1782484166: Received PINGREQ from cardiosense_subscriber
+1782484166: Sending PINGRESP to cardiosense_subscriber
+1782484226: Received PINGREQ from cardiosense_subscriber
+1782484226: Sending PINGRESP to cardiosense_subscriber
+1782484287: Received PINGREQ from cardiosense_subscriber
+1782484287: Sending PINGRESP to cardiosense_subscriber
+1782484314: Received DISCONNECT from cardiosense_subscriber
+1782484314: Client cardiosense_subscriber disconnected.
+1782484353: mosquitto version 2.0.22 terminating
+1782484353: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782484355: mosquitto version 2.0.22 starting
+1782484355: Config loaded from /mosquitto/config/mosquitto.conf.
+1782484355: Opening ipv4 listen socket on port 1883.
+1782484355: Opening ipv6 listen socket on port 1883.
+1782484355: Opening websockets listen socket on port 9001.
+1782484355: mosquitto version 2.0.22 running
+1782484359: New client connected from 172.18.0.1:54796 as dashboard_9bdf76 (p2, c1, k60).
+1782484359: No will message specified.
+1782484359: Sending CONNACK to dashboard_9bdf76 (0, 0)
+1782484359: Received SUBSCRIBE from dashboard_9bdf76
+1782484359: 	cardiosense/allarmi (QoS 1)
+1782484359: dashboard_9bdf76 1 cardiosense/allarmi
+1782484359: Sending SUBACK to dashboard_9bdf76
+1782484387: New connection from 172.18.0.1:48906 on port 1883.
+1782484387: New connection from 172.18.0.1:48920 on port 1883.
+1782484387: New client connected from 172.18.0.1:48906 as notification_service (p2, c1, k60).
+1782484387: No will message specified.
+1782484387: Sending CONNACK to notification_service (0, 0)
+1782484387: New client connected from 172.18.0.1:48920 as cardiosense_subscriber (p2, c1, k60).
+1782484387: No will message specified.
+1782484387: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782484387: Received SUBSCRIBE from cardiosense_subscriber
+1782484387: 	cardiosense/dati (QoS 1)
+1782484387: cardiosense_subscriber 1 cardiosense/dati
+1782484387: Sending SUBACK to cardiosense_subscriber
+1782484392: Client dashboard_9bdf76 closed its connection.
+1782484393: New client connected from 172.18.0.1:48056 as dashboard_bf54a1 (p2, c1, k60).
+1782484393: No will message specified.
+1782484393: Sending CONNACK to dashboard_bf54a1 (0, 0)
+1782484393: Received SUBSCRIBE from dashboard_bf54a1
+1782484393: 	cardiosense/allarmi (QoS 1)
+1782484393: dashboard_bf54a1 1 cardiosense/allarmi
+1782484393: Sending SUBACK to dashboard_bf54a1
+1782484395: Client dashboard_bf54a1 closed its connection.
+1782484415: New client connected from 172.18.0.1:49096 as dashboard_f5be40 (p2, c1, k60).
+1782484415: No will message specified.
+1782484415: Sending CONNACK to dashboard_f5be40 (0, 0)
+1782484415: Received SUBSCRIBE from dashboard_f5be40
+1782484415: 	cardiosense/allarmi (QoS 1)
+1782484415: dashboard_f5be40 1 cardiosense/allarmi
+1782484415: Sending SUBACK to dashboard_f5be40
+1782484447: Received PINGREQ from cardiosense_subscriber
+1782484447: Sending PINGRESP to cardiosense_subscriber
+1782484462: New connection from 172.18.0.1:58558 on port 1883.
+1782484462: New client connected from 172.18.0.1:58558 as cardiosense_simulator (p2, c1, k60).
+1782484462: No will message specified.
+1782484462: Sending CONNACK to cardiosense_simulator (0, 0)
+1782484462: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (168 bytes))
+1782484462: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (168 bytes))
+1782484462: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782484462: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782484463: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (168 bytes))
+1782484463: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (168 bytes))
+1782484463: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782484463: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782484464: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (169 bytes))
+1782484464: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (169 bytes))
+1782484464: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782484464: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782484465: Received DISCONNECT from cardiosense_simulator
+1782484465: Client cardiosense_simulator disconnected.
+1782484475: Received PINGREQ from dashboard_f5be40
+1782484475: Sending PINGRESP to dashboard_f5be40
+1782484477: Client notification_service has exceeded timeout, disconnecting.
+1782484508: Received PINGREQ from cardiosense_subscriber
+1782484508: Sending PINGRESP to cardiosense_subscriber
+1782484535: Received PINGREQ from dashboard_f5be40
+1782484535: Sending PINGRESP to dashboard_f5be40
+1782484568: Received PINGREQ from cardiosense_subscriber
+1782484568: Sending PINGRESP to cardiosense_subscriber
+1782484595: Received PINGREQ from dashboard_f5be40
+1782484595: Sending PINGRESP to dashboard_f5be40
+1782484628: Received PINGREQ from cardiosense_subscriber
+1782484628: Sending PINGRESP to cardiosense_subscriber
+1782484655: Received PINGREQ from dashboard_f5be40
+1782484655: Sending PINGRESP to dashboard_f5be40
+1782484689: Received PINGREQ from cardiosense_subscriber
+1782484689: Sending PINGRESP to cardiosense_subscriber
+1782484699: New connection from 172.18.0.1:46922 on port 1883.
+1782484699: New client connected from 172.18.0.1:46922 as cardiosense_simulator (p2, c1, k60).
+1782484699: No will message specified.
+1782484699: Sending CONNACK to cardiosense_simulator (0, 0)
+1782484699: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (168 bytes))
+1782484699: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m4, 'cardiosense/dati', ... (168 bytes))
+1782484699: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782484699: Received PUBACK from cardiosense_subscriber (Mid: 4, RC:0)
+1782484700: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (166 bytes))
+1782484700: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m5, 'cardiosense/dati', ... (166 bytes))
+1782484700: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782484700: Received PUBACK from cardiosense_subscriber (Mid: 5, RC:0)
+1782484701: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (167 bytes))
+1782484701: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m6, 'cardiosense/dati', ... (167 bytes))
+1782484701: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782484701: Received PUBACK from cardiosense_subscriber (Mid: 6, RC:0)
+1782484702: Received DISCONNECT from cardiosense_simulator
+1782484702: Client cardiosense_simulator disconnected.
+1782484716: Received PINGREQ from dashboard_f5be40
+1782484716: Sending PINGRESP to dashboard_f5be40
+1782484717: Client dashboard_f5be40 closed its connection.
+1782484718: New client connected from 172.18.0.1:43554 as dashboard_08284e (p2, c1, k60).
+1782484718: No will message specified.
+1782484718: Sending CONNACK to dashboard_08284e (0, 0)
+1782484718: Received SUBSCRIBE from dashboard_08284e
+1782484718: 	cardiosense/allarmi (QoS 1)
+1782484718: dashboard_08284e 1 cardiosense/allarmi
+1782484718: Sending SUBACK to dashboard_08284e
+1782484749: Received PINGREQ from cardiosense_subscriber
+1782484749: Sending PINGRESP to cardiosense_subscriber
+1782484778: Received PINGREQ from dashboard_08284e
+1782484778: Sending PINGRESP to dashboard_08284e
+1782484809: Received PINGREQ from cardiosense_subscriber
+1782484809: Sending PINGRESP to cardiosense_subscriber
+1782484838: Received PINGREQ from dashboard_08284e
+1782484838: Sending PINGRESP to dashboard_08284e
+1782484870: Received PINGREQ from cardiosense_subscriber
+1782484870: Sending PINGRESP to cardiosense_subscriber
+1782484898: Received PINGREQ from dashboard_08284e
+1782484898: Sending PINGRESP to dashboard_08284e
+1782484930: Received PINGREQ from cardiosense_subscriber
+1782484930: Sending PINGRESP to cardiosense_subscriber
+1782484958: Received PINGREQ from dashboard_08284e
+1782484958: Sending PINGRESP to dashboard_08284e
+1782484980: New connection from 172.18.0.1:55868 on port 1883.
+1782484980: New client connected from 172.18.0.1:55868 as cardiosense_simulator (p2, c1, k60).
+1782484980: No will message specified.
+1782484980: Sending CONNACK to cardiosense_simulator (0, 0)
+1782484980: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (171 bytes))
+1782484980: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m7, 'cardiosense/dati', ... (171 bytes))
+1782484980: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782484980: Received PUBACK from cardiosense_subscriber (Mid: 7, RC:0)
+1782484981: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (170 bytes))
+1782484981: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m8, 'cardiosense/dati', ... (170 bytes))
+1782484981: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782484981: Received PUBACK from cardiosense_subscriber (Mid: 8, RC:0)
+1782484982: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (170 bytes))
+1782484982: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m9, 'cardiosense/dati', ... (170 bytes))
+1782484982: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782484982: Received PUBACK from cardiosense_subscriber (Mid: 9, RC:0)
+1782484983: Received DISCONNECT from cardiosense_simulator
+1782484983: Client cardiosense_simulator disconnected.
+1782484990: Client dashboard_08284e closed its connection.
+1782484991: New client connected from 172.18.0.1:48620 as dashboard_7fbb1e (p2, c1, k60).
+1782484991: No will message specified.
+1782484991: Sending CONNACK to dashboard_7fbb1e (0, 0)
+1782484991: Received SUBSCRIBE from dashboard_7fbb1e
+1782484991: 	cardiosense/allarmi (QoS 1)
+1782484991: dashboard_7fbb1e 1 cardiosense/allarmi
+1782484991: Sending SUBACK to dashboard_7fbb1e
+1782484991: Received PINGREQ from cardiosense_subscriber
+1782484991: Sending PINGRESP to cardiosense_subscriber
+1782485051: Received PINGREQ from dashboard_7fbb1e
+1782485051: Sending PINGRESP to dashboard_7fbb1e
+1782485052: Received PINGREQ from cardiosense_subscriber
+1782485052: Sending PINGRESP to cardiosense_subscriber
+1782485111: Received PINGREQ from dashboard_7fbb1e
+1782485111: Sending PINGRESP to dashboard_7fbb1e
+1782485112: Received PINGREQ from cardiosense_subscriber
+1782485112: Sending PINGRESP to cardiosense_subscriber
+1782485171: Received PINGREQ from dashboard_7fbb1e
+1782485171: Sending PINGRESP to dashboard_7fbb1e
+1782485173: Received PINGREQ from cardiosense_subscriber
+1782485173: Sending PINGRESP to cardiosense_subscriber
+1782485207: New connection from 172.18.0.1:36900 on port 1883.
+1782485207: New client connected from 172.18.0.1:36900 as cardiosense_simulator (p2, c1, k60).
+1782485207: No will message specified.
+1782485207: Sending CONNACK to cardiosense_simulator (0, 0)
+1782485207: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (171 bytes))
+1782485207: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m10, 'cardiosense/dati', ... (171 bytes))
+1782485207: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782485207: Received PUBACK from cardiosense_subscriber (Mid: 10, RC:0)
+1782485208: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (170 bytes))
+1782485208: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m11, 'cardiosense/dati', ... (170 bytes))
+1782485208: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782485208: Received PUBACK from cardiosense_subscriber (Mid: 11, RC:0)
+1782485209: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (170 bytes))
+1782485209: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m12, 'cardiosense/dati', ... (170 bytes))
+1782485209: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782485209: Received PUBACK from cardiosense_subscriber (Mid: 12, RC:0)
+1782485210: Received DISCONNECT from cardiosense_simulator
+1782485210: Client cardiosense_simulator disconnected.
+1782485214: Client dashboard_7fbb1e closed its connection.
+1782485215: New client connected from 172.18.0.1:47196 as dashboard_daee67 (p2, c1, k60).
+1782485215: No will message specified.
+1782485215: Sending CONNACK to dashboard_daee67 (0, 0)
+1782485215: Received SUBSCRIBE from dashboard_daee67
+1782485215: 	cardiosense/allarmi (QoS 1)
+1782485215: dashboard_daee67 1 cardiosense/allarmi
+1782485215: Sending SUBACK to dashboard_daee67
+1782485233: Received PINGREQ from cardiosense_subscriber
+1782485233: Sending PINGRESP to cardiosense_subscriber
+1782485237: Received DISCONNECT from cardiosense_subscriber
+1782485237: Client cardiosense_subscriber disconnected.
+1782485246: New connection from 172.18.0.1:47640 on port 1883.
+1782485246: New client connected from 172.18.0.1:47640 as notification_service (p2, c1, k60).
+1782485246: No will message specified.
+1782485246: Sending CONNACK to notification_service (0, 0)
+1782485246: New connection from 172.18.0.1:47642 on port 1883.
+1782485246: New client connected from 172.18.0.1:47642 as cardiosense_subscriber (p2, c1, k60).
+1782485246: No will message specified.
+1782485246: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782485246: Received SUBSCRIBE from cardiosense_subscriber
+1782485246: 	cardiosense/dati (QoS 1)
+1782485246: cardiosense_subscriber 1 cardiosense/dati
+1782485246: Sending SUBACK to cardiosense_subscriber
+1782485257: New connection from 172.18.0.1:35542 on port 1883.
+1782485257: New client connected from 172.18.0.1:35542 as cardiosense_simulator (p2, c1, k60).
+1782485257: No will message specified.
+1782485257: Sending CONNACK to cardiosense_simulator (0, 0)
+1782485257: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (170 bytes))
+1782485257: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (170 bytes))
+1782485257: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782485257: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782485258: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (139 bytes))
+1782485258: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (139 bytes))
+1782485258: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782485258: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782485259: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (169 bytes))
+1782485259: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (169 bytes))
+1782485259: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782485259: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782485260: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m4, 'cardiosense/dati', ... (140 bytes))
+1782485260: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m4, 'cardiosense/dati', ... (140 bytes))
+1782485260: Sending PUBACK to cardiosense_simulator (m4, rc0)
+1782485260: Received PUBACK from cardiosense_subscriber (Mid: 4, RC:0)
+1782485261: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m5, 'cardiosense/dati', ... (169 bytes))
+1782485261: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m5, 'cardiosense/dati', ... (169 bytes))
+1782485261: Sending PUBACK to cardiosense_simulator (m5, rc0)
+1782485261: Received PUBACK from cardiosense_subscriber (Mid: 5, RC:0)
+1782485262: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m6, 'cardiosense/dati', ... (170 bytes))
+1782485262: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m6, 'cardiosense/dati', ... (170 bytes))
+1782485262: Sending PUBACK to cardiosense_simulator (m6, rc0)
+1782485262: Received PUBACK from cardiosense_subscriber (Mid: 6, RC:0)
+1782485263: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m7, 'cardiosense/dati', ... (170 bytes))
+1782485263: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m7, 'cardiosense/dati', ... (170 bytes))
+1782485263: Sending PUBACK to cardiosense_simulator (m7, rc0)
+1782485263: Received PUBACK from cardiosense_subscriber (Mid: 7, RC:0)
+1782485264: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m8, 'cardiosense/dati', ... (170 bytes))
+1782485264: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m8, 'cardiosense/dati', ... (170 bytes))
+1782485264: Sending PUBACK to cardiosense_simulator (m8, rc0)
+1782485264: Received PUBACK from cardiosense_subscriber (Mid: 8, RC:0)
+1782485265: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m9, 'cardiosense/dati', ... (139 bytes))
+1782485265: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m9, 'cardiosense/dati', ... (139 bytes))
+1782485265: Sending PUBACK to cardiosense_simulator (m9, rc0)
+1782485265: Received PUBACK from cardiosense_subscriber (Mid: 9, RC:0)
+1782485266: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m10, 'cardiosense/dati', ... (169 bytes))
+1782485266: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m10, 'cardiosense/dati', ... (169 bytes))
+1782485266: Sending PUBACK to cardiosense_simulator (m10, rc0)
+1782485266: Received PUBACK from cardiosense_subscriber (Mid: 10, RC:0)
+1782485267: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m11, 'cardiosense/dati', ... (139 bytes))
+1782485267: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m11, 'cardiosense/dati', ... (139 bytes))
+1782485267: Sending PUBACK to cardiosense_simulator (m11, rc0)
+1782485267: Received PUBACK from cardiosense_subscriber (Mid: 11, RC:0)
+1782485268: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m12, 'cardiosense/dati', ... (140 bytes))
+1782485268: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m12, 'cardiosense/dati', ... (140 bytes))
+1782485268: Sending PUBACK to cardiosense_simulator (m12, rc0)
+1782485268: Received PUBACK from cardiosense_subscriber (Mid: 12, RC:0)
+1782485269: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m13, 'cardiosense/dati', ... (141 bytes))
+1782485269: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m13, 'cardiosense/dati', ... (141 bytes))
+1782485269: Sending PUBACK to cardiosense_simulator (m13, rc0)
+1782485269: Received PUBACK from cardiosense_subscriber (Mid: 13, RC:0)
+1782485270: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m14, 'cardiosense/dati', ... (140 bytes))
+1782485270: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m14, 'cardiosense/dati', ... (140 bytes))
+1782485270: Sending PUBACK to cardiosense_simulator (m14, rc0)
+1782485270: Received PUBACK from cardiosense_subscriber (Mid: 14, RC:0)
+1782485271: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m15, 'cardiosense/dati', ... (169 bytes))
+1782485271: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m15, 'cardiosense/dati', ... (169 bytes))
+1782485271: Sending PUBACK to cardiosense_simulator (m15, rc0)
+1782485271: Received PUBACK from cardiosense_subscriber (Mid: 15, RC:0)
+1782485272: Received DISCONNECT from cardiosense_simulator
+1782485272: Client cardiosense_simulator disconnected.
+1782485275: Received PINGREQ from dashboard_daee67
+1782485275: Sending PINGRESP to dashboard_daee67
+1782485306: Received PINGREQ from cardiosense_subscriber
+1782485306: Sending PINGRESP to cardiosense_subscriber
+1782485335: Received PINGREQ from dashboard_daee67
+1782485335: Sending PINGRESP to dashboard_daee67
+1782485337: Client notification_service has exceeded timeout, disconnecting.
+1782485367: Received PINGREQ from cardiosense_subscriber
+1782485367: Sending PINGRESP to cardiosense_subscriber
+1782485395: Received PINGREQ from dashboard_daee67
+1782485395: Sending PINGRESP to dashboard_daee67
+1782485427: Received PINGREQ from cardiosense_subscriber
+1782485427: Sending PINGRESP to cardiosense_subscriber
+1782485455: Received PINGREQ from dashboard_daee67
+1782485455: Sending PINGRESP to dashboard_daee67
+1782485487: Received PINGREQ from cardiosense_subscriber
+1782485487: Sending PINGRESP to cardiosense_subscriber
+1782485515: Received PINGREQ from dashboard_daee67
+1782485515: Sending PINGRESP to dashboard_daee67
+1782485548: Received PINGREQ from cardiosense_subscriber
+1782485548: Sending PINGRESP to cardiosense_subscriber
+1782485575: Received PINGREQ from dashboard_daee67
+1782485575: Sending PINGRESP to dashboard_daee67
+1782485608: Received PINGREQ from cardiosense_subscriber
+1782485608: Sending PINGRESP to cardiosense_subscriber
+1782485635: Received PINGREQ from dashboard_daee67
+1782485635: Sending PINGRESP to dashboard_daee67
+1782485668: Received PINGREQ from cardiosense_subscriber
+1782485668: Sending PINGRESP to cardiosense_subscriber
+1782485695: Received PINGREQ from dashboard_daee67
+1782485695: Sending PINGRESP to dashboard_daee67
+1782485729: Received PINGREQ from cardiosense_subscriber
+1782485729: Sending PINGRESP to cardiosense_subscriber
+1782485755: Received PINGREQ from dashboard_daee67
+1782485755: Sending PINGRESP to dashboard_daee67
+1782485771: Received DISCONNECT from cardiosense_subscriber
+1782485771: Client cardiosense_subscriber disconnected.
+1782485779: New connection from 172.18.0.1:55054 on port 1883.
+1782485779: New client connected from 172.18.0.1:55054 as notification_service (p2, c1, k60).
+1782485779: No will message specified.
+1782485779: Sending CONNACK to notification_service (0, 0)
+1782485779: New connection from 172.18.0.1:55058 on port 1883.
+1782485779: New client connected from 172.18.0.1:55058 as cardiosense_subscriber (p2, c1, k60).
+1782485779: No will message specified.
+1782485779: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782485779: Received SUBSCRIBE from cardiosense_subscriber
+1782485779: 	cardiosense/dati (QoS 1)
+1782485779: cardiosense_subscriber 1 cardiosense/dati
+1782485779: Sending SUBACK to cardiosense_subscriber
+1782485784: New connection from 172.18.0.1:50122 on port 1883.
+1782485784: New client connected from 172.18.0.1:50122 as cardiosense_simulator (p2, c1, k60).
+1782485784: No will message specified.
+1782485784: Sending CONNACK to cardiosense_simulator (0, 0)
+1782485784: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (956 bytes))
+1782485784: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (956 bytes))
+1782485784: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782485784: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782485785: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (959 bytes))
+1782485785: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (959 bytes))
+1782485785: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782485785: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782485786: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (957 bytes))
+1782485786: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (957 bytes))
+1782485786: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782485786: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782485787: Received DISCONNECT from cardiosense_simulator
+1782485787: Client cardiosense_simulator disconnected.
+1782485815: Received PINGREQ from dashboard_daee67
+1782485815: Sending PINGRESP to dashboard_daee67
+1782485840: Received PINGREQ from cardiosense_subscriber
+1782485840: Sending PINGRESP to cardiosense_subscriber
+1782485870: Client notification_service has exceeded timeout, disconnecting.
+1782485875: Received PINGREQ from dashboard_daee67
+1782485875: Sending PINGRESP to dashboard_daee67
+1782485900: Received PINGREQ from cardiosense_subscriber
+1782485900: Sending PINGRESP to cardiosense_subscriber
+1782485935: Received PINGREQ from dashboard_daee67
+1782485935: Sending PINGRESP to dashboard_daee67
+1782485960: Received PINGREQ from cardiosense_subscriber
+1782485960: Sending PINGRESP to cardiosense_subscriber
+1782485995: Received PINGREQ from dashboard_daee67
+1782485995: Sending PINGRESP to dashboard_daee67
+1782486020: Received PINGREQ from cardiosense_subscriber
+1782486020: Sending PINGRESP to cardiosense_subscriber
+1782486056: Received PINGREQ from dashboard_daee67
+1782486056: Sending PINGRESP to dashboard_daee67
+1782486081: Received PINGREQ from cardiosense_subscriber
+1782486081: Sending PINGRESP to cardiosense_subscriber
+1782486116: Received PINGREQ from dashboard_daee67
+1782486116: Sending PINGRESP to dashboard_daee67
+1782486141: Received PINGREQ from cardiosense_subscriber
+1782486141: Sending PINGRESP to cardiosense_subscriber
+1782486156: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782486176: Received PINGREQ from dashboard_daee67
+1782486176: Sending PINGRESP to dashboard_daee67
+1782486201: Received PINGREQ from cardiosense_subscriber
+1782486201: Sending PINGRESP to cardiosense_subscriber
+1782486236: Received PINGREQ from dashboard_daee67
+1782486236: Sending PINGRESP to dashboard_daee67
+1782486262: Received PINGREQ from cardiosense_subscriber
+1782486262: Sending PINGRESP to cardiosense_subscriber
+1782486296: Received PINGREQ from dashboard_daee67
+1782486296: Sending PINGRESP to dashboard_daee67
+1782486322: Received PINGREQ from cardiosense_subscriber
+1782486322: Sending PINGRESP to cardiosense_subscriber
+1782486356: Received PINGREQ from dashboard_daee67
+1782486356: Sending PINGRESP to dashboard_daee67
+1782486382: Received PINGREQ from cardiosense_subscriber
+1782486382: Sending PINGRESP to cardiosense_subscriber
+1782486416: Received PINGREQ from dashboard_daee67
+1782486416: Sending PINGRESP to dashboard_daee67
+1782486442: Received PINGREQ from cardiosense_subscriber
+1782486442: Sending PINGRESP to cardiosense_subscriber
+1782486476: Received PINGREQ from dashboard_daee67
+1782486476: Sending PINGRESP to dashboard_daee67
+1782486477: Received DISCONNECT from cardiosense_subscriber
+1782486477: Client cardiosense_subscriber disconnected.
+1782486499: New connection from 172.18.0.1:48894 on port 1883.
+1782486499: New client connected from 172.18.0.1:48894 as notification_service (p2, c1, k60).
+1782486499: No will message specified.
+1782486499: Sending CONNACK to notification_service (0, 0)
+1782486499: New connection from 172.18.0.1:48906 on port 1883.
+1782486499: New client connected from 172.18.0.1:48906 as cardiosense_subscriber (p2, c1, k60).
+1782486499: No will message specified.
+1782486499: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782486499: Received SUBSCRIBE from cardiosense_subscriber
+1782486499: 	cardiosense/dati (QoS 1)
+1782486499: cardiosense_subscriber 1 cardiosense/dati
+1782486499: Sending SUBACK to cardiosense_subscriber
+1782486516: New connection from 172.18.0.1:39722 on port 1883.
+1782486516: New client connected from 172.18.0.1:39722 as cardiosense_simulator (p2, c1, k60).
+1782486516: No will message specified.
+1782486516: Sending CONNACK to cardiosense_simulator (0, 0)
+1782486516: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (999 bytes))
+1782486516: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (999 bytes))
+1782486516: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782486516: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782486517: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (996 bytes))
+1782486517: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (996 bytes))
+1782486517: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782486517: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782486518: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (995 bytes))
+1782486518: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (995 bytes))
+1782486518: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782486518: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782486519: Received DISCONNECT from cardiosense_simulator
+1782486519: Client cardiosense_simulator disconnected.
+1782486526: Client dashboard_daee67 closed its connection.
+1782486527: New client connected from 172.18.0.1:36744 as dashboard_059625 (p2, c1, k60).
+1782486527: No will message specified.
+1782486527: Sending CONNACK to dashboard_059625 (0, 0)
+1782486527: Received SUBSCRIBE from dashboard_059625
+1782486527: 	cardiosense/allarmi (QoS 1)
+1782486527: dashboard_059625 1 cardiosense/allarmi
+1782486527: Sending SUBACK to dashboard_059625
+1782486559: Received PINGREQ from cardiosense_subscriber
+1782486559: Sending PINGRESP to cardiosense_subscriber
+1782486587: Received PINGREQ from dashboard_059625
+1782486587: Sending PINGRESP to dashboard_059625
+1782486590: Client notification_service has exceeded timeout, disconnecting.
+1782486620: Received PINGREQ from cardiosense_subscriber
+1782486620: Sending PINGRESP to cardiosense_subscriber
+1782486630: New connection from 172.18.0.1:48650 on port 1883.
+1782486630: New client connected from 172.18.0.1:48650 as cardiosense_simulator (p2, c1, k60).
+1782486630: No will message specified.
+1782486630: Sending CONNACK to cardiosense_simulator (0, 0)
+1782486630: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (1000 bytes))
+1782486630: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m4, 'cardiosense/dati', ... (1000 bytes))
+1782486630: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782486630: Received PUBACK from cardiosense_subscriber (Mid: 4, RC:0)
+1782486631: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (1001 bytes))
+1782486631: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m5, 'cardiosense/dati', ... (1001 bytes))
+1782486631: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782486631: Received PUBACK from cardiosense_subscriber (Mid: 5, RC:0)
+1782486632: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (991 bytes))
+1782486632: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m6, 'cardiosense/dati', ... (991 bytes))
+1782486632: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782486632: Received PUBACK from cardiosense_subscriber (Mid: 6, RC:0)
+1782486633: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m4, 'cardiosense/dati', ... (999 bytes))
+1782486633: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m7, 'cardiosense/dati', ... (999 bytes))
+1782486633: Sending PUBACK to cardiosense_simulator (m4, rc0)
+1782486633: Received PUBACK from cardiosense_subscriber (Mid: 7, RC:0)
+1782486634: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m5, 'cardiosense/dati', ... (994 bytes))
+1782486634: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m8, 'cardiosense/dati', ... (994 bytes))
+1782486634: Sending PUBACK to cardiosense_simulator (m5, rc0)
+1782486634: Received PUBACK from cardiosense_subscriber (Mid: 8, RC:0)
+1782486635: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m6, 'cardiosense/dati', ... (993 bytes))
+1782486635: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m9, 'cardiosense/dati', ... (993 bytes))
+1782486635: Sending PUBACK to cardiosense_simulator (m6, rc0)
+1782486635: Received PUBACK from cardiosense_subscriber (Mid: 9, RC:0)
+1782486636: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m7, 'cardiosense/dati', ... (999 bytes))
+1782486636: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m10, 'cardiosense/dati', ... (999 bytes))
+1782486636: Sending PUBACK to cardiosense_simulator (m7, rc0)
+1782486636: Received PUBACK from cardiosense_subscriber (Mid: 10, RC:0)
+1782486637: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m8, 'cardiosense/dati', ... (994 bytes))
+1782486637: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m11, 'cardiosense/dati', ... (994 bytes))
+1782486637: Sending PUBACK to cardiosense_simulator (m8, rc0)
+1782486637: Received PUBACK from cardiosense_subscriber (Mid: 11, RC:0)
+1782486638: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m9, 'cardiosense/dati', ... (998 bytes))
+1782486638: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m12, 'cardiosense/dati', ... (998 bytes))
+1782486638: Sending PUBACK to cardiosense_simulator (m9, rc0)
+1782486638: Received PUBACK from cardiosense_subscriber (Mid: 12, RC:0)
+1782486639: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m10, 'cardiosense/dati', ... (1001 bytes))
+1782486639: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m13, 'cardiosense/dati', ... (1001 bytes))
+1782486639: Sending PUBACK to cardiosense_simulator (m10, rc0)
+1782486639: Received PUBACK from cardiosense_subscriber (Mid: 13, RC:0)
+1782486640: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m11, 'cardiosense/dati', ... (990 bytes))
+1782486640: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m14, 'cardiosense/dati', ... (990 bytes))
+1782486640: Sending PUBACK to cardiosense_simulator (m11, rc0)
+1782486640: Received PUBACK from cardiosense_subscriber (Mid: 14, RC:0)
+1782486641: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m12, 'cardiosense/dati', ... (1002 bytes))
+1782486641: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m15, 'cardiosense/dati', ... (1002 bytes))
+1782486641: Sending PUBACK to cardiosense_simulator (m12, rc0)
+1782486641: Received PUBACK from cardiosense_subscriber (Mid: 15, RC:0)
+1782486642: Received DISCONNECT from cardiosense_simulator
+1782486642: Client cardiosense_simulator disconnected.
+1782486647: Received PINGREQ from dashboard_059625
+1782486647: Sending PINGRESP to dashboard_059625
+1782486680: Received PINGREQ from cardiosense_subscriber
+1782486680: Sending PINGRESP to cardiosense_subscriber
+1782486707: Received PINGREQ from dashboard_059625
+1782486707: Sending PINGRESP to dashboard_059625
+1782486741: Received PINGREQ from cardiosense_subscriber
+1782486741: Sending PINGRESP to cardiosense_subscriber
+1782486767: Received PINGREQ from dashboard_059625
+1782486767: Sending PINGRESP to dashboard_059625
+1782486801: Received PINGREQ from cardiosense_subscriber
+1782486801: Sending PINGRESP to cardiosense_subscriber
+1782486827: Received PINGREQ from dashboard_059625
+1782486827: Sending PINGRESP to dashboard_059625
+1782486861: Received PINGREQ from cardiosense_subscriber
+1782486861: Sending PINGRESP to cardiosense_subscriber
+1782486866: Received DISCONNECT from cardiosense_subscriber
+1782486866: Client cardiosense_subscriber disconnected.
+1782486875: New connection from 172.18.0.1:60576 on port 1883.
+1782486875: New client connected from 172.18.0.1:60576 as notification_service (p2, c1, k60).
+1782486875: No will message specified.
+1782486875: Sending CONNACK to notification_service (0, 0)
+1782486875: New connection from 172.18.0.1:60590 on port 1883.
+1782486875: New client connected from 172.18.0.1:60590 as cardiosense_subscriber (p2, c1, k60).
+1782486875: No will message specified.
+1782486875: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782486875: Received SUBSCRIBE from cardiosense_subscriber
+1782486875: 	cardiosense/dati (QoS 1)
+1782486875: cardiosense_subscriber 1 cardiosense/dati
+1782486875: Sending SUBACK to cardiosense_subscriber
+1782486881: New connection from 172.18.0.1:60594 on port 1883.
+1782486881: New client connected from 172.18.0.1:60594 as cardiosense_simulator (p2, c1, k60).
+1782486881: No will message specified.
+1782486881: Sending CONNACK to cardiosense_simulator (0, 0)
+1782486881: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (244 bytes))
+1782486881: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (244 bytes))
+1782486881: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782486881: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782486882: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (249 bytes))
+1782486882: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (249 bytes))
+1782486882: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782486882: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782486883: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (243 bytes))
+1782486883: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (243 bytes))
+1782486883: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782486883: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782486884: Received DISCONNECT from cardiosense_simulator
+1782486884: Client cardiosense_simulator disconnected.
+1782486887: Received PINGREQ from dashboard_059625
+1782486887: Sending PINGRESP to dashboard_059625
+1782486935: Received PINGREQ from cardiosense_subscriber
+1782486935: Sending PINGRESP to cardiosense_subscriber
+1782486947: Received PINGREQ from dashboard_059625
+1782486947: Sending PINGRESP to dashboard_059625
+1782486966: Client notification_service has exceeded timeout, disconnecting.
+1782486995: Received PINGREQ from cardiosense_subscriber
+1782486995: Sending PINGRESP to cardiosense_subscriber
+1782487007: Received PINGREQ from dashboard_059625
+1782487007: Sending PINGRESP to dashboard_059625
+1782487049: Received DISCONNECT from cardiosense_subscriber
+1782487049: Client cardiosense_subscriber disconnected.
+1782487059: New connection from 172.18.0.1:49588 on port 1883.
+1782487059: New client connected from 172.18.0.1:49588 as notification_service (p2, c1, k60).
+1782487059: No will message specified.
+1782487059: Sending CONNACK to notification_service (0, 0)
+1782487059: New connection from 172.18.0.1:49604 on port 1883.
+1782487059: New client connected from 172.18.0.1:49604 as cardiosense_subscriber (p2, c1, k60).
+1782487059: No will message specified.
+1782487059: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782487059: Received SUBSCRIBE from cardiosense_subscriber
+1782487059: 	cardiosense/dati (QoS 1)
+1782487059: cardiosense_subscriber 1 cardiosense/dati
+1782487059: Sending SUBACK to cardiosense_subscriber
+1782487062: New connection from 172.18.0.1:49608 on port 1883.
+1782487062: New client connected from 172.18.0.1:49608 as cardiosense_simulator (p2, c1, k60).
+1782487062: No will message specified.
+1782487062: Sending CONNACK to cardiosense_simulator (0, 0)
+1782487062: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (247 bytes))
+1782487062: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (247 bytes))
+1782487062: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782487062: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782487063: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (247 bytes))
+1782487063: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (247 bytes))
+1782487063: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782487063: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782487064: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (247 bytes))
+1782487064: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (247 bytes))
+1782487064: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782487064: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782487065: Received DISCONNECT from cardiosense_simulator
+1782487065: Client cardiosense_simulator disconnected.
+1782487067: Received PINGREQ from dashboard_059625
+1782487067: Sending PINGRESP to dashboard_059625
+1782487074: Received DISCONNECT from cardiosense_subscriber
+1782487074: Client cardiosense_subscriber disconnected.
+1782487074: Client notification_service closed its connection.
+1782487127: Received PINGREQ from dashboard_059625
+1782487127: Sending PINGRESP to dashboard_059625
+1782487187: Received PINGREQ from dashboard_059625
+1782487187: Sending PINGRESP to dashboard_059625
+1782487247: Received PINGREQ from dashboard_059625
+1782487247: Sending PINGRESP to dashboard_059625
+1782487307: Received PINGREQ from dashboard_059625
+1782487307: Sending PINGRESP to dashboard_059625
+1782487367: Received PINGREQ from dashboard_059625
+1782487367: Sending PINGRESP to dashboard_059625
+1782487427: Received PINGREQ from dashboard_059625
+1782487427: Sending PINGRESP to dashboard_059625
+1782487487: Received PINGREQ from dashboard_059625
+1782487487: Sending PINGRESP to dashboard_059625
+1782487547: Received PINGREQ from dashboard_059625
+1782487547: Sending PINGRESP to dashboard_059625
+1782487607: Received PINGREQ from dashboard_059625
+1782487607: Sending PINGRESP to dashboard_059625
+1782487667: Received PINGREQ from dashboard_059625
+1782487667: Sending PINGRESP to dashboard_059625
+1782487727: Received PINGREQ from dashboard_059625
+1782487727: Sending PINGRESP to dashboard_059625
+1782487786: Client dashboard_059625 closed its connection.
+1782495572: New client connected from 172.18.0.1:45296 as dashboard_059625 (p2, c1, k60).
+1782495572: No will message specified.
+1782495572: Sending CONNACK to dashboard_059625 (0, 0)
+1782495572: Received SUBSCRIBE from dashboard_059625
+1782495572: 	cardiosense/allarmi (QoS 1)
+1782495572: dashboard_059625 1 cardiosense/allarmi
+1782495572: Sending SUBACK to dashboard_059625
+1782495598: New connection from 172.18.0.1:59522 on port 1883.
+1782495598: New client connected from 172.18.0.1:59522 as notification_service (p2, c1, k60).
+1782495598: No will message specified.
+1782495598: Sending CONNACK to notification_service (0, 0)
+1782495598: New connection from 172.18.0.1:59530 on port 1883.
+1782495598: New client connected from 172.18.0.1:59530 as cardiosense_subscriber (p2, c1, k60).
+1782495598: No will message specified.
+1782495598: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782495598: Received SUBSCRIBE from cardiosense_subscriber
+1782495598: 	cardiosense/dati (QoS 1)
+1782495598: cardiosense_subscriber 1 cardiosense/dati
+1782495598: Sending SUBACK to cardiosense_subscriber
+1782495632: Received PINGREQ from dashboard_059625
+1782495632: Sending PINGRESP to dashboard_059625
+1782495659: Received PINGREQ from cardiosense_subscriber
+1782495659: Sending PINGRESP to cardiosense_subscriber
+1782495668: New connection from 172.18.0.1:54546 on port 1883.
+1782495668: New client connected from 172.18.0.1:54546 as cardiosense_simulator (p2, c1, k60).
+1782495668: No will message specified.
+1782495668: Sending CONNACK to cardiosense_simulator (0, 0)
+1782495668: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (245 bytes))
+1782495668: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (245 bytes))
+1782495668: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782495668: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782495669: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (244 bytes))
+1782495669: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (244 bytes))
+1782495669: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782495669: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782495670: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (241 bytes))
+1782495670: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (241 bytes))
+1782495670: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782495670: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782495671: Received DISCONNECT from cardiosense_simulator
+1782495671: Client cardiosense_simulator disconnected.
+1782495682: Received DISCONNECT from cardiosense_subscriber
+1782495682: Client cardiosense_subscriber disconnected.
+1782495683: Client notification_service closed its connection.
+1782495692: Received PINGREQ from dashboard_059625
+1782495692: Sending PINGRESP to dashboard_059625
+1782495735: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782495752: Received PINGREQ from dashboard_059625
+1782495752: Sending PINGRESP to dashboard_059625
+1782495812: Received PINGREQ from dashboard_059625
+1782495812: Sending PINGRESP to dashboard_059625
+1782495872: Received PINGREQ from dashboard_059625
+1782495872: Sending PINGRESP to dashboard_059625
+1782495933: Received PINGREQ from dashboard_059625
+1782495933: Sending PINGRESP to dashboard_059625
+1782495968: Client dashboard_059625 closed its connection.
+1782546358: New client connected from 172.18.0.1:39696 as dashboard_059625 (p2, c1, k60).
+1782546358: No will message specified.
+1782546358: Sending CONNACK to dashboard_059625 (0, 0)
+1782546358: Received SUBSCRIBE from dashboard_059625
+1782546358: 	cardiosense/allarmi (QoS 1)
+1782546358: dashboard_059625 1 cardiosense/allarmi
+1782546358: Sending SUBACK to dashboard_059625
+1782546418: Received PINGREQ from dashboard_059625
+1782546418: Sending PINGRESP to dashboard_059625
+1782546478: Received PINGREQ from dashboard_059625
+1782546478: Sending PINGRESP to dashboard_059625
+1782546538: Received PINGREQ from dashboard_059625
+1782546538: Sending PINGRESP to dashboard_059625
+1782546593: New connection from 172.18.0.1:39982 on port 1883.
+1782546593: New client connected from 172.18.0.1:39982 as notification_service (p2, c1, k60).
+1782546593: No will message specified.
+1782546593: Sending CONNACK to notification_service (0, 0)
+1782546593: New connection from 172.18.0.1:39994 on port 1883.
+1782546593: New client connected from 172.18.0.1:39994 as cardiosense_subscriber (p2, c1, k60).
+1782546593: No will message specified.
+1782546593: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782546593: Received SUBSCRIBE from cardiosense_subscriber
+1782546593: 	cardiosense/dati (QoS 1)
+1782546593: cardiosense_subscriber 1 cardiosense/dati
+1782546593: Sending SUBACK to cardiosense_subscriber
+1782546598: Received PINGREQ from dashboard_059625
+1782546598: Sending PINGRESP to dashboard_059625
+1782546606: Client dashboard_059625 closed its connection.
+1782546653: Received PINGREQ from cardiosense_subscriber
+1782546653: Sending PINGRESP to cardiosense_subscriber
+1782546664: New client connected from 172.18.0.1:44054 as dashboard_2210fc (p2, c1, k60).
+1782546664: No will message specified.
+1782546664: Sending CONNACK to dashboard_2210fc (0, 0)
+1782546664: Received SUBSCRIBE from dashboard_2210fc
+1782546664: 	cardiosense/allarmi (QoS 1)
+1782546664: dashboard_2210fc 1 cardiosense/allarmi
+1782546664: Sending SUBACK to dashboard_2210fc
+1782546684: Client notification_service has exceeded timeout, disconnecting.
+1782546687: New connection from 172.18.0.1:43414 on port 1883.
+1782546687: New client connected from 172.18.0.1:43414 as cardiosense_simulator (p2, c1, k60).
+1782546687: No will message specified.
+1782546687: Sending CONNACK to cardiosense_simulator (0, 0)
+1782546687: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (244 bytes))
+1782546687: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (244 bytes))
+1782546687: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782546687: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782546688: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (248 bytes))
+1782546688: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (248 bytes))
+1782546688: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782546688: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782546689: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (247 bytes))
+1782546689: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (247 bytes))
+1782546689: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782546689: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782546690: Received DISCONNECT from cardiosense_simulator
+1782546690: Client cardiosense_simulator disconnected.
+1782546713: Received PINGREQ from cardiosense_subscriber
+1782546713: Sending PINGRESP to cardiosense_subscriber
+1782546724: Received PINGREQ from dashboard_2210fc
+1782546724: Sending PINGRESP to dashboard_2210fc
+1782546774: Received PINGREQ from cardiosense_subscriber
+1782546774: Sending PINGRESP to cardiosense_subscriber
+1782546784: Received PINGREQ from dashboard_2210fc
+1782546784: Sending PINGRESP to dashboard_2210fc
+1782546834: Received PINGREQ from cardiosense_subscriber
+1782546834: Sending PINGRESP to cardiosense_subscriber
+1782546844: Received PINGREQ from dashboard_2210fc
+1782546844: Sending PINGRESP to dashboard_2210fc
+1782546895: Received PINGREQ from cardiosense_subscriber
+1782546895: Sending PINGRESP to cardiosense_subscriber
+1782546904: Received PINGREQ from dashboard_2210fc
+1782546904: Sending PINGRESP to dashboard_2210fc
+1782546955: Received PINGREQ from cardiosense_subscriber
+1782546955: Sending PINGRESP to cardiosense_subscriber
+1782546959: Received DISCONNECT from cardiosense_subscriber
+1782546959: Client cardiosense_subscriber disconnected.
+1782546964: Received PINGREQ from dashboard_2210fc
+1782546964: Sending PINGRESP to dashboard_2210fc
+1782546986: New connection from 172.18.0.1:39126 on port 1883.
+1782546986: New client connected from 172.18.0.1:39126 as notification_service (p2, c1, k60).
+1782546986: No will message specified.
+1782546986: Sending CONNACK to notification_service (0, 0)
+1782546986: New connection from 172.18.0.1:39130 on port 1883.
+1782546986: New client connected from 172.18.0.1:39130 as cardiosense_subscriber (p2, c1, k60).
+1782546986: No will message specified.
+1782546986: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782546986: Received SUBSCRIBE from cardiosense_subscriber
+1782546986: 	cardiosense/dati (QoS 1)
+1782546986: cardiosense_subscriber 1 cardiosense/dati
+1782546986: Sending SUBACK to cardiosense_subscriber
+1782547007: New connection from 172.18.0.1:60550 on port 1883.
+1782547007: New client connected from 172.18.0.1:60550 as cardiosense_simulator (p2, c1, k60).
+1782547007: No will message specified.
+1782547007: Sending CONNACK to cardiosense_simulator (0, 0)
+1782547007: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (248 bytes))
+1782547007: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (248 bytes))
+1782547007: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782547007: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782547007: Received PUBLISH from notification_service (d0, q1, r0, m1, 'cardiosense/allarmi', ... (219 bytes))
+1782547007: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m1, 'cardiosense/allarmi', ... (219 bytes))
+1782547007: Sending PUBACK to notification_service (m1, rc0)
+1782547007: Received PUBACK from dashboard_2210fc (Mid: 1, RC:0)
+1782547008: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (249 bytes))
+1782547008: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (249 bytes))
+1782547008: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782547008: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782547008: Received PUBLISH from notification_service (d0, q1, r0, m2, 'cardiosense/allarmi', ... (219 bytes))
+1782547008: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m2, 'cardiosense/allarmi', ... (219 bytes))
+1782547008: Sending PUBACK to notification_service (m2, rc0)
+1782547008: Received PUBACK from dashboard_2210fc (Mid: 2, RC:0)
+1782547009: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (248 bytes))
+1782547009: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (248 bytes))
+1782547009: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782547009: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782547009: Received PUBLISH from notification_service (d0, q1, r0, m3, 'cardiosense/allarmi', ... (219 bytes))
+1782547009: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m3, 'cardiosense/allarmi', ... (219 bytes))
+1782547009: Sending PUBACK to notification_service (m3, rc0)
+1782547009: Received PUBACK from dashboard_2210fc (Mid: 3, RC:0)
+1782547010: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m4, 'cardiosense/dati', ... (248 bytes))
+1782547010: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m4, 'cardiosense/dati', ... (248 bytes))
+1782547010: Sending PUBACK to cardiosense_simulator (m4, rc0)
+1782547010: Received PUBACK from cardiosense_subscriber (Mid: 4, RC:0)
+1782547010: Received PUBLISH from notification_service (d0, q1, r0, m4, 'cardiosense/allarmi', ... (219 bytes))
+1782547010: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m4, 'cardiosense/allarmi', ... (219 bytes))
+1782547010: Sending PUBACK to notification_service (m4, rc0)
+1782547010: Received PUBACK from dashboard_2210fc (Mid: 4, RC:0)
+1782547011: Received DISCONNECT from cardiosense_simulator
+1782547011: Client cardiosense_simulator disconnected.
+1782547024: Received PINGREQ from dashboard_2210fc
+1782547024: Sending PINGRESP to dashboard_2210fc
+1782547046: Received PINGREQ from cardiosense_subscriber
+1782547046: Sending PINGRESP to cardiosense_subscriber
+1782547046: Received PINGREQ from notification_service
+1782547046: Sending PINGRESP to notification_service
+1782547084: Received PINGREQ from dashboard_2210fc
+1782547084: Sending PINGRESP to dashboard_2210fc
+1782547107: Received PINGREQ from cardiosense_subscriber
+1782547107: Sending PINGRESP to cardiosense_subscriber
+1782547107: Received PINGREQ from notification_service
+1782547107: Sending PINGRESP to notification_service
+1782547143: New connection from 172.18.0.1:37466 on port 1883.
+1782547143: New client connected from 172.18.0.1:37466 as cardiosense_simulator (p2, c1, k60).
+1782547143: No will message specified.
+1782547143: Sending CONNACK to cardiosense_simulator (0, 0)
+1782547143: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (247 bytes))
+1782547143: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m5, 'cardiosense/dati', ... (247 bytes))
+1782547143: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782547143: Received PUBACK from cardiosense_subscriber (Mid: 5, RC:0)
+1782547143: Received PUBLISH from notification_service (d0, q1, r0, m5, 'cardiosense/allarmi', ... (219 bytes))
+1782547143: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m5, 'cardiosense/allarmi', ... (219 bytes))
+1782547143: Sending PUBACK to notification_service (m5, rc0)
+1782547143: Received PUBACK from dashboard_2210fc (Mid: 5, RC:0)
+1782547144: Received PINGREQ from dashboard_2210fc
+1782547144: Sending PINGRESP to dashboard_2210fc
+1782547144: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (246 bytes))
+1782547144: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m6, 'cardiosense/dati', ... (246 bytes))
+1782547144: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782547144: Received PUBACK from cardiosense_subscriber (Mid: 6, RC:0)
+1782547144: Received PUBLISH from notification_service (d0, q1, r0, m6, 'cardiosense/allarmi', ... (219 bytes))
+1782547144: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m6, 'cardiosense/allarmi', ... (219 bytes))
+1782547144: Sending PUBACK to notification_service (m6, rc0)
+1782547144: Received PUBACK from dashboard_2210fc (Mid: 6, RC:0)
+1782547145: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (246 bytes))
+1782547145: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m7, 'cardiosense/dati', ... (246 bytes))
+1782547145: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782547145: Received PUBACK from cardiosense_subscriber (Mid: 7, RC:0)
+1782547145: Received PUBLISH from notification_service (d0, q1, r0, m7, 'cardiosense/allarmi', ... (220 bytes))
+1782547145: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m7, 'cardiosense/allarmi', ... (220 bytes))
+1782547145: Sending PUBACK to notification_service (m7, rc0)
+1782547145: Received PUBACK from dashboard_2210fc (Mid: 7, RC:0)
+1782547146: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m4, 'cardiosense/dati', ... (247 bytes))
+1782547146: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m8, 'cardiosense/dati', ... (247 bytes))
+1782547146: Sending PUBACK to cardiosense_simulator (m4, rc0)
+1782547146: Received PUBACK from cardiosense_subscriber (Mid: 8, RC:0)
+1782547147: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m5, 'cardiosense/dati', ... (247 bytes))
+1782547147: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m9, 'cardiosense/dati', ... (247 bytes))
+1782547147: Sending PUBACK to cardiosense_simulator (m5, rc0)
+1782547147: Received PUBLISH from notification_service (d0, q1, r0, m8, 'cardiosense/allarmi', ... (219 bytes))
+1782547147: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m8, 'cardiosense/allarmi', ... (219 bytes))
+1782547147: Sending PUBACK to notification_service (m8, rc0)
+1782547147: Received PUBACK from cardiosense_subscriber (Mid: 9, RC:0)
+1782547147: Received PUBACK from dashboard_2210fc (Mid: 8, RC:0)
+1782547148: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m6, 'cardiosense/dati', ... (247 bytes))
+1782547148: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m10, 'cardiosense/dati', ... (247 bytes))
+1782547148: Sending PUBACK to cardiosense_simulator (m6, rc0)
+1782547148: Received PUBACK from cardiosense_subscriber (Mid: 10, RC:0)
+1782547148: Received PUBLISH from notification_service (d0, q1, r0, m9, 'cardiosense/allarmi', ... (220 bytes))
+1782547148: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m9, 'cardiosense/allarmi', ... (220 bytes))
+1782547148: Sending PUBACK to notification_service (m9, rc0)
+1782547148: Received PUBACK from dashboard_2210fc (Mid: 9, RC:0)
+1782547149: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m7, 'cardiosense/dati', ... (249 bytes))
+1782547149: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m11, 'cardiosense/dati', ... (249 bytes))
+1782547149: Sending PUBACK to cardiosense_simulator (m7, rc0)
+1782547149: Received PUBACK from cardiosense_subscriber (Mid: 11, RC:0)
+1782547149: Received PUBLISH from notification_service (d0, q1, r0, m10, 'cardiosense/allarmi', ... (219 bytes))
+1782547149: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m10, 'cardiosense/allarmi', ... (219 bytes))
+1782547149: Sending PUBACK to notification_service (m10, rc0)
+1782547149: Received PUBACK from dashboard_2210fc (Mid: 10, RC:0)
+1782547150: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m8, 'cardiosense/dati', ... (249 bytes))
+1782547150: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m12, 'cardiosense/dati', ... (249 bytes))
+1782547150: Sending PUBACK to cardiosense_simulator (m8, rc0)
+1782547150: Received PUBLISH from notification_service (d0, q1, r0, m11, 'cardiosense/allarmi', ... (219 bytes))
+1782547150: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m11, 'cardiosense/allarmi', ... (219 bytes))
+1782547150: Sending PUBACK to notification_service (m11, rc0)
+1782547150: Received PUBACK from cardiosense_subscriber (Mid: 12, RC:0)
+1782547150: Received PUBACK from dashboard_2210fc (Mid: 11, RC:0)
+1782547151: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m9, 'cardiosense/dati', ... (247 bytes))
+1782547151: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m13, 'cardiosense/dati', ... (247 bytes))
+1782547151: Sending PUBACK to cardiosense_simulator (m9, rc0)
+1782547151: Received PUBACK from cardiosense_subscriber (Mid: 13, RC:0)
+1782547151: Received PUBLISH from notification_service (d0, q1, r0, m12, 'cardiosense/allarmi', ... (219 bytes))
+1782547151: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m12, 'cardiosense/allarmi', ... (219 bytes))
+1782547151: Sending PUBACK to notification_service (m12, rc0)
+1782547151: Received PUBACK from dashboard_2210fc (Mid: 12, RC:0)
+1782547152: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m10, 'cardiosense/dati', ... (247 bytes))
+1782547152: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m14, 'cardiosense/dati', ... (247 bytes))
+1782547152: Sending PUBACK to cardiosense_simulator (m10, rc0)
+1782547152: Received PUBACK from cardiosense_subscriber (Mid: 14, RC:0)
+1782547152: Received PUBLISH from notification_service (d0, q1, r0, m13, 'cardiosense/allarmi', ... (219 bytes))
+1782547152: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m13, 'cardiosense/allarmi', ... (219 bytes))
+1782547152: Sending PUBACK to notification_service (m13, rc0)
+1782547152: Received PUBACK from dashboard_2210fc (Mid: 13, RC:0)
+1782547153: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m11, 'cardiosense/dati', ... (246 bytes))
+1782547153: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m15, 'cardiosense/dati', ... (246 bytes))
+1782547153: Sending PUBACK to cardiosense_simulator (m11, rc0)
+1782547153: Received PUBACK from cardiosense_subscriber (Mid: 15, RC:0)
+1782547153: Received PUBLISH from notification_service (d0, q1, r0, m14, 'cardiosense/allarmi', ... (219 bytes))
+1782547153: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m14, 'cardiosense/allarmi', ... (219 bytes))
+1782547153: Sending PUBACK to notification_service (m14, rc0)
+1782547153: Received PUBACK from dashboard_2210fc (Mid: 14, RC:0)
+1782547154: Received DISCONNECT from cardiosense_simulator
+1782547154: Client cardiosense_simulator disconnected.
+1782547167: Received PINGREQ from notification_service
+1782547167: Sending PINGRESP to notification_service
+1782547167: Received PINGREQ from cardiosense_subscriber
+1782547167: Sending PINGRESP to cardiosense_subscriber
+1782547204: Received PINGREQ from dashboard_2210fc
+1782547204: Sending PINGRESP to dashboard_2210fc
+1782547228: Received PINGREQ from cardiosense_subscriber
+1782547228: Sending PINGRESP to cardiosense_subscriber
+1782547228: Received PINGREQ from notification_service
+1782547228: Sending PINGRESP to notification_service
+1782547264: Received PINGREQ from dashboard_2210fc
+1782547264: Sending PINGRESP to dashboard_2210fc
+1782547288: Received PINGREQ from cardiosense_subscriber
+1782547288: Sending PINGRESP to cardiosense_subscriber
+1782547288: Received PINGREQ from notification_service
+1782547288: Sending PINGRESP to notification_service
+1782547324: Received PINGREQ from dashboard_2210fc
+1782547324: Sending PINGRESP to dashboard_2210fc
+1782547349: Received PINGREQ from cardiosense_subscriber
+1782547349: Sending PINGRESP to cardiosense_subscriber
+1782547349: Received PINGREQ from notification_service
+1782547349: Sending PINGRESP to notification_service
+1782547384: Received PINGREQ from dashboard_2210fc
+1782547384: Sending PINGRESP to dashboard_2210fc
+1782547390: Received DISCONNECT from cardiosense_subscriber
+1782547390: Client cardiosense_subscriber disconnected.
+1782547391: Client notification_service closed its connection.
+1782547398: New connection from 172.18.0.1:52350 on port 1883.
+1782547398: New client connected from 172.18.0.1:52350 as notification_service (p2, c1, k60).
+1782547398: No will message specified.
+1782547398: Sending CONNACK to notification_service (0, 0)
+1782547398: New connection from 172.18.0.1:52354 on port 1883.
+1782547398: New client connected from 172.18.0.1:52354 as cardiosense_subscriber (p2, c1, k60).
+1782547398: No will message specified.
+1782547398: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782547398: Received SUBSCRIBE from cardiosense_subscriber
+1782547398: 	cardiosense/dati (QoS 1)
+1782547398: cardiosense_subscriber 1 cardiosense/dati
+1782547398: Sending SUBACK to cardiosense_subscriber
+1782547405: New connection from 172.18.0.1:41404 on port 1883.
+1782547405: New client connected from 172.18.0.1:41404 as cardiosense_simulator (p2, c1, k60).
+1782547405: No will message specified.
+1782547405: Sending CONNACK to cardiosense_simulator (0, 0)
+1782547405: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (248 bytes))
+1782547405: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (248 bytes))
+1782547405: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782547405: Received PUBLISH from notification_service (d0, q1, r0, m1, 'cardiosense/allarmi', ... (219 bytes))
+1782547405: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m15, 'cardiosense/allarmi', ... (219 bytes))
+1782547405: Sending PUBACK to notification_service (m1, rc0)
+1782547405: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782547405: Received PUBACK from dashboard_2210fc (Mid: 15, RC:0)
+1782547406: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (248 bytes))
+1782547406: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (248 bytes))
+1782547406: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782547406: Received PUBLISH from notification_service (d0, q1, r0, m2, 'cardiosense/allarmi', ... (220 bytes))
+1782547406: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m16, 'cardiosense/allarmi', ... (220 bytes))
+1782547406: Sending PUBACK to notification_service (m2, rc0)
+1782547406: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782547406: Received PUBACK from dashboard_2210fc (Mid: 16, RC:0)
+1782547407: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (248 bytes))
+1782547407: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (248 bytes))
+1782547407: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782547407: Received PUBLISH from notification_service (d0, q1, r0, m3, 'cardiosense/allarmi', ... (220 bytes))
+1782547407: Sending PUBLISH to dashboard_2210fc (d0, q1, r0, m17, 'cardiosense/allarmi', ... (220 bytes))
+1782547407: Sending PUBACK to notification_service (m3, rc0)
+1782547407: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782547407: Received PUBACK from dashboard_2210fc (Mid: 17, RC:0)
+1782547408: Received DISCONNECT from cardiosense_simulator
+1782547408: Client cardiosense_simulator disconnected.
+1782547444: Received PINGREQ from dashboard_2210fc
+1782547444: Sending PINGRESP to dashboard_2210fc
+1782547447: Client dashboard_2210fc closed its connection.
+1782547447: New client connected from 172.18.0.1:48736 as dashboard_c66e37 (p2, c1, k60).
+1782547447: No will message specified.
+1782547447: Sending CONNACK to dashboard_c66e37 (0, 0)
+1782547447: Received SUBSCRIBE from dashboard_c66e37
+1782547447: 	cardiosense/allarmi (QoS 1)
+1782547447: dashboard_c66e37 1 cardiosense/allarmi
+1782547447: Sending SUBACK to dashboard_c66e37
+1782547458: Received PINGREQ from cardiosense_subscriber
+1782547458: Sending PINGRESP to cardiosense_subscriber
+1782547458: Received PINGREQ from notification_service
+1782547458: Sending PINGRESP to notification_service
+1782547507: Received PINGREQ from dashboard_c66e37
+1782547507: Sending PINGRESP to dashboard_c66e37
+1782547519: Received PINGREQ from cardiosense_subscriber
+1782547519: Sending PINGRESP to cardiosense_subscriber
+1782547519: Received PINGREQ from notification_service
+1782547519: Sending PINGRESP to notification_service
+1782547567: Received PINGREQ from dashboard_c66e37
+1782547567: Sending PINGRESP to dashboard_c66e37
+1782547579: Received PINGREQ from cardiosense_subscriber
+1782547579: Sending PINGRESP to cardiosense_subscriber
+1782547579: Received PINGREQ from notification_service
+1782547579: Sending PINGRESP to notification_service
+1782547627: Received PINGREQ from dashboard_c66e37
+1782547627: Sending PINGRESP to dashboard_c66e37
+1782547640: Received PINGREQ from cardiosense_subscriber
+1782547640: Sending PINGRESP to cardiosense_subscriber
+1782547640: Received PINGREQ from notification_service
+1782547640: Sending PINGRESP to notification_service
+1782547687: Received PINGREQ from dashboard_c66e37
+1782547687: Sending PINGRESP to dashboard_c66e37
+1782547700: Received PINGREQ from cardiosense_subscriber
+1782547700: Sending PINGRESP to cardiosense_subscriber
+1782547700: Received PINGREQ from notification_service
+1782547700: Sending PINGRESP to notification_service
+1782547747: Received PINGREQ from dashboard_c66e37
+1782547747: Sending PINGRESP to dashboard_c66e37
+1782547760: Received PINGREQ from cardiosense_subscriber
+1782547760: Sending PINGRESP to cardiosense_subscriber
+1782547761: Received PINGREQ from notification_service
+1782547761: Sending PINGRESP to notification_service
+1782547807: Received PINGREQ from dashboard_c66e37
+1782547807: Sending PINGRESP to dashboard_c66e37
+1782547821: Received PINGREQ from cardiosense_subscriber
+1782547821: Sending PINGRESP to cardiosense_subscriber
+1782547821: Received PINGREQ from notification_service
+1782547821: Sending PINGRESP to notification_service
+1782547867: Received PINGREQ from dashboard_c66e37
+1782547867: Sending PINGRESP to dashboard_c66e37
+1782547881: Received PINGREQ from cardiosense_subscriber
+1782547881: Sending PINGRESP to cardiosense_subscriber
+1782547881: Received PINGREQ from notification_service
+1782547881: Sending PINGRESP to notification_service
+1782547890: Received DISCONNECT from cardiosense_subscriber
+1782547890: Client cardiosense_subscriber disconnected.
+1782547891: Client notification_service closed its connection.
+1782547915: New connection from 172.18.0.1:57704 on port 1883.
+1782547915: New client connected from 172.18.0.1:57704 as notification_service (p2, c1, k60).
+1782547915: No will message specified.
+1782547915: Sending CONNACK to notification_service (0, 0)
+1782547915: New connection from 172.18.0.1:57712 on port 1883.
+1782547915: New client connected from 172.18.0.1:57712 as cardiosense_subscriber (p2, c1, k60).
+1782547915: No will message specified.
+1782547915: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782547915: Received SUBSCRIBE from cardiosense_subscriber
+1782547915: 	cardiosense/dati (QoS 1)
+1782547915: cardiosense_subscriber 1 cardiosense/dati
+1782547915: Sending SUBACK to cardiosense_subscriber
+1782547915: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782547919: New connection from 172.18.0.1:57722 on port 1883.
+1782547919: New client connected from 172.18.0.1:57722 as cardiosense_simulator (p2, c1, k60).
+1782547919: No will message specified.
+1782547919: Sending CONNACK to cardiosense_simulator (0, 0)
+1782547919: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (248 bytes))
+1782547919: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m1, 'cardiosense/dati', ... (248 bytes))
+1782547919: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782547919: Received PUBACK from cardiosense_subscriber (Mid: 1, RC:0)
+1782547919: Received PUBLISH from notification_service (d0, q1, r0, m1, 'cardiosense/allarmi', ... (226 bytes))
+1782547919: Sending PUBLISH to dashboard_c66e37 (d0, q1, r0, m1, 'cardiosense/allarmi', ... (226 bytes))
+1782547919: Sending PUBACK to notification_service (m1, rc0)
+1782547919: Received PUBACK from dashboard_c66e37 (Mid: 1, RC:0)
+1782547920: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (248 bytes))
+1782547920: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m2, 'cardiosense/dati', ... (248 bytes))
+1782547920: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782547920: Received PUBACK from cardiosense_subscriber (Mid: 2, RC:0)
+1782547920: Received PUBLISH from notification_service (d0, q1, r0, m2, 'cardiosense/allarmi', ... (225 bytes))
+1782547920: Sending PUBLISH to dashboard_c66e37 (d0, q1, r0, m2, 'cardiosense/allarmi', ... (225 bytes))
+1782547920: Sending PUBACK to notification_service (m2, rc0)
+1782547920: Received PUBACK from dashboard_c66e37 (Mid: 2, RC:0)
+1782547921: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (247 bytes))
+1782547921: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m3, 'cardiosense/dati', ... (247 bytes))
+1782547921: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782547921: Received PUBLISH from notification_service (d0, q1, r0, m3, 'cardiosense/allarmi', ... (226 bytes))
+1782547921: Sending PUBLISH to dashboard_c66e37 (d0, q1, r0, m3, 'cardiosense/allarmi', ... (226 bytes))
+1782547921: Sending PUBACK to notification_service (m3, rc0)
+1782547921: Received PUBACK from cardiosense_subscriber (Mid: 3, RC:0)
+1782547921: Received PUBACK from dashboard_c66e37 (Mid: 3, RC:0)
+1782547922: Received DISCONNECT from cardiosense_simulator
+1782547922: Client cardiosense_simulator disconnected.
+1782547927: Received PINGREQ from dashboard_c66e37
+1782547927: Sending PINGRESP to dashboard_c66e37
+1782547976: Received PINGREQ from cardiosense_subscriber
+1782547976: Sending PINGRESP to cardiosense_subscriber
+1782547976: Received PINGREQ from notification_service
+1782547976: Sending PINGRESP to notification_service
+1782547987: Received PINGREQ from dashboard_c66e37
+1782547987: Sending PINGRESP to dashboard_c66e37
+1782548037: Received PINGREQ from cardiosense_subscriber
+1782548037: Sending PINGRESP to cardiosense_subscriber
+1782548037: Received PINGREQ from notification_service
+1782548037: Sending PINGRESP to notification_service
+1782548047: Received PINGREQ from dashboard_c66e37
+1782548047: Sending PINGRESP to dashboard_c66e37
+1782548060: Client dashboard_c66e37 closed its connection.
+1782548061: New client connected from 172.18.0.1:37960 as dashboard_6c837c (p2, c1, k60).
+1782548061: No will message specified.
+1782548061: Sending CONNACK to dashboard_6c837c (0, 0)
+1782548061: Received SUBSCRIBE from dashboard_6c837c
+1782548061: 	cardiosense/allarmi (QoS 1)
+1782548061: dashboard_6c837c 1 cardiosense/allarmi
+1782548061: Sending SUBACK to dashboard_6c837c
+1782548097: Received PINGREQ from cardiosense_subscriber
+1782548097: Sending PINGRESP to cardiosense_subscriber
+1782548097: Received PINGREQ from notification_service
+1782548097: Sending PINGRESP to notification_service
+1782548121: Received PINGREQ from dashboard_6c837c
+1782548121: Sending PINGRESP to dashboard_6c837c
+1782548157: Received PINGREQ from cardiosense_subscriber
+1782548157: Sending PINGRESP to cardiosense_subscriber
+1782548157: Received PINGREQ from notification_service
+1782548157: Sending PINGRESP to notification_service
+1782548181: Received PINGREQ from dashboard_6c837c
+1782548181: Sending PINGRESP to dashboard_6c837c
+1782548218: Received PINGREQ from cardiosense_subscriber
+1782548218: Sending PINGRESP to cardiosense_subscriber
+1782548218: Received PINGREQ from notification_service
+1782548218: Sending PINGRESP to notification_service
+1782548241: Received PINGREQ from dashboard_6c837c
+1782548241: Sending PINGRESP to dashboard_6c837c
+1782548278: Received PINGREQ from cardiosense_subscriber
+1782548278: Sending PINGRESP to cardiosense_subscriber
+1782548278: Received PINGREQ from notification_service
+1782548278: Sending PINGRESP to notification_service
+1782548301: Received PINGREQ from dashboard_6c837c
+1782548301: Sending PINGRESP to dashboard_6c837c
+1782548339: Received PINGREQ from cardiosense_subscriber
+1782548339: Sending PINGRESP to cardiosense_subscriber
+1782548339: Received PINGREQ from notification_service
+1782548339: Sending PINGRESP to notification_service
+1782548361: Received PINGREQ from dashboard_6c837c
+1782548361: Sending PINGRESP to dashboard_6c837c
+1782548399: Received PINGREQ from cardiosense_subscriber
+1782548399: Sending PINGRESP to cardiosense_subscriber
+1782548399: Received PINGREQ from notification_service
+1782548399: Sending PINGRESP to notification_service
+1782548421: Received PINGREQ from dashboard_6c837c
+1782548421: Sending PINGRESP to dashboard_6c837c
+1782548433: Client dashboard_6c837c closed its connection.
+1782548433: New client connected from 172.18.0.1:51902 as dashboard_6e5c00 (p2, c1, k60).
+1782548433: No will message specified.
+1782548433: Sending CONNACK to dashboard_6e5c00 (0, 0)
+1782548433: Received SUBSCRIBE from dashboard_6e5c00
+1782548433: 	cardiosense/allarmi (QoS 1)
+1782548433: dashboard_6e5c00 1 cardiosense/allarmi
+1782548433: Sending SUBACK to dashboard_6e5c00
+1782548445: New connection from 172.18.0.1:37678 on port 1883.
+1782548445: New client connected from 172.18.0.1:37678 as cardiosense_simulator (p2, c1, k60).
+1782548445: No will message specified.
+1782548445: Sending CONNACK to cardiosense_simulator (0, 0)
+1782548445: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (247 bytes))
+1782548445: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m4, 'cardiosense/dati', ... (247 bytes))
+1782548445: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782548445: Received PUBLISH from notification_service (d0, q1, r0, m4, 'cardiosense/allarmi', ... (225 bytes))
+1782548445: Sending PUBLISH to dashboard_6e5c00 (d0, q1, r0, m1, 'cardiosense/allarmi', ... (225 bytes))
+1782548445: Sending PUBACK to notification_service (m4, rc0)
+1782548445: Received PUBACK from cardiosense_subscriber (Mid: 4, RC:0)
+1782548446: Received PUBACK from dashboard_6e5c00 (Mid: 1, RC:0)
+1782548446: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (248 bytes))
+1782548446: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m5, 'cardiosense/dati', ... (248 bytes))
+1782548446: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782548447: Received PUBACK from cardiosense_subscriber (Mid: 5, RC:0)
+1782548447: Received PUBLISH from notification_service (d0, q1, r0, m5, 'cardiosense/allarmi', ... (225 bytes))
+1782548447: Sending PUBLISH to dashboard_6e5c00 (d0, q1, r0, m2, 'cardiosense/allarmi', ... (225 bytes))
+1782548447: Sending PUBACK to notification_service (m5, rc0)
+1782548447: Received PUBACK from dashboard_6e5c00 (Mid: 2, RC:0)
+1782548447: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (249 bytes))
+1782548447: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m6, 'cardiosense/dati', ... (249 bytes))
+1782548447: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782548447: Received PUBACK from cardiosense_subscriber (Mid: 6, RC:0)
+1782548447: Received PUBLISH from notification_service (d0, q1, r0, m6, 'cardiosense/allarmi', ... (225 bytes))
+1782548447: Sending PUBLISH to dashboard_6e5c00 (d0, q1, r0, m3, 'cardiosense/allarmi', ... (225 bytes))
+1782548447: Sending PUBACK to notification_service (m6, rc0)
+1782548447: Received PUBACK from dashboard_6e5c00 (Mid: 3, RC:0)
+1782548448: Received DISCONNECT from cardiosense_simulator
+1782548448: Client cardiosense_simulator disconnected.
+1782548460: Received PINGREQ from cardiosense_subscriber
+1782548460: Sending PINGRESP to cardiosense_subscriber
+1782548460: Received PINGREQ from notification_service
+1782548460: Sending PINGRESP to notification_service
+1782548464: New connection from 172.18.0.1:45804 on port 1883.
+1782548464: New client connected from 172.18.0.1:45804 as cardiosense_simulator (p2, c1, k60).
+1782548464: No will message specified.
+1782548464: Sending CONNACK to cardiosense_simulator (0, 0)
+1782548464: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (246 bytes))
+1782548464: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m7, 'cardiosense/dati', ... (246 bytes))
+1782548464: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782548464: Received PUBLISH from notification_service (d0, q1, r0, m7, 'cardiosense/allarmi', ... (226 bytes))
+1782548464: Sending PUBLISH to dashboard_6e5c00 (d0, q1, r0, m4, 'cardiosense/allarmi', ... (226 bytes))
+1782548464: Sending PUBACK to notification_service (m7, rc0)
+1782548464: Received PUBACK from cardiosense_subscriber (Mid: 7, RC:0)
+1782548464: Received PUBACK from dashboard_6e5c00 (Mid: 4, RC:0)
+1782548465: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (247 bytes))
+1782548465: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m8, 'cardiosense/dati', ... (247 bytes))
+1782548465: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782548465: Received PUBLISH from notification_service (d0, q1, r0, m8, 'cardiosense/allarmi', ... (226 bytes))
+1782548465: Sending PUBLISH to dashboard_6e5c00 (d0, q1, r0, m5, 'cardiosense/allarmi', ... (226 bytes))
+1782548465: Sending PUBACK to notification_service (m8, rc0)
+1782548465: Received PUBACK from cardiosense_subscriber (Mid: 8, RC:0)
+1782548465: Received PUBACK from dashboard_6e5c00 (Mid: 5, RC:0)
+1782548466: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (248 bytes))
+1782548466: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m9, 'cardiosense/dati', ... (248 bytes))
+1782548466: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782548466: Received PUBLISH from notification_service (d0, q1, r0, m9, 'cardiosense/allarmi', ... (225 bytes))
+1782548466: Sending PUBLISH to dashboard_6e5c00 (d0, q1, r0, m6, 'cardiosense/allarmi', ... (225 bytes))
+1782548466: Sending PUBACK to notification_service (m9, rc0)
+1782548466: Received PUBACK from cardiosense_subscriber (Mid: 9, RC:0)
+1782548466: Received PUBACK from dashboard_6e5c00 (Mid: 6, RC:0)
+1782548467: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m4, 'cardiosense/dati', ... (248 bytes))
+1782548467: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m10, 'cardiosense/dati', ... (248 bytes))
+1782548467: Sending PUBACK to cardiosense_simulator (m4, rc0)
+1782548467: Received PUBACK from cardiosense_subscriber (Mid: 10, RC:0)
+1782548467: Received PUBLISH from notification_service (d0, q1, r0, m10, 'cardiosense/allarmi', ... (225 bytes))
+1782548467: Sending PUBLISH to dashboard_6e5c00 (d0, q1, r0, m7, 'cardiosense/allarmi', ... (225 bytes))
+1782548467: Sending PUBACK to notification_service (m10, rc0)
+1782548467: Received PUBACK from dashboard_6e5c00 (Mid: 7, RC:0)
+1782548468: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m5, 'cardiosense/dati', ... (249 bytes))
+1782548468: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m11, 'cardiosense/dati', ... (249 bytes))
+1782548468: Sending PUBACK to cardiosense_simulator (m5, rc0)
+1782548468: Received PUBLISH from notification_service (d0, q1, r0, m11, 'cardiosense/allarmi', ... (225 bytes))
+1782548468: Sending PUBLISH to dashboard_6e5c00 (d0, q1, r0, m8, 'cardiosense/allarmi', ... (225 bytes))
+1782548468: Sending PUBACK to notification_service (m11, rc0)
+1782548468: Received PUBACK from cardiosense_subscriber (Mid: 11, RC:0)
+1782548468: Received PUBACK from dashboard_6e5c00 (Mid: 8, RC:0)
+1782548469: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m6, 'cardiosense/dati', ... (248 bytes))
+1782548469: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m12, 'cardiosense/dati', ... (248 bytes))
+1782548469: Sending PUBACK to cardiosense_simulator (m6, rc0)
+1782548469: Received PUBLISH from notification_service (d0, q1, r0, m12, 'cardiosense/allarmi', ... (225 bytes))
+1782548469: Sending PUBLISH to dashboard_6e5c00 (d0, q1, r0, m9, 'cardiosense/allarmi', ... (225 bytes))
+1782548469: Sending PUBACK to notification_service (m12, rc0)
+1782548469: Received PUBACK from cardiosense_subscriber (Mid: 12, RC:0)
+1782548469: Received PUBACK from dashboard_6e5c00 (Mid: 9, RC:0)
+1782548470: Received DISCONNECT from cardiosense_simulator
+1782548470: Client cardiosense_simulator disconnected.
+1782548493: Received PINGREQ from dashboard_6e5c00
+1782548493: Sending PINGRESP to dashboard_6e5c00
+1782548520: Received PINGREQ from cardiosense_subscriber
+1782548520: Sending PINGRESP to cardiosense_subscriber
+1782548520: Received PINGREQ from notification_service
+1782548520: Sending PINGRESP to notification_service
+1782548553: Received PINGREQ from dashboard_6e5c00
+1782548553: Sending PINGRESP to dashboard_6e5c00
+1782548581: Received PINGREQ from cardiosense_subscriber
+1782548581: Sending PINGRESP to cardiosense_subscriber
+1782548581: Received PINGREQ from notification_service
+1782548581: Sending PINGRESP to notification_service
+1782548613: Received PINGREQ from dashboard_6e5c00
+1782548613: Sending PINGRESP to dashboard_6e5c00
+1782548641: Received PINGREQ from cardiosense_subscriber
+1782548641: Sending PINGRESP to cardiosense_subscriber
+1782548641: Received PINGREQ from notification_service
+1782548641: Sending PINGRESP to notification_service
+1782548673: Received PINGREQ from dashboard_6e5c00
+1782548673: Sending PINGRESP to dashboard_6e5c00
+1782548702: Received PINGREQ from cardiosense_subscriber
+1782548702: Sending PINGRESP to cardiosense_subscriber
+1782548702: Received PINGREQ from notification_service
+1782548702: Sending PINGRESP to notification_service
+1782548720: Client dashboard_6e5c00 closed its connection.
+1782548721: New client connected from 172.18.0.1:60062 as dashboard_9734e8 (p2, c1, k60).
+1782548721: No will message specified.
+1782548721: Sending CONNACK to dashboard_9734e8 (0, 0)
+1782548721: Received SUBSCRIBE from dashboard_9734e8
+1782548721: 	cardiosense/allarmi (QoS 1)
+1782548721: dashboard_9734e8 1 cardiosense/allarmi
+1782548721: Sending SUBACK to dashboard_9734e8
+1782548762: Received PINGREQ from cardiosense_subscriber
+1782548762: Sending PINGRESP to cardiosense_subscriber
+1782548762: Received PINGREQ from notification_service
+1782548762: Sending PINGRESP to notification_service
+1782548781: Received PINGREQ from dashboard_9734e8
+1782548781: Sending PINGRESP to dashboard_9734e8
+1782548797: Client dashboard_9734e8 closed its connection.
+1782548798: New client connected from 172.18.0.1:41280 as dashboard_bd345b (p2, c1, k60).
+1782548798: No will message specified.
+1782548798: Sending CONNACK to dashboard_bd345b (0, 0)
+1782548798: Received SUBSCRIBE from dashboard_bd345b
+1782548798: 	cardiosense/allarmi (QoS 1)
+1782548798: dashboard_bd345b 1 cardiosense/allarmi
+1782548798: Sending SUBACK to dashboard_bd345b
+1782548823: Received PINGREQ from cardiosense_subscriber
+1782548823: Sending PINGRESP to cardiosense_subscriber
+1782548823: Received PINGREQ from notification_service
+1782548823: Sending PINGRESP to notification_service
+1782548858: Received PINGREQ from dashboard_bd345b
+1782548858: Sending PINGRESP to dashboard_bd345b
+1782548883: Received PINGREQ from cardiosense_subscriber
+1782548883: Sending PINGRESP to cardiosense_subscriber
+1782548883: Received PINGREQ from notification_service
+1782548883: Sending PINGRESP to notification_service
+1782548918: Received PINGREQ from dashboard_bd345b
+1782548918: Sending PINGRESP to dashboard_bd345b
+1782548943: Received PINGREQ from cardiosense_subscriber
+1782548943: Sending PINGRESP to cardiosense_subscriber
+1782548943: Received PINGREQ from notification_service
+1782548943: Sending PINGRESP to notification_service
+1782548978: Received PINGREQ from dashboard_bd345b
+1782548978: Sending PINGRESP to dashboard_bd345b
+1782549004: Received PINGREQ from notification_service
+1782549004: Sending PINGRESP to notification_service
+1782549004: Received PINGREQ from cardiosense_subscriber
+1782549004: Sending PINGRESP to cardiosense_subscriber
+1782549038: Received PINGREQ from dashboard_bd345b
+1782549038: Sending PINGRESP to dashboard_bd345b
+1782549064: Received PINGREQ from cardiosense_subscriber
+1782549064: Sending PINGRESP to cardiosense_subscriber
+1782549064: Received PINGREQ from notification_service
+1782549064: Sending PINGRESP to notification_service
+1782549098: Received PINGREQ from dashboard_bd345b
+1782549098: Sending PINGRESP to dashboard_bd345b
+1782549125: Received PINGREQ from notification_service
+1782549125: Sending PINGRESP to notification_service
+1782549125: Received PINGREQ from cardiosense_subscriber
+1782549125: Sending PINGRESP to cardiosense_subscriber
+1782549158: Received PINGREQ from dashboard_bd345b
+1782549158: Sending PINGRESP to dashboard_bd345b
+1782549185: Received PINGREQ from cardiosense_subscriber
+1782549185: Sending PINGRESP to cardiosense_subscriber
+1782549185: Received PINGREQ from notification_service
+1782549185: Sending PINGRESP to notification_service
+1782549218: Received PINGREQ from dashboard_bd345b
+1782549218: Sending PINGRESP to dashboard_bd345b
+1782549246: Received PINGREQ from cardiosense_subscriber
+1782549246: Sending PINGRESP to cardiosense_subscriber
+1782549246: Received PINGREQ from notification_service
+1782549246: Sending PINGRESP to notification_service
+1782549278: Received PINGREQ from dashboard_bd345b
+1782549278: Sending PINGRESP to dashboard_bd345b
+1782549306: Received PINGREQ from cardiosense_subscriber
+1782549306: Sending PINGRESP to cardiosense_subscriber
+1782549306: Received PINGREQ from notification_service
+1782549306: Sending PINGRESP to notification_service
+1782549339: Received PINGREQ from dashboard_bd345b
+1782549339: Sending PINGRESP to dashboard_bd345b
+1782549367: Received PINGREQ from notification_service
+1782549367: Sending PINGRESP to notification_service
+1782549367: Received PINGREQ from cardiosense_subscriber
+1782549367: Sending PINGRESP to cardiosense_subscriber
+1782549399: Received PINGREQ from dashboard_bd345b
+1782549399: Sending PINGRESP to dashboard_bd345b
+1782549427: Received PINGREQ from cardiosense_subscriber
+1782549427: Sending PINGRESP to cardiosense_subscriber
+1782549427: Received PINGREQ from notification_service
+1782549427: Sending PINGRESP to notification_service
+1782549459: Received PINGREQ from dashboard_bd345b
+1782549459: Sending PINGRESP to dashboard_bd345b
+1782549487: Received PINGREQ from notification_service
+1782549487: Sending PINGRESP to notification_service
+1782549487: Received PINGREQ from cardiosense_subscriber
+1782549487: Sending PINGRESP to cardiosense_subscriber
+1782549496: Client dashboard_bd345b closed its connection.
+1782549507: New client connected from 172.18.0.1:51836 as dashboard_8d23fd (p2, c1, k60).
+1782549507: No will message specified.
+1782549507: Sending CONNACK to dashboard_8d23fd (0, 0)
+1782549507: Received SUBSCRIBE from dashboard_8d23fd
+1782549507: 	cardiosense/allarmi (QoS 1)
+1782549507: dashboard_8d23fd 1 cardiosense/allarmi
+1782549507: Sending SUBACK to dashboard_8d23fd
+1782549546: New connection from 172.18.0.1:35564 on port 1883.
+1782549546: New client connected from 172.18.0.1:35564 as cardiosense_simulator (p2, c1, k60).
+1782549546: No will message specified.
+1782549546: Sending CONNACK to cardiosense_simulator (0, 0)
+1782549546: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (247 bytes))
+1782549546: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m13, 'cardiosense/dati', ... (247 bytes))
+1782549546: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782549546: Received PUBACK from cardiosense_subscriber (Mid: 13, RC:0)
+1782549546: Received PUBLISH from notification_service (d0, q1, r0, m13, 'cardiosense/allarmi', ... (226 bytes))
+1782549546: Sending PUBLISH to dashboard_8d23fd (d0, q1, r0, m1, 'cardiosense/allarmi', ... (226 bytes))
+1782549546: Sending PUBACK to notification_service (m13, rc0)
+1782549547: Received PUBACK from dashboard_8d23fd (Mid: 1, RC:0)
+1782549547: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (248 bytes))
+1782549547: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m14, 'cardiosense/dati', ... (248 bytes))
+1782549547: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782549547: Received PINGREQ from notification_service
+1782549547: Sending PINGRESP to notification_service
+1782549547: Received PUBACK from cardiosense_subscriber (Mid: 14, RC:0)
+1782549547: Received PUBLISH from notification_service (d0, q1, r0, m14, 'cardiosense/allarmi', ... (225 bytes))
+1782549547: Sending PUBLISH to dashboard_8d23fd (d0, q1, r0, m2, 'cardiosense/allarmi', ... (225 bytes))
+1782549547: Sending PUBACK to notification_service (m14, rc0)
+1782549547: Received PINGREQ from cardiosense_subscriber
+1782549547: Sending PINGRESP to cardiosense_subscriber
+1782549547: Received PUBACK from dashboard_8d23fd (Mid: 2, RC:0)
+1782549548: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (248 bytes))
+1782549548: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m15, 'cardiosense/dati', ... (248 bytes))
+1782549548: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782549548: Received PUBLISH from notification_service (d0, q1, r0, m15, 'cardiosense/allarmi', ... (226 bytes))
+1782549548: Sending PUBLISH to dashboard_8d23fd (d0, q1, r0, m3, 'cardiosense/allarmi', ... (226 bytes))
+1782549548: Sending PUBACK to notification_service (m15, rc0)
+1782549548: Received PUBACK from cardiosense_subscriber (Mid: 15, RC:0)
+1782549548: Received PUBACK from dashboard_8d23fd (Mid: 3, RC:0)
+1782549549: Received DISCONNECT from cardiosense_simulator
+1782549549: Client cardiosense_simulator disconnected.
+1782549567: Received PINGREQ from dashboard_8d23fd
+1782549567: Sending PINGRESP to dashboard_8d23fd
+1782549608: Received PINGREQ from cardiosense_subscriber
+1782549608: Sending PINGRESP to cardiosense_subscriber
+1782549608: Received PINGREQ from notification_service
+1782549608: Sending PINGRESP to notification_service
+1782549627: Received PINGREQ from dashboard_8d23fd
+1782549627: Sending PINGRESP to dashboard_8d23fd
+1782549668: Received PINGREQ from cardiosense_subscriber
+1782549668: Sending PINGRESP to cardiosense_subscriber
+1782549668: Received PINGREQ from notification_service
+1782549668: Sending PINGRESP to notification_service
+1782549687: Received PINGREQ from dashboard_8d23fd
+1782549687: Sending PINGRESP to dashboard_8d23fd
+1782549706: New connection from 172.18.0.1:55042 on port 1883.
+1782549706: New client connected from 172.18.0.1:55042 as cardiosense_simulator (p2, c1, k60).
+1782549706: No will message specified.
+1782549706: Sending CONNACK to cardiosense_simulator (0, 0)
+1782549706: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m1, 'cardiosense/dati', ... (245 bytes))
+1782549706: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m16, 'cardiosense/dati', ... (245 bytes))
+1782549706: Sending PUBACK to cardiosense_simulator (m1, rc0)
+1782549706: Received PUBACK from cardiosense_subscriber (Mid: 16, RC:0)
+1782549707: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m2, 'cardiosense/dati', ... (237 bytes))
+1782549707: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m17, 'cardiosense/dati', ... (237 bytes))
+1782549707: Sending PUBACK to cardiosense_simulator (m2, rc0)
+1782549707: Received PUBACK from cardiosense_subscriber (Mid: 17, RC:0)
+1782549708: Received PUBLISH from cardiosense_simulator (d0, q1, r0, m3, 'cardiosense/dati', ... (239 bytes))
+1782549708: Sending PUBLISH to cardiosense_subscriber (d0, q1, r0, m18, 'cardiosense/dati', ... (239 bytes))
+1782549708: Sending PUBACK to cardiosense_simulator (m3, rc0)
+1782549708: Received PUBACK from cardiosense_subscriber (Mid: 18, RC:0)
+1782549709: Received DISCONNECT from cardiosense_simulator
+1782549709: Client cardiosense_simulator disconnected.
+1782549716: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782549728: Received PINGREQ from cardiosense_subscriber
+1782549728: Sending PINGRESP to cardiosense_subscriber
+1782549729: Received PINGREQ from notification_service
+1782549729: Sending PINGRESP to notification_service
+1782549747: Received PINGREQ from dashboard_8d23fd
+1782549747: Sending PINGRESP to dashboard_8d23fd
+1782549789: Received PINGREQ from cardiosense_subscriber
+1782549789: Sending PINGRESP to cardiosense_subscriber
+1782549789: Received PINGREQ from notification_service
+1782549789: Sending PINGRESP to notification_service
+1782549807: Received PINGREQ from dashboard_8d23fd
+1782549807: Sending PINGRESP to dashboard_8d23fd
+1782549836: Client dashboard_8d23fd closed its connection.
+1782549837: New client connected from 172.18.0.1:45858 as dashboard_3d611a (p2, c1, k60).
+1782549837: No will message specified.
+1782549837: Sending CONNACK to dashboard_3d611a (0, 0)
+1782549837: Received SUBSCRIBE from dashboard_3d611a
+1782549837: 	cardiosense/allarmi (QoS 1)
+1782549837: dashboard_3d611a 1 cardiosense/allarmi
+1782549837: Sending SUBACK to dashboard_3d611a
+1782549849: Received PINGREQ from cardiosense_subscriber
+1782549849: Sending PINGRESP to cardiosense_subscriber
+1782549850: Received PINGREQ from notification_service
+1782549850: Sending PINGRESP to notification_service
+1782549874: Received DISCONNECT from cardiosense_subscriber
+1782549874: Client cardiosense_subscriber disconnected.
+1782549875: Client notification_service closed its connection.
+1782549883: mosquitto version 2.0.22 terminating
+1782549883: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782549883: Client dashboard_3d611a closed its connection.

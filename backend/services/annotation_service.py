@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Optional
 import numpy as np
 from repositories.annotation_repository import AnnotationRepository
 from classifiers.ecg_classifier import ECGClassifier
@@ -31,23 +32,12 @@ class AnnotationService:
     def _estrai_rr_da_raw(self, ecg_raw: list) -> list:
         """
         Estrae gli intervalli R-R da una finestra di campioni ECG raw.
-
-        Il metodo rileva i picchi R cercando i massimi locali nel segnale,
-        poi calcola la distanza temporale tra picchi consecutivi in secondi.
-
-        Args:
-            ecg_raw: lista di campioni ECG raw (interi)
-
-        Returns:
-            lista di intervalli R-R in secondi
         """
         if len(ecg_raw) < 3:
             return []
 
         signal = np.array(ecg_raw, dtype=float)
 
-        # Trova i picchi locali — un campione è un picco se è
-        # maggiore del precedente e del successivo
         picchi = []
         for i in range(1, len(signal) - 1):
             if signal[i] > signal[i - 1] and signal[i] > signal[i + 1]:
@@ -56,8 +46,6 @@ class AnnotationService:
         if len(picchi) < 2:
             return []
 
-        # Calcola intervalli R-R in secondi
-        # dividendo la distanza in campioni per la frequenza
         rr_intervals = [
             (picchi[i + 1] - picchi[i]) / self.ECG_SAMPLE_RATE
             for i in range(len(picchi) - 1)
@@ -70,24 +58,14 @@ class AnnotationService:
         Riceve il payload MQTT, classifica i tre segnali,
         salva su MongoDB e restituisce l'annotazione e
         un flag che indica se è anomala.
-
-        Args:
-            payload: {
-                "paziente_id": str,
-                "timestamp": str,
-                "ecg_raw": [...],
-                "acc_x": float,
-                "acc_y": float,
-                "acc_z": float,
-                "temperatura": float
-            }
-
-        Returns:
-            (annotation, is_anomalia)
         """
-        # Estrai intervalli R-R dal segnale ECG raw
-        ecg_raw = payload.get("ecg_raw", [])
-        rr_intervals = self._estrai_rr_da_raw(ecg_raw)
+        # Se il payload contiene già gli intervalli R-R (es. simulatore,
+        # o un device che fa il pre-processing a bordo), usali direttamente.
+        # Altrimenti ricavali dal segnale ECG grezzo via peak detection.
+        rr_intervals = payload.get("rr_intervals")
+        if not rr_intervals:
+            ecg_raw = payload.get("ecg_raw", [])
+            rr_intervals = self._estrai_rr_da_raw(ecg_raw)
 
         # Classificazione ECG
         ecg_result = self.ecg.predict({
@@ -101,6 +79,12 @@ class AnnotationService:
             "acc_z": payload.get("acc_z", 0.0)
         })
 
+        # Se il buffer non è ancora pieno la postura non è disponibile
+        postura_label = postura_result["label"] \
+            if postura_result["label"] != "in_accumulo" else None
+        postura_score = postura_result["score"] \
+            if postura_label is not None else None
+
         # Classificazione temperatura
         temp_value = payload.get("temperatura", 0.0)
         temperatura_result = self.temperatura.predict({
@@ -110,11 +94,12 @@ class AnnotationService:
         # Costruisci il documento annotazione
         annotation = Annotation(
             paziente_id=payload.get("paziente_id"),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             ecg_label=ecg_result["label"],
             ecg_score=ecg_result["score"],
-            postura_label=postura_result["label"],
-            postura_score=postura_result["score"],
+            rr_intervals=rr_intervals,
+            postura_label=postura_label,
+            postura_score=postura_score,
             temperatura_label=temperatura_result["label"],
             temperatura_valore=temp_value,
             tipo_annotazione=TipoAnnotazione.AUTOMATICA

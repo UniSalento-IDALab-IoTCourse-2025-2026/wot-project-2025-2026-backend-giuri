@@ -21,3 +21,8 @@ env/
 dataset/
 
 backend/ai/trained/*.pkl
+
+# Cache di Python (file compilati bytecode)
+**/__pycache__/
+*.py[cod]
+*$py.class

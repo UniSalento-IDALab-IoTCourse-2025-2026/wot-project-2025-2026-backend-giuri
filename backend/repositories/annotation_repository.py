@@ -1,7 +1,7 @@
 from pymongo.database import Database
 from pymongo import DESCENDING
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timezone
 from models.annotation import Annotation, EsitoMedico
 
 
@@ -65,7 +65,7 @@ class AnnotationRepository:
         aggiornamento = {
             "$set": {
                 "esito_medico": esito,
-                "validato_at": datetime.utcnow(),
+                "validato_at": datetime.now(timezone.utc),
                 "note_medico": note
             }
         }

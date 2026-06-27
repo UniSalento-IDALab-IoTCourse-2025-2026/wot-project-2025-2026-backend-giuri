@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from pymongo.database import Database
+from datetime import timezone
 import os
 from dotenv import load_dotenv
 
@@ -18,7 +19,9 @@ class MongoDBClient:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._client = MongoClient(
-                os.getenv("MONGO_URI")
+                os.getenv("MONGO_URI"),
+                tz_aware=True,
+                tzinfo=timezone.utc
             )
             cls._instance._db = cls._instance._client[
                 os.getenv("MONGO_DB", "cardiosense")

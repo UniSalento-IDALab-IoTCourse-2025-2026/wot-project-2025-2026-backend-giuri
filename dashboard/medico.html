@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardioSense — Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="static/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:           #080c14;
+            --surface:      #0e1420;
+            --surface2:     #141b2d;
+            --surface3:     #1a2236;
+            --border:       #1e2a40;
+            --border2:      #263348;
+            --red:          #e53e3e;
+            --red-dim:      #c53030;
+            --red-glow:     rgba(229, 62, 62, 0.15);
+            --red-subtle:   rgba(229, 62, 62, 0.08);
+            --teal:         #4fd1c5;
+            --teal-subtle:  rgba(79, 209, 197, 0.08);
+            --amber:        #f6ad55;
+            --amber-subtle: rgba(246, 173, 85, 0.08);
+            --green:        #68d391;
+            --green-subtle: rgba(104, 211, 145, 0.08);
+            --text:         #e2e8f0;
+            --text-muted:   #64748b;
+            --text-dim:     #94a3b8;
+            --mono:         'JetBrains Mono', monospace;
+            --sidebar-w:    220px;
+            --header-h:     60px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* ─── SIDEBAR ─────────────────────────────────────── */
+        .sidebar {
+            width: var(--sidebar-w);
+            height: 100vh;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .sidebar-brand {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            height: var(--header-h);
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--red);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            animation: pulse-icon 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-icon {
+            0%, 100% { box-shadow: 0 0 12px var(--red-glow); }
+            50%       { box-shadow: 0 0 24px rgba(229,62,62,0.35); }
+        }
+
+        .brand-name {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .brand-name span { color: var(--red); }
+
+        .sidebar-nav {
+            padding: 1rem 0.75rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            padding: 0.75rem 0.75rem 0.4rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-dim);
+            transition: background 0.15s, color 0.15s;
+            position: relative;
+            user-select: none;
+        }
+
+        .nav-item:hover {
+            background: var(--surface2);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: var(--red-subtle);
+            color: var(--text);
+        }
+
+        .nav-item.active .nav-icon { color: var(--red); }
+
+        .nav-icon {
+            width: 18px;
+            text-align: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--red);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 0.1rem 0.45rem;
+            min-width: 18px;
+            text-align: center;
+            display: none;
+            animation: badge-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes badge-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(229,62,62,0.5); }
+            50%       { box-shadow: 0 0 0 4px rgba(229,62,62,0); }
+        }
+
+        .nav-badge.visible { display: inline-block; }
+
+        .sidebar-footer {
+            padding: 1rem 0.75rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .medico-info {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--red-dim), var(--red));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .medico-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        .medico-role {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .btn-logout {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+
+        .btn-logout:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        /* ─── MAIN ────────────────────────────────────────── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            height: var(--header-h);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.75rem;
+            background: var(--surface);
+            flex-shrink: 0;
+        }
+
+        .topbar-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: var(--mono);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            transition: background 0.3s;
+        }
+
+        .status-dot.connected     { background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+        .status-dot.disconnected  { background: var(--red); }
+        .status-dot.connecting    { background: var(--amber); animation: blink 1s ease-in-out infinite; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.75rem;
+        }
+
+        /* ─── SEZIONE: PANORAMICA ─────────────────────────── */
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .section-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }
+
+        .section-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            transition: border-color 0.2s;
+        }
+
+        .kpi-card:hover { border-color: var(--border2); }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.6rem;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: var(--mono);
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin-bottom: 0.4rem;
+        }
+
+        .kpi-value.red    { color: var(--red); }
+        .kpi-value.teal   { color: var(--teal); }
+        .kpi-value.amber  { color: var(--amber); }
+        .kpi-value.green  { color: var(--green); }
+
+        .kpi-meta {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        /* Live feed anomalie */
+        .live-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--red);
+            box-shadow: 0 0 8px var(--red);
+            animation: blink 1.5s ease-in-out infinite;
+        }
+
+        .panel-action {
+            font-size: 0.75rem;
+            color: var(--teal);
+            cursor: pointer;
+            text-decoration: none;
+            transition: opacity 0.15s;
+        }
+        .panel-action:hover { opacity: 0.7; }
+
+        /* ─── TABELLA ─────────────────────────────────────── */
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        thead th {
+            padding: 0.75rem 1.25rem;
+            text-align: left;
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: var(--surface2); }
+
+        tbody td {
+            padding: 0.85rem 1.25rem;
+            vertical-align: middle;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .empty-icon { font-size: 2rem; margin-bottom: 0.75rem; opacity: 0.4; }
+
+        /* ─── BADGE / PILL ────────────────────────────────── */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            font-family: var(--mono);
+        }
+
+        .pill-red    { background: var(--red-subtle);   color: var(--red);   border: 1px solid rgba(229,62,62,0.2); }
+        .pill-teal   { background: var(--teal-subtle);  color: var(--teal);  border: 1px solid rgba(79,209,197,0.2); }
+        .pill-amber  { background: var(--amber-subtle); color: var(--amber); border: 1px solid rgba(246,173,85,0.2); }
+        .pill-green  { background: var(--green-subtle); color: var(--green); border: 1px solid rgba(104,211,145,0.2); }
+        .pill-muted  { background: var(--surface2);     color: var(--text-muted); border: 1px solid var(--border); }
+
+        /* ─── BOTTONI ─────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.45rem 0.9rem;
+            border-radius: 7px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: var(--red);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--red-dim); }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+        .btn-teal {
+            background: rgba(79,209,197,0.12);
+            color: var(--teal);
+            border: 1px solid rgba(79,209,197,0.2);
+        }
+        .btn-teal:hover { background: rgba(79,209,197,0.2); }
+
+        /* ─── MODAL ───────────────────────────────────────── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(8,12,20,0.85);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            width: 480px;
+            max-width: 95vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 1.75rem;
+            transform: translateY(8px);
+            transition: transform 0.2s;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+        }
+
+        .modal-overlay.open .modal { transform: translateY(0); }
+
+        .modal-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+        }
+
+        .modal-sub {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.82rem;
+        }
+
+        .modal-info-row:last-of-type { border-bottom: none; }
+
+        .modal-info-key {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .modal-esito-row {
+            display: flex;
+            gap: 0.75rem;
+            margin: 1.25rem 0;
+        }
+
+        .esito-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            font-family: inherit;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: center;
+        }
+
+        .esito-btn:hover { border-color: var(--border2); color: var(--text); }
+
+        .esito-btn.selected-vp {
+            border-color: var(--red);
+            background: var(--red-subtle);
+            color: var(--red);
+        }
+
+        .esito-btn.selected-fa {
+            border-color: var(--green);
+            background: var(--green-subtle);
+            color: var(--green);
+        }
+
+        .modal-note {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.7rem 0.9rem;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.82rem;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.15s;
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-note:focus { border-color: var(--red); }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        /* ─── TOAST ───────────────────────────────────────── */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 10px;
+            padding: 0.85rem 1.1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            max-width: 340px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            animation: slide-in 0.25s ease;
+        }
+
+        @keyframes slide-in {
+            from { transform: translateX(100%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
+
+        .toast.alarm { border-left: 3px solid var(--red); }
+        .toast.success { border-left: 3px solid var(--green); }
+
+        .toast-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+        .toast-body { flex: 1; }
+
+        .toast-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .toast-msg {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* ─── SEZIONE PAZIENTI ────────────────────────────── */
+        .patient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .patient-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: border-color 0.2s;
+            cursor: default;
+        }
+
+        .patient-card:hover { border-color: var(--border2); }
+
+        .patient-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .patient-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--surface3);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--teal);
+            flex-shrink: 0;
+        }
+
+        .patient-name { font-weight: 600; font-size: 0.9rem; }
+
+        .patient-code {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: var(--mono);
+        }
+
+        .patient-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .patient-meta-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+        }
+
+        .patient-meta-key { color: var(--text-muted); }
+
+        /* ─── FORM NUOVO PAZIENTE ─────────────────────────── */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .form-field label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        .form-field input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.65rem 0.85rem;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .form-field input:focus { border-color: var(--red); }
+
+        /* ─── STORICO ─────────────────────────────────────── */
+        .storico-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .storico-toolbar select {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 0.85rem;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.82rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* ─── RESPONSIVE ──────────────────────────────────── */
+        @media (max-width: 900px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .sidebar { display: none; }
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">❤️</div>
+        <div class="brand-name">Cardio<span>Sense</span></div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-label">Monitor</div>
+
+        <div class="nav-item active" data-section="panoramica">
+            <span class="nav-icon">⬡</span>
+            Panoramica
+        </div>
+
+        <div class="nav-item" data-section="anomalie">
+            <span class="nav-icon">⚠</span>
+            Anomalie
+            <span class="nav-badge" id="badge-anomalie">0</span>
+        </div>
+
+        <div class="nav-label">Gestione</div>
+
+        <div class="nav-item" data-section="pazienti">
+            <span class="nav-icon">◎</span>
+            Pazienti
+        </div>
+
+        <div class="nav-item" data-section="storico">
+            <span class="nav-icon">▤</span>
+            Storico
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="medico-info">
+            <div class="avatar" id="sidebar-avatar">?</div>
+            <div>
+                <div class="medico-name" id="sidebar-name">Caricamento...</div>
+                <div class="medico-role">Cardiologo</div>
+            </div>
+        </div>
+        <button class="btn-logout" id="btn-logout">Esci dall'account</button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+        <div class="topbar-title" id="topbar-title">Panoramica</div>
+        <div class="topbar-right">
+            <button class="btn btn-ghost" id="btn-notifiche" style="font-size:0.75rem;padding:0.35rem 0.75rem;">
+                🔔 Notifiche desktop
+            </button>
+            <div class="connection-status">
+                <div class="status-dot connecting" id="mqtt-dot"></div>
+                <span id="mqtt-label">Connessione MQTT...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <!-- ── PANORAMICA ──────────────────────────────────── -->
+        <div class="section active" id="section-panoramica">
+            <div class="section-header">
+                <div class="section-title">Situazione attuale</div>
+                <div class="section-sub" id="panoramica-sub">Aggiornamento in tempo reale</div>
+            </div>
+
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Pazienti monitorati</div>
+                    <div class="kpi-value teal" id="kpi-pazienti">—</div>
+                    <div class="kpi-meta">registrati nel sistema</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Anomalie in attesa</div>
+                    <div class="kpi-value red" id="kpi-anomalie">—</div>
+                    <div class="kpi-meta">da validare</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Validate oggi</div>
+                    <div class="kpi-value green" id="kpi-validate">—</div>
+                    <div class="kpi-meta">validazioni completate</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Ultimo allarme</div>
+                    <div class="kpi-value amber" style="font-size:1.1rem;line-height:1.4" id="kpi-ultimo">—</div>
+                    <div class="kpi-meta" id="kpi-ultimo-meta">nessun allarme recente</div>
+                </div>
+            </div>
+
+            <div class="live-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="live-dot"></div>
+                        Anomalie recenti
+                    </div>
+                    <a class="panel-action" id="link-vedi-tutte">Vedi tutte →</a>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Paziente</th>
+                                <th>ECG</th>
+                                <th>Postura</th>
+                                <th>Temperatura</th>
+                                <th>Timestamp</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="panoramica-tbody">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">◎</div>
+                                        Nessuna anomalia in attesa
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ANOMALIE ────────────────────────────────────── -->
+        <div class="section" id="section-anomalie">
+            <div class="section-header">
+                <div class="section-title">Anomalie da validare</div>
+                <div class="section-sub">Clicca su "Valida" per classificare ogni evento</div>
+            </div>
+
+            <div class="live-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="live-dot"></div>
+                        In attesa di validazione medica
+                    </div>
+                    <button class="btn btn-ghost" id="btn-refresh-anomalie" style="font-size:0.75rem;padding:0.35rem 0.75rem;">⟳ Aggiorna</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Paziente ID</th>
+                                <th>ECG Score</th>
+                                <th>Postura</th>
+                                <th>Temperatura</th>
+                                <th>Rilevata</th>
+                                <th>Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="anomalie-tbody">
+                            <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">✓</div>Nessuna anomalia in attesa</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── PAZIENTI ────────────────────────────────────── -->
+        <div class="section" id="section-pazienti">
+            <div class="section-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                    <div class="section-title">Pazienti</div>
+                    <div class="section-sub">Gestisci i tuoi pazienti monitorati</div>
+                </div>
+                <button class="btn btn-primary" id="btn-nuovo-paziente">+ Nuovo paziente</button>
+            </div>
+
+            <div class="patient-grid" id="patient-grid">
+                <div class="empty-state" style="grid-column:1/-1">
+                    <div class="empty-icon">◎</div>
+                    Nessun paziente registrato
+                </div>
+            </div>
+        </div>
+
+        <!-- ── STORICO ─────────────────────────────────────── -->
+        <div class="section" id="section-storico">
+            <div class="section-header">
+                <div class="section-title">Storico annotazioni</div>
+                <div class="section-sub">Tutte le letture di un paziente, incluse quelle normali</div>
+            </div>
+
+            <div class="storico-toolbar">
+                <select id="storico-select">
+                    <option value="">— Seleziona paziente —</option>
+                </select>
+                <button class="btn btn-ghost" id="btn-carica-storico">Carica</button>
+            </div>
+
+            <div class="live-panel">
+                <div class="panel-header">
+                    <div class="panel-title">Annotazioni</div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>ECG</th>
+                                <th>Score</th>
+                                <th>Postura</th>
+                                <th>Temperatura</th>
+                                <th>Esito medico</th>
+                            </tr>
+                        </thead>
+                        <tbody id="storico-tbody">
+                            <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">▤</div>Seleziona un paziente per vedere lo storico</div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- MODAL VALIDAZIONE -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+        <div class="modal-title">Valida anomalia ECG</div>
+        <div class="modal-sub" id="modal-paziente-info">Paziente: —</div>
+
+        <div id="modal-details"></div>
+
+        <div class="modal-esito-row">
+            <button class="esito-btn" id="btn-vp" onclick="selezionaEsito('vero_positivo')">
+                ⚡ Vero positivo<br>
+                <small style="font-weight:400;color:inherit;opacity:0.7">Anomalia confermata</small>
+            </button>
+            <button class="esito-btn" id="btn-fa" onclick="selezionaEsito('falso_allarme')">
+                ✓ Falso allarme<br>
+                <small style="font-weight:400;color:inherit;opacity:0.7">Parametri nella norma</small>
+            </button>
+        </div>
+
+        <textarea class="modal-note" id="modal-note" rows="3" placeholder="Note cliniche (opzionale)..."></textarea>
+
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="chiudiModal()">Annulla</button>
+            <button class="btn btn-primary" id="btn-conferma-validazione" onclick="confermaValidazione()">Conferma validazione</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NUOVO PAZIENTE -->
+<div class="modal-overlay" id="modal-paziente-overlay">
+    <div class="modal">
+        <div class="modal-title">Aggiungi paziente</div>
+        <div class="modal-sub">Il sistema genererà un codice di accesso univoco</div>
+
+        <div class="form-row">
+            <div class="form-field">
+                <label>Nome</label>
+                <input type="text" id="input-nome" placeholder="Mario">
+            </div>
+            <div class="form-field">
+                <label>Cognome</label>
+                <input type="text" id="input-cognome" placeholder="Rossi">
+            </div>
+        </div>
+
+        <div id="codice-generato" style="display:none;margin-bottom:1.25rem;">
+            <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.4rem;">Codice di accesso</div>
+            <div style="font-family:var(--mono);font-size:1.5rem;font-weight:700;color:var(--teal);letter-spacing:0.15em;" id="codice-value">—</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.25rem;">Comunica questo codice al paziente per l'app</div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="chiudiModalPaziente()">Chiudi</button>
+            <button class="btn btn-primary" id="btn-crea-paziente" onclick="creaPaziente()">Crea paziente</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="static/app.js"></script>
+</body>
+</html>
