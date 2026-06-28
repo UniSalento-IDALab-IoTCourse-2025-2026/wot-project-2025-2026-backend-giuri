@@ -45,16 +45,16 @@ ml_models = {}
 async def lifespan(app: FastAPI):
     # --- STARTUP ---
     init_db()
-    
+
     # Carica i modelli di IA in memoria UNA VOLTA SOLA
     ml_models["ecg"] = ECGClassifier(ECG_MODEL_PATH)
     ml_models["postura"] = PosturaClassifier(POSTURA_MODEL_PATH)
     ml_models["temperatura"] = TemperaturaClassifier()
-    
+
     print("CardioSense API avviata e modelli IA caricati correttamente")
-    
+
     yield
-    
+
     # --- SHUTDOWN ---
     ml_models.clear()
     print("CardioSense API spenta")
@@ -166,6 +166,12 @@ class ValidazioneRequest(BaseModel):
     note: Optional[str] = None
 
 
+class ValidazioneEpisodioRequest(BaseModel):
+    annotation_ids: list[str]
+    esito: EsitoMedico
+    note: Optional[str] = None
+
+
 # ============================================================
 # ENDPOINT AUTENTICAZIONE
 # ============================================================
@@ -257,11 +263,39 @@ def lista_pazienti(
 # ENDPOINT ANNOTAZIONI
 # ============================================================
 
+def _arricchisci_con_dati_paziente(elementi: list[dict], session) -> None:
+    """
+    Arricchisce in-place una lista di dict (anomalie o episodi) con
+    nome/cognome del paziente da MySQL, dato paziente_id (= codice_accesso).
+    Centralizzato qui perché serve sia per /anomalie che per /anomalie/episodi.
+    """
+    user_repo = UserRepository(session)
+    cache_pazienti: dict[str, Paziente | None] = {}
+
+    for el in elementi:
+        codice = el.get("paziente_id", "")
+        if codice not in cache_pazienti:
+            cache_pazienti[codice] = user_repo.find_paziente_by_codice(codice)
+
+        paziente = cache_pazienti[codice]
+        if paziente:
+            el["paziente_nome"] = paziente.nome
+            el["paziente_cognome"] = paziente.cognome
+        else:
+            el["paziente_nome"] = None
+            el["paziente_cognome"] = None
+
+
 @app.get("/anomalie", tags=["Annotazioni"])
 def get_anomalie_non_validate(
     medico: Medico = Depends(get_medico_corrente),
     session=Depends(get_session)
 ):
+    """
+    Restituisce le anomalie non validate come righe singole (una per
+    lettura). Mantenuto per compatibilità/debug; la dashboard usa
+    /anomalie/episodi per la vista raggruppata.
+    """
     db = get_db()
     repo = AnnotationRepository(db)
 
@@ -273,20 +307,48 @@ def get_anomalie_non_validate(
     )
     anomalie = service.get_anomalie_non_validate()
 
-    # Arricchisci ogni anomalia con nome e cognome del paziente da MySQL.
-    # paziente_id corrisponde al codice_accesso nella tabella Paziente.
-    user_repo = UserRepository(session)
     for a in anomalie:
         a["_id"] = str(a["_id"])
-        paziente = user_repo.find_paziente_by_codice(a.get("paziente_id", ""))
-        if paziente:
-            a["paziente_nome"] = paziente.nome
-            a["paziente_cognome"] = paziente.cognome
-        else:
-            a["paziente_nome"] = None
-            a["paziente_cognome"] = None
 
+    _arricchisci_con_dati_paziente(anomalie, session)
     return anomalie
+
+
+@app.get("/anomalie/episodi", tags=["Annotazioni"])
+def get_episodi_anomalia_non_validati(
+    medico: Medico = Depends(get_medico_corrente),
+    session=Depends(get_session)
+):
+    """
+    Restituisce le anomalie non validate raggruppate per episodio
+    clinico: letture anomale consecutive dello stesso paziente con un
+    gap temporale ridotto (default 10s, vedi
+    AnnotationRepository.GAP_MASSIMO_EPISODIO_SECONDI) vengono unite in
+    un solo elemento, in modo che il medico veda e validi un episodio
+    di fibrillazione atriale di 30 letture come UNA riga, non trenta.
+
+    I documenti grezzi di ciascun episodio restano disponibili nel
+    campo "documenti" per chi vuole espandere il dettaglio o per il
+    grafico ECG esteso, ma con _id già convertiti in stringa.
+    """
+    db = get_db()
+    repo = AnnotationRepository(db)
+
+    service = AnnotationService(
+        annotation_repo=repo,
+        ecg_classifier=ml_models["ecg"],
+        postura_classifier=ml_models["postura"],
+        temperatura_classifier=ml_models["temperatura"]
+    )
+    episodi = service.get_episodi_anomalia_non_validati()
+
+    # Conversione ObjectId -> str nei documenti grezzi annidati
+    for ep in episodi:
+        for doc in ep.get("documenti", []):
+            doc["_id"] = str(doc["_id"])
+
+    _arricchisci_con_dati_paziente(episodi, session)
+    return episodi
 
 
 @app.get("/pazienti/{paziente_id}/storico", tags=["Annotazioni"])
@@ -297,7 +359,7 @@ def get_storico_paziente(
 ):
     db = get_db()
     repo = AnnotationRepository(db)
-    
+
     service = AnnotationService(
         annotation_repo=repo,
         ecg_classifier=ml_models["ecg"],
@@ -311,7 +373,6 @@ def get_storico_paziente(
 
     return storico
 
-# backend/fastapi_server.py — aggiungere questo endpoint, ad es. dopo /pazienti/{id}/storico
 
 @app.get("/annotazioni/{annotation_id}", tags=["Annotazioni"])
 def get_annotazione(
@@ -339,9 +400,10 @@ def valida_anomalia(
     body: ValidazioneRequest,
     medico: Medico = Depends(get_medico_corrente)
 ):
+    """Valida una singola lettura anomala. Mantenuto per compatibilità/debug."""
     db = get_db()
     repo = AnnotationRepository(db)
-    
+
     service = AnnotationService(
         annotation_repo=repo,
         ecg_classifier=ml_models["ecg"],
@@ -361,6 +423,45 @@ def valida_anomalia(
         )
 
     return {"messaggio": "Anomalia validata con successo"}
+
+
+@app.patch("/anomalie/episodi/valida", tags=["Annotazioni"])
+def valida_episodio(
+    body: ValidazioneEpisodioRequest,
+    medico: Medico = Depends(get_medico_corrente)
+):
+    """
+    Valida in un colpo solo tutte le letture di un episodio clinico
+    (gli annotation_ids restituiti da GET /anomalie/episodi per quella
+    riga). Lo stesso esito e la stessa nota vengono scritti su ciascun
+    documento — il dato grezzo per il retraining resta granulare per
+    singola lettura, cambia solo l'azione che il medico deve compiere.
+    """
+    db = get_db()
+    repo = AnnotationRepository(db)
+
+    service = AnnotationService(
+        annotation_repo=repo,
+        ecg_classifier=ml_models["ecg"],
+        postura_classifier=ml_models["postura"],
+        temperatura_classifier=ml_models["temperatura"]
+    )
+    numero_aggiornati = service.valida_episodio(
+        body.annotation_ids,
+        body.esito,
+        body.note
+    )
+
+    if numero_aggiornati == 0:
+        raise HTTPException(
+            status_code=404,
+            detail="Nessuna annotazione trovata per l'episodio indicato"
+        )
+
+    return {
+        "messaggio": "Episodio validato con successo",
+        "letture_aggiornate": numero_aggiornati
+    }
 
 
 # ============================================================

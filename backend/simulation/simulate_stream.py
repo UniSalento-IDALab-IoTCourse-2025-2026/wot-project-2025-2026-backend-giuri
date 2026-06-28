@@ -213,6 +213,97 @@ SCENARI = {
 
 
 # ============================================================
+# SCENARIO MISTO — episodi alternati normale/anomalia
+# ============================================================
+#
+# A differenza degli altri scenari (stateless, ogni messaggio è
+# indipendente), il misto simula episodi con una durata: il paziente
+# resta per un po' in ritmo normale, poi entra in un episodio di
+# fibrillazione atriale che dura qualche secondo/decina di secondi
+# (paroxistica), poi torna normale. È più realistico di un semplice
+# "tira un dado a ogni messaggio", che genererebbe anomalie isolate
+# di un singolo secondo — clinicamente poco plausibili per la FA.
+#
+# La proporzione di tempo passato in anomalia è controllata da
+# perc_anomalia (0.0-1.0): regola il rapporto fra la durata media
+# degli episodi normali e quella degli episodi anomali, non la
+# probabilità istantanea di transizione.
+
+class GeneratoreMisto:
+    """
+    Mantiene lo stato (episodio corrente e quanto manca alla fine)
+    tra una chiamata e l'altra di costruisci_payload_misto().
+    """
+
+    # Durata media di un episodio anomalo (FA paroxistica): 5-20s
+    DURATA_ANOMALIA_MIN = 5
+    DURATA_ANOMALIA_MAX = 20
+
+    def __init__(self, perc_anomalia: float = 0.2):
+        if not 0.0 < perc_anomalia < 1.0:
+            raise ValueError("perc_anomalia deve essere compreso tra 0 e 1 (esclusi)")
+
+        self.perc_anomalia = perc_anomalia
+
+        # Dalla percentuale di tempo desiderata in anomalia deriviamo
+        # la durata media degli episodi normali, mantenendo fissa la
+        # durata media degli episodi anomali.
+        durata_media_anomalia = (self.DURATA_ANOMALIA_MIN + self.DURATA_ANOMALIA_MAX) / 2
+        durata_media_normale = durata_media_anomalia * (1 - perc_anomalia) / perc_anomalia
+
+        # Range ±40% intorno alla media per variabilità. Il minimo assoluto
+        # è 1s (un solo messaggio): per perc_anomalia molto alte (>~0.7) la
+        # durata media naturale degli episodi normali scende sotto i 5s, ed
+        # è corretto che accada — un clamp più alto distorcerebbe il
+        # rapporto richiesto invece di limitarsi a renderlo più "a scatti".
+        self._durata_normale_min = max(1, durata_media_normale * 0.6)
+        self._durata_normale_max = max(self._durata_normale_min + 1, durata_media_normale * 1.4)
+
+        self.stato = "normale"
+        self.tempo_rimanente = self._nuova_durata_normale()
+
+    def _nuova_durata_normale(self) -> float:
+        return random.uniform(self._durata_normale_min, self._durata_normale_max)
+
+    def _nuova_durata_anomalia(self) -> float:
+        return random.uniform(self.DURATA_ANOMALIA_MIN, self.DURATA_ANOMALIA_MAX)
+
+    def _transizione(self) -> None:
+        """Passa all'episodio successivo e stampa il cambio di stato."""
+        if self.stato == "normale":
+            self.stato = "anomalia_ecg"
+            self.tempo_rimanente = self._nuova_durata_anomalia()
+            print(f"    ┗━ ⚡ Inizio episodio FA — durata ~{self.tempo_rimanente:.1f}s")
+        else:
+            self.stato = "normale"
+            self.tempo_rimanente = self._nuova_durata_normale()
+            print(f"    ┗━ ✓ Fine episodio FA — ritorno a ritmo normale (~{self.tempo_rimanente:.1f}s)")
+
+    def prossimo_scenario(self, delta_t: float) -> str:
+        """
+        Avanza l'orologio interno di delta_t secondi e restituisce
+        la chiave dello scenario (in SCENARI) da usare per il
+        messaggio corrente.
+        """
+        if self.tempo_rimanente <= 0:
+            self._transizione()
+
+        self.tempo_rimanente -= delta_t
+        return self.stato
+
+
+def costruisci_payload_misto(generatore: GeneratoreMisto, delta_t: float = INTERVALLO_PUBBLICAZIONE) -> dict:
+    """
+    Costruisce un payload usando lo scenario corrente del generatore
+    a episodi (normale/anomalia_ecg alternati con durate variabili).
+    Riusa costruisci_payload() per non duplicare la logica di
+    generazione dei singoli campi.
+    """
+    scenario_corrente = generatore.prossimo_scenario(delta_t)
+    return costruisci_payload(scenario_corrente)
+
+
+# ============================================================
 # COSTRUZIONE PAYLOAD
 # ============================================================
 
@@ -263,9 +354,10 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--scenario",
-        choices=list(SCENARI.keys()),
+        choices=list(SCENARI.keys()) + ["misto"],
         default="normale",
-        help="Scenario da simulare (default: normale)"
+        help="Scenario da simulare (default: normale). 'misto' alterna "
+             "episodi normale/anomalia_ecg con durate variabili."
     )
     parser.add_argument(
         "--durata",
@@ -279,9 +371,29 @@ if __name__ == "__main__":
         default=INTERVALLO_PUBBLICAZIONE,
         help="Intervallo tra messaggi in secondi (default: 1.0)"
     )
+    parser.add_argument(
+        "--perc-anomalia",
+        type=float,
+        default=0.2,
+        help="Solo con --scenario misto: percentuale di tempo totale "
+             "(0.0-1.0) passato in episodi di anomalia ECG (default: 0.2)"
+    )
     args = parser.parse_args()
 
-    print(f"Scenario:  {args.scenario} — {SCENARI[args.scenario]['descrizione']}")
+    is_misto = args.scenario == "misto"
+
+    if is_misto:
+        descrizione = (
+            f"Misto — episodi alternati normale/anomalia_ecg "
+            f"(~{args.perc_anomalia * 100:.0f}% del tempo in anomalia)"
+        )
+        generatore_misto = GeneratoreMisto(perc_anomalia=args.perc_anomalia)
+    else:
+        descrizione = SCENARI[args.scenario]['descrizione']
+        if args.perc_anomalia != 0.2:
+            print("Attenzione: --perc-anomalia è ignorato perché --scenario non è 'misto'\n")
+
+    print(f"Scenario:  {args.scenario} — {descrizione}")
     print(f"Durata:    {args.durata}s")
     print(f"Intervallo: {args.intervallo}s")
     print(f"Paziente ID: {PAZIENTE_ID}")
@@ -304,7 +416,13 @@ if __name__ == "__main__":
 
     try:
         while time.time() - inizio < args.durata:
-            payload = costruisci_payload(args.scenario)
+            if is_misto:
+                payload = costruisci_payload_misto(generatore_misto, delta_t=args.intervallo)
+                scenario_label = generatore_misto.stato
+            else:
+                payload = costruisci_payload(args.scenario)
+                scenario_label = args.scenario
+
             client.publish(
                 TOPIC_DATI,
                 json.dumps(payload),
@@ -312,7 +430,7 @@ if __name__ == "__main__":
             )
             messaggi_inviati += 1
             print(
-                f"[{messaggi_inviati:3d}] Pubblicato — "
+                f"[{messaggi_inviati:3d}] ({scenario_label:13s}) Pubblicato — "
                 f"ECG campioni: {len(payload['ecg_raw'])}, "
                 f"RR: {payload['rr_intervals'][:3]}..., "
                 f"Temp: {payload['temperatura']}°C"

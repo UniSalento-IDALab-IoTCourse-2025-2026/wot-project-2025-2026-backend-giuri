@@ -12,6 +12,12 @@ class AnnotationRepository:
 
     COLLECTION = "annotations"
 
+    # Gap massimo (in secondi) tra due letture anomale consecutive dello
+    # stesso paziente perché vengano considerate parte dello stesso
+    # episodio clinico. Sopra questa soglia si considera chiuso l'episodio
+    # precedente e se ne apre uno nuovo.
+    GAP_MASSIMO_EPISODIO_SECONDI = 10
+
     def __init__(self, db: Database):
         self.collection = db[self.COLLECTION]
 
@@ -52,6 +58,101 @@ class AnnotationRepository:
             }).sort("timestamp", DESCENDING)
         )
 
+    def find_episodi_anomalia_non_validati(
+        self,
+        gap_massimo_secondi: int = None
+    ) -> list[dict]:
+        """
+        Raggruppa le anomalie non validate in "episodi clinici": letture
+        anomale consecutive dello stesso paziente con un gap temporale
+        inferiore a gap_massimo_secondi vengono considerate parte dello
+        stesso evento (es. un episodio di fibrillazione atriale che dura
+        30s genera una lettura anomala al secondo, ma clinicamente è un
+        unico evento da validare una sola volta).
+
+        Il raggruppamento avviene in Python dopo aver recuperato i
+        documenti non validati: i volumi in gioco (anomalie in attesa di
+        validazione, non l'intero storico) sono piccoli, e mantenere la
+        logica in Python la rende più leggibile di un'aggregazione Mongo
+        con bucket a gap dinamico.
+
+        Restituisce una lista di episodi, ciascuno con:
+        {
+            "paziente_id": str,
+            "annotation_ids": [str, ...],   # in ordine cronologico
+            "timestamp_inizio": datetime,
+            "timestamp_fine": datetime,
+            "numero_letture": int,
+            "ecg_score_max": float,
+            "ecg_score_medio": float,
+            "postura_label": str | None,      # dell'ultima lettura del cluster
+            "temperatura_label": str,          # dell'ultima lettura del cluster
+            "temperatura_valore": float,
+            "documenti": [dict, ...]           # documenti originali, per dettaglio/espansione
+        }
+        ordinati per timestamp_fine decrescente (episodio più recente prima).
+        """
+        soglia = gap_massimo_secondi if gap_massimo_secondi is not None \
+            else self.GAP_MASSIMO_EPISODIO_SECONDI
+
+        # Ordiniamo per paziente e poi per timestamp crescente: è più
+        # semplice rilevare i gap scorrendo in avanti nel tempo.
+        documenti = list(
+            self.collection.find({
+                "ecg_label": "anomalo",
+                "esito_medico": None
+            }).sort([("paziente_id", 1), ("timestamp", 1)])
+        )
+
+        episodi = []
+        cluster_corrente = []
+
+        def chiudi_cluster():
+            if not cluster_corrente:
+                return
+            episodi.append(self._costruisci_episodio(cluster_corrente))
+
+        for doc in documenti:
+            if not cluster_corrente:
+                cluster_corrente.append(doc)
+                continue
+
+            precedente = cluster_corrente[-1]
+            stesso_paziente = doc["paziente_id"] == precedente["paziente_id"]
+            gap = (doc["timestamp"] - precedente["timestamp"]).total_seconds()
+
+            if stesso_paziente and gap <= soglia:
+                cluster_corrente.append(doc)
+            else:
+                chiudi_cluster()
+                cluster_corrente = [doc]
+
+        chiudi_cluster()
+
+        # Più recenti prima, coerente con l'ordinamento di
+        # find_anomalie_non_validate()
+        episodi.sort(key=lambda e: e["timestamp_fine"], reverse=True)
+        return episodi
+
+    def _costruisci_episodio(self, cluster: list[dict]) -> dict:
+        """Aggrega un cluster di documenti (stesso paziente, gap contiguo) in un episodio."""
+        ultima = cluster[-1]
+        scores = [d.get("ecg_score", 0.0) for d in cluster]
+
+        return {
+            "paziente_id": cluster[0]["paziente_id"],
+            "annotation_ids": [str(d["_id"]) for d in cluster],
+            "timestamp_inizio": cluster[0]["timestamp"],
+            "timestamp_fine": ultima["timestamp"],
+            "numero_letture": len(cluster),
+            "ecg_score_max": max(scores) if scores else 0.0,
+            "ecg_score_medio": round(sum(scores) / len(scores), 4) if scores else 0.0,
+            "postura_label": ultima.get("postura_label"),
+            "temperatura_label": ultima.get("temperatura_label"),
+            "temperatura_valore": ultima.get("temperatura_valore"),
+            "documenti": cluster
+        }
+
     def update_esito_medico(
         self,
         annotation_id: str,
@@ -75,6 +176,36 @@ class AnnotationRepository:
         )
         return risultato.modified_count > 0
 
+    def update_esito_medico_multiplo(
+        self,
+        annotation_ids: list[str],
+        esito: EsitoMedico,
+        note: str = None
+    ) -> int:
+        """
+        Applica lo stesso esito medico a un gruppo di annotazioni in una
+        sola operazione — usato per validare un intero episodio clinico
+        (più letture anomale consecutive raggruppate da
+        find_episodi_anomalia_non_validati) con una sola azione del medico.
+
+        Restituisce il numero di documenti effettivamente aggiornati.
+        """
+        if not annotation_ids:
+            return 0
+
+        aggiornamento = {
+            "$set": {
+                "esito_medico": esito,
+                "validato_at": datetime.now(timezone.utc),
+                "note_medico": note
+            }
+        }
+        risultato = self.collection.update_many(
+            {"_id": {"$in": [ObjectId(aid) for aid in annotation_ids]}},
+            aggiornamento
+        )
+        return risultato.modified_count
+
     def find_validated_for_retraining(self) -> list[dict]:
         """
         Restituisce tutte le annotazioni validate dal medico
@@ -85,7 +216,7 @@ class AnnotationRepository:
                 "esito_medico": {"$ne": None}
             })
         )
-    
+
     def update_ecg_window(
         self,
         annotation_id: str,

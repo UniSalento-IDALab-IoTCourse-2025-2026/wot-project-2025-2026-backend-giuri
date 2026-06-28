@@ -1,5 +1,3 @@
-# backend/services/annotation_service.py — sostituire l'intero file con questa versione
-
 import time
 from datetime import datetime, timezone
 from typing import Optional
@@ -163,8 +161,32 @@ class AnnotationService:
     def valida_anomalia(self, annotation_id: str, esito: EsitoMedico, note: str = None) -> bool:
         return self.repo.update_esito_medico(annotation_id, esito, note)
 
+    def valida_episodio(
+        self,
+        annotation_ids: list[str],
+        esito: EsitoMedico,
+        note: str = None
+    ) -> int:
+        """
+        Applica un solo esito medico a un intero episodio clinico (più
+        letture anomale consecutive raggruppate da
+        get_episodi_anomalia_non_validati). Restituisce il numero di
+        documenti aggiornati.
+        """
+        return self.repo.update_esito_medico_multiplo(annotation_ids, esito, note)
+
     def get_anomalie_non_validate(self) -> list[dict]:
         return self.repo.find_anomalie_non_validate()
+
+    def get_episodi_anomalia_non_validati(self) -> list[dict]:
+        """
+        Restituisce le anomalie non validate raggruppate per episodio
+        clinico (letture consecutive dello stesso paziente con gap
+        temporale ridotto) invece che come righe singole — pensato per
+        la vista medico, dove un episodio di 30 letture consecutive deve
+        comparire come una sola riga da validare.
+        """
+        return self.repo.find_episodi_anomalia_non_validati()
 
     def get_storico_paziente(self, paziente_id: str, limit: int = 50) -> list[dict]:
         return self.repo.find_by_patient(paziente_id, limit)

@@ -14,8 +14,8 @@ const TOPIC_ALLARMI = 'cardiosense/allarmi';
 let token        = localStorage.getItem('cs_token');
 let medicoNome   = '';
 let pazienti     = [];          // cache lista pazienti
-let anomalie     = [];          // cache anomalie non validate
-let validazioneCorrente = null; // { id, data } per il modal
+let episodi      = [];          // cache episodi anomalia non validati (aggregati)
+let validazioneCorrente = null; // { ids: [...], data } per il modal
 
 // Contatori per i KPI
 let kpiValidateOggi = 0;
@@ -123,7 +123,7 @@ function navigaA(sezione) {
     document.getElementById('topbar-title').textContent = titoli[sezione] || sezione;
 
     // Carica dati contestuali
-    if (sezione === 'anomalie')  caricaAnomalie();
+    if (sezione === 'anomalie')  caricaEpisodi();
     if (sezione === 'pazienti')  caricaPazienti();
     if (sezione === 'storico')   popolaSelectStorico();
 }
@@ -232,7 +232,7 @@ async function richiediPermessoNotifiche() {
         // il problema è nel browser/OS, non nella pipeline degli allarmi.
         mostraNotificaSistema(
             '✓ Notifiche desktop attive',
-            'Riceverai una notifica per ogni nuova anomalia ECG rilevata.'
+            'Riceverai una notifica per ogni nuovo episodio di anomalia rilevato.'
         );
     } else if (Notification.permission === 'denied') {
         notificheAbilitate = false;
@@ -242,7 +242,7 @@ async function richiediPermessoNotifiche() {
     }
 }
 
-function mostraNotificaSistema(titolo, corpo) {
+function mostraNotificaSistema(titolo, corpo, tagFisso = null) {
     if (!('Notification' in window)) return;
     if (Notification.permission !== 'granted') return;
     if (!notificheAbilitate) return;   // rispetta il toggle lato JS
@@ -250,7 +250,10 @@ function mostraNotificaSistema(titolo, corpo) {
     try {
         const notif = new Notification(titolo, {
             body: corpo,
-            tag: 'cardiosense-' + Date.now(),   // tag univoco: ogni allarme genera una notifica propria
+            // tag fisso (es. per paziente) -> notifiche successive per lo
+            // stesso episodio sostituiscono quella precedente invece di
+            // accumularsi; tag univoco (default) -> sempre una nuova notifica
+            tag: tagFisso || ('cardiosense-' + Date.now()),
             requireInteraction: true             // resta visibile finché il medico non la chiude
         });
 
@@ -275,6 +278,20 @@ document.getElementById('btn-notifiche')?.addEventListener('click', richiediPerm
 // ============================================================
 // MQTT — connessione WebSocket
 // ============================================================
+//
+// NOTA SUL DEBOUNCE: il backend pubblica un messaggio di allarme per
+// OGNI lettura anomala (non per episodio — il raggruppamento avviene
+// solo lato dashboard/validazione). Un episodio di 30s a 1 msg/s
+// produce quindi ~30 messaggi MQTT consecutivi sullo stesso paziente.
+// Per evitare 30 beep/notifiche sovrapposte per lo stesso evento
+// clinico, qui teniamo un debounce per paziente: il beep/notifica
+// scatta solo se sono passati almeno DEBOUNCE_ALLARME_MS dall'ultimo
+// allarme per quel paziente. Il toast e il contatore KPI restano
+// invece per ogni messaggio, così il medico vede comunque che il
+// flusso dati continua ad arrivare.
+
+const DEBOUNCE_ALLARME_MS = 15000;  // 15s — coerente con il gap di clustering lato backend
+let ultimoAllarmePerPaziente = {};  // paziente_id -> timestamp ms dell'ultimo beep/notifica
 
 let mqttClient = null;
 
@@ -326,59 +343,76 @@ function connettiBroker() {
 }
 
 function gestisciAllarme(msg) {
-    suonaAllarme();
-
     const ts = msg.timestamp
         ? new Date(msg.timestamp).toLocaleTimeString('it-IT')
         : 'adesso';
 
+    const pazienteId = msg.paziente_id || 'sconosciuto';
+    const adesso = Date.now();
+    const ultimoAllarme = ultimoAllarmePerPaziente[pazienteId] || 0;
+    const nuovoEpisodio = (adesso - ultimoAllarme) > DEBOUNCE_ALLARME_MS;
+
+    // Beep e notifica desktop solo per il primo allarme di un episodio,
+    // non per ogni singola lettura anomala consecutiva
+    if (nuovoEpisodio) {
+        suonaAllarme();
+        mostraNotificaSistema(
+            `⚠ Anomalia ECG — Paziente ${pazienteId}`,
+            `Score: ${(msg.ecg_score * 100).toFixed(0)}% · Temp: ${msg.temperatura_label} · ${ts}`,
+            `cardiosense-episodio-${pazienteId}`  // tag fisso per paziente: aggiorna la notifica esistente invece di crearne una nuova
+        );
+    }
+    ultimoAllarmePerPaziente[pazienteId] = adesso;
+
+    // Il toast invece resta per ogni messaggio (più leggero del beep/
+    // della notifica desktop, e conferma che il flusso dati continua),
+    // ma con durata breve per non accumularsi troppo in schermo durante
+    // un episodio lungo.
     showToast(
         'alarm',
-        `⚠ Anomalia ECG — Paziente ${msg.paziente_id}`,
-        `Score: ${(msg.ecg_score * 100).toFixed(0)}% · Temp: ${msg.temperatura_label} · ${ts}`
-    );
-
-    mostraNotificaSistema(
-        `⚠ Anomalia ECG — Paziente ${msg.paziente_id}`,
-        `Score: ${(msg.ecg_score * 100).toFixed(0)}% · Temp: ${msg.temperatura_label} · ${ts}`
+        `⚠ Anomalia ECG — Paziente ${pazienteId}`,
+        `Score: ${(msg.ecg_score * 100).toFixed(0)}% · Temp: ${msg.temperatura_label} · ${ts}`,
+        3000
     );
 
     // Aggiorna KPI ultimo allarme
     document.getElementById('kpi-ultimo').textContent = ts;
     document.getElementById('kpi-ultimo-meta').textContent =
-        `Paziente ${msg.paziente_id}`;
+        `Paziente ${pazienteId}`;
 
-    // Aggiorna badge sidebar
-    aggiornaContatoreBadge(1);
+    // Aggiorna badge sidebar solo per nuovi episodi: il numero di
+    // episodi da validare non cresce a ogni singola lettura, solo
+    // quando ne inizia uno nuovo (la lista verrà comunque risincronizzata
+    // dal prossimo polling REST, questo è solo un aggiornamento ottimistico)
+    if (nuovoEpisodio) {
+        aggiornaContatoreBadge(1);
+    }
 
-    // Aggiorna KPI anomalie
-    const kpiEl = document.getElementById('kpi-anomalie');
-    const corrente = parseInt(kpiEl.textContent) || 0;
-    kpiEl.textContent = corrente + 1;
-
-    // Se siamo già sulla sezione anomalie → ricarica
+    // Se siamo già sulla sezione anomalie o panoramica → ricarica
+    // (con un piccolo ritardo per dare tempo al subscriber di scrivere
+    // su Mongo prima che la dashboard interroghi l'API)
     const sezioneAttiva = document.querySelector('.section.active')?.id;
     if (sezioneAttiva === 'section-anomalie' || sezioneAttiva === 'section-panoramica') {
-        setTimeout(caricaAnomalie, 800);
+        setTimeout(caricaEpisodi, 800);
     }
 }
 
 // ============================================================
-// POLLING REST — anomalie ogni 8 secondi
+// POLLING REST — episodi di anomalia ogni 8 secondi
 // ============================================================
 
-async function caricaAnomalie() {
-    const res = await apiFetch('/anomalie');
+async function caricaEpisodi() {
+    const res = await apiFetch('/anomalie/episodi');
     if (!res || !res.ok) return;
 
-    anomalie = await res.json();
+    episodi = await res.json();
 
-    const count = anomalie.length;
+    const count = episodi.length;
     document.getElementById('kpi-anomalie').textContent = count;
     aggiornaContatoreBadge(count, true);
 
-    renderTabellaAnomalieCompatta(anomalie.slice(0, 5));   // panoramica (max 5)
-    renderTabellaAnomalie(anomalie);                        // sezione completa
+    renderTabellaEpisodiCompatta(episodi.slice(0, 5));   // panoramica (max 5)
+    renderTabellaEpisodi(episodi);                        // sezione completa
 }
 
 function aggiornaContatoreBadge(n, setAssoluto = false) {
@@ -393,19 +427,42 @@ function aggiornaContatoreBadge(n, setAssoluto = false) {
 // HELPER — label paziente con nome/cognome se disponibili
 // ============================================================
 
-function labelPaziente(a) {
-    if (a.paziente_nome && a.paziente_cognome) {
-        return `${a.paziente_nome} ${a.paziente_cognome}
-            <span style="display:block;font-family:var(--mono);font-size:0.7rem;color:var(--text-muted)">${a.paziente_id}</span>`;
+function labelPaziente(ep) {
+    if (ep.paziente_nome && ep.paziente_cognome) {
+        return `${ep.paziente_nome} ${ep.paziente_cognome}
+            <span style="display:block;font-family:var(--mono);font-size:0.7rem;color:var(--text-muted)">${ep.paziente_id}</span>`;
     }
-    return `<span style="font-family:var(--mono);font-size:0.8rem">${a.paziente_id}</span>`;
+    return `<span style="font-family:var(--mono);font-size:0.8rem">${ep.paziente_id}</span>`;
 }
 
 // ============================================================
-// RENDER — tabella anomalie (panoramica, max 5)
+// HELPER — intervallo temporale e durata di un episodio
 // ============================================================
 
-function renderTabellaAnomalieCompatta(lista) {
+function formatIntervalloEpisodio(ep) {
+    const inizio = formatTs(ep.timestamp_inizio);
+    if (ep.numero_letture <= 1) {
+        return inizio;
+    }
+    const fine = new Date(ep.timestamp_fine).toLocaleTimeString('it-IT', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    return `${inizio} → ${fine}`;
+}
+
+function formatDurataEpisodio(ep) {
+    if (ep.numero_letture <= 1) return '';
+    const secondi = Math.round(
+        (new Date(ep.timestamp_fine) - new Date(ep.timestamp_inizio)) / 1000
+    );
+    return `${secondi}s · ${ep.numero_letture} letture`;
+}
+
+// ============================================================
+// RENDER — tabella episodi (panoramica, max 5)
+// ============================================================
+
+function renderTabellaEpisodiCompatta(lista) {
     const tbody = document.getElementById('panoramica-tbody');
     if (!tbody) return;
 
@@ -416,16 +473,21 @@ function renderTabellaAnomalieCompatta(lista) {
         return;
     }
 
-    tbody.innerHTML = lista.map(a => `
+    tbody.innerHTML = lista.map(ep => `
         <tr>
-            <td>${labelPaziente(a)}</td>
-            <td><span class="pill pill-red">anomalo</span></td>
-            <td><span class="pill pill-muted">${a.postura_label || '—'}</span></td>
-            <td>${renderTempPill(a.temperatura_label)}</td>
-            <td style="font-size:0.75rem;color:var(--text-muted);font-family:var(--mono)">${formatTs(a.timestamp)}</td>
+            <td>${labelPaziente(ep)}</td>
+            <td>
+                <span class="pill pill-red">anomalo</span>
+                ${ep.numero_letture > 1
+                    ? `<span style="display:block;font-size:0.68rem;color:var(--text-muted);margin-top:0.2rem">${formatDurataEpisodio(ep)}</span>`
+                    : ''}
+            </td>
+            <td><span class="pill pill-muted">${ep.postura_label || '—'}</span></td>
+            <td>${renderTempPill(ep.temperatura_label)}</td>
+            <td style="font-size:0.75rem;color:var(--text-muted);font-family:var(--mono)">${formatIntervalloEpisodio(ep)}</td>
             <td>
                 <button class="btn btn-teal" style="font-size:0.72rem;padding:0.3rem 0.7rem"
-                    onclick="apriModal('${a._id}', ${JSON.stringify(a).replace(/"/g, '&quot;')})">
+                    onclick='apriModalEpisodio(${JSON.stringify(ep).replace(/'/g, "&apos;")})'>
                     Valida
                 </button>
             </td>
@@ -434,10 +496,10 @@ function renderTabellaAnomalieCompatta(lista) {
 }
 
 // ============================================================
-// RENDER — tabella anomalie (sezione completa)
+// RENDER — tabella episodi (sezione completa)
 // ============================================================
 
-function renderTabellaAnomalie(lista) {
+function renderTabellaEpisodi(lista) {
     const tbody = document.getElementById('anomalie-tbody');
     if (!tbody) return;
 
@@ -448,22 +510,25 @@ function renderTabellaAnomalie(lista) {
         return;
     }
 
-    tbody.innerHTML = lista.map(a => `
+    tbody.innerHTML = lista.map(ep => `
         <tr>
-            <td>${labelPaziente(a)}</td>
+            <td>${labelPaziente(ep)}</td>
             <td>
                 <div style="display:flex;align-items:center;gap:0.5rem">
                     <span class="pill pill-red">anomalo</span>
-                    <span style="font-family:var(--mono);font-size:0.72rem;color:var(--text-muted)">${(a.ecg_score * 100).toFixed(0)}%</span>
+                    <span style="font-family:var(--mono);font-size:0.72rem;color:var(--text-muted)">${(ep.ecg_score_max * 100).toFixed(0)}% picco</span>
                 </div>
+                ${ep.numero_letture > 1
+                    ? `<div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.25rem">${formatDurataEpisodio(ep)} · media ${(ep.ecg_score_medio * 100).toFixed(0)}%</div>`
+                    : ''}
             </td>
-            <td><span class="pill pill-muted">${a.postura_label || '—'}</span></td>
-            <td>${renderTempPill(a.temperatura_label)}</td>
-            <td style="font-size:0.75rem;color:var(--text-muted);font-family:var(--mono)">${formatTs(a.timestamp)}</td>
+            <td><span class="pill pill-muted">${ep.postura_label || '—'}</span></td>
+            <td>${renderTempPill(ep.temperatura_label)}</td>
+            <td style="font-size:0.75rem;color:var(--text-muted);font-family:var(--mono)">${formatIntervalloEpisodio(ep)}</td>
             <td>
                 <button class="btn btn-teal" style="font-size:0.72rem;padding:0.3rem 0.7rem"
-                    onclick="apriModal('${a._id}', ${JSON.stringify(a).replace(/"/g, '&quot;')})">
-                    Valida
+                    onclick='apriModalEpisodio(${JSON.stringify(ep).replace(/'/g, "&apos;")})'>
+                    Valida${ep.numero_letture > 1 ? ` (${ep.numero_letture})` : ''}
                 </button>
             </td>
         </tr>
@@ -633,38 +698,56 @@ function renderTabellaStorico(lista) {
 }
 
 // ============================================================
-// MODAL — validazione anomalia
+// MODAL — validazione episodio
 // ============================================================
 
 let esitoSelezionato = null;
 
-function apriModal(annotationId, data) {
-    validazioneCorrente = { id: annotationId, data };
+/**
+ * Apre il modal di validazione per un intero episodio clinico
+ * (una o più letture anomale consecutive raggruppate dal backend).
+ * `ep` è l'oggetto restituito da GET /anomalie/episodi, con
+ * annotation_ids, intervallo temporale, score aggregati e i
+ * documenti grezzi del cluster per il grafico ECG esteso.
+ */
+function apriModalEpisodio(ep) {
+    validazioneCorrente = { ids: ep.annotation_ids, data: ep };
     esitoSelezionato = null;
 
-    // Intestazione modal: mostra nome/cognome se disponibili
-    const intestazione = (data.paziente_nome && data.paziente_cognome)
-        ? `${data.paziente_nome} ${data.paziente_cognome} (${data.paziente_id})`
-        : data.paziente_id;
+    const intestazione = (ep.paziente_nome && ep.paziente_cognome)
+        ? `${ep.paziente_nome} ${ep.paziente_cognome} (${ep.paziente_id})`
+        : ep.paziente_id;
     document.getElementById('modal-paziente-info').textContent = `Paziente: ${intestazione}`;
 
+    const rigaDurata = ep.numero_letture > 1
+        ? `
+            <div class="modal-info-row">
+                <span class="modal-info-key">Episodio</span>
+                <span>${ep.numero_letture} letture consecutive · ${formatDurataEpisodio(ep)}</span>
+            </div>
+        `
+        : '';
+
     document.getElementById('modal-details').innerHTML = `
-        <div id="modal-ecg-esteso">${renderGraficoECGEsteso(data)}</div>
+        <div id="modal-ecg-esteso">${renderGraficoECGEsteso(scegliDocumentoPerGrafico(ep))}</div>
+        ${rigaDurata}
         <div class="modal-info-row">
-            <span class="modal-info-key">ECG Score</span>
-            <span class="pill pill-red">${(data.ecg_score * 100).toFixed(1)}%</span>
+            <span class="modal-info-key">ECG Score${ep.numero_letture > 1 ? ' (picco / medio)' : ''}</span>
+            <span class="pill pill-red">
+                ${(ep.ecg_score_max * 100).toFixed(1)}%${ep.numero_letture > 1 ? ` / ${(ep.ecg_score_medio * 100).toFixed(1)}%` : ''}
+            </span>
         </div>
         <div class="modal-info-row">
             <span class="modal-info-key">Postura</span>
-            <span>${data.postura_label || '—'}</span>
+            <span>${ep.postura_label || '—'}</span>
         </div>
         <div class="modal-info-row">
             <span class="modal-info-key">Temperatura</span>
-            <span>${data.temperatura_valore}°C — ${data.temperatura_label}</span>
+            <span>${ep.temperatura_valore}°C — ${ep.temperatura_label}</span>
         </div>
         <div class="modal-info-row">
-            <span class="modal-info-key">Timestamp</span>
-            <span style="font-family:var(--mono);font-size:0.78rem">${formatTs(data.timestamp)}</span>
+            <span class="modal-info-key">${ep.numero_letture > 1 ? 'Periodo' : 'Timestamp'}</span>
+            <span style="font-family:var(--mono);font-size:0.78rem">${formatIntervalloEpisodio(ep)}</span>
         </div>
     `;
 
@@ -674,6 +757,20 @@ function apriModal(annotationId, data) {
     document.getElementById('modal-note').value = '';
 
     document.getElementById('modal-overlay').classList.add('open');
+}
+
+/**
+ * Per il grafico ECG esteso nel modal usiamo il documento del cluster
+ * con lo score più alto (il momento clinicamente più rilevante
+ * dell'episodio), non semplicemente il primo o l'ultimo.
+ */
+function scegliDocumentoPerGrafico(ep) {
+    const documenti = ep.documenti || [];
+    if (documenti.length === 0) return ep;
+    return documenti.reduce(
+        (migliore, doc) => (doc.ecg_score > migliore.ecg_score ? doc : migliore),
+        documenti[0]
+    );
 }
 
 function chiudiModal() {
@@ -703,9 +800,14 @@ async function confermaValidazione() {
     btn.textContent = 'Salvataggio...';
     btn.disabled = true;
 
-    const res = await apiFetch(`/anomalie/${validazioneCorrente.id}/valida`, {
+    const numeroLetture = validazioneCorrente.ids.length;
+    const res = await apiFetch('/anomalie/episodi/valida', {
         method: 'PATCH',
-        body: JSON.stringify({ esito: esitoSelezionato, note })
+        body: JSON.stringify({
+            annotation_ids: validazioneCorrente.ids,
+            esito: esitoSelezionato,
+            note
+        })
     });
 
     btn.textContent = 'Conferma validazione';
@@ -721,13 +823,17 @@ async function confermaValidazione() {
     kpiValidateOggi++;
     document.getElementById('kpi-validate').textContent = kpiValidateOggi;
 
-    showToast('success', 'Validazione salvata',
-        esitoSelezionato === 'vero_positivo'
-            ? 'Anomalia confermata — dati inviati al ri-addestramento'
-            : 'Falso allarme registrato');
+    const messaggioBase = esitoSelezionato === 'vero_positivo'
+        ? 'Anomalia confermata — dati inviati al ri-addestramento'
+        : 'Falso allarme registrato';
+    const suffissoEpisodio = numeroLetture > 1
+        ? ` (${numeroLetture} letture validate in un'unica azione)`
+        : '';
+
+    showToast('success', 'Validazione salvata', messaggioBase + suffissoEpisodio);
 
     // Ricarica tabelle
-    await caricaAnomalie();
+    await caricaEpisodi();
 }
 
 // Chiudi modal cliccando overlay
@@ -742,7 +848,7 @@ document.getElementById('modal-paziente-overlay')?.addEventListener('click', (e)
 // BOTTONE REFRESH ANOMALIE
 // ============================================================
 
-document.getElementById('btn-refresh-anomalie')?.addEventListener('click', caricaAnomalie);
+document.getElementById('btn-refresh-anomalie')?.addEventListener('click', caricaEpisodi);
 
 // ============================================================
 // HELPER — formattazione timestamp
@@ -793,7 +899,9 @@ function renderEsito(esito) {
     return `<span class="pill pill-muted">${esito}</span>`;
 }
 
-// dashboard/static/app.js — aggiungere queste due funzioni
+// ============================================================
+// GRAFICO ECG ESTESO (nel modal di validazione)
+// ============================================================
 
 function renderGraficoECGEsteso(data) {
     if (!data.ecg_window_pronta || !data.ecg_window || data.ecg_window.length === 0) {
@@ -827,7 +935,7 @@ function renderGraficoECGEsteso(data) {
     return `
         <div style="margin:0.5rem 0 1.25rem;">
             <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">
-                Traccia ECG · ${durataSec}s (prima e dopo l'evento)
+                Traccia ECG · ${durataSec}s (prima e dopo l'evento di picco)
             </div>
             <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="width:100%;max-width:${width}px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);display:block;">
                 <rect x="${(xAnomalia - 2).toFixed(1)}" y="0" width="4" height="${height}" fill="var(--red)" opacity="0.25" />
@@ -835,7 +943,7 @@ function renderGraficoECGEsteso(data) {
                 <line x1="${xAnomalia.toFixed(1)}" y1="0" x2="${xAnomalia.toFixed(1)}" y2="${height}" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="4,3" />
             </svg>
             <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.4rem;">
-                Linea rossa = istante della classificazione anomala
+                Linea rossa = istante di score più alto nell'episodio
             </div>
         </div>
     `;
@@ -846,12 +954,19 @@ async function aggiornaTracciaECG(annotationId) {
     if (!res || !res.ok) return;
     const fresca = await res.json();
 
-    if (!validazioneCorrente || validazioneCorrente.id !== annotationId) return;
-    validazioneCorrente.data = { ...validazioneCorrente.data, ...fresca };
+    if (!validazioneCorrente) return;
+
+    // Aggiorna il documento corrispondente nella cache dell'episodio corrente
+    const documenti = validazioneCorrente.data.documenti || [];
+    const idx = documenti.findIndex(d => d._id === annotationId);
+    if (idx !== -1) {
+        documenti[idx] = { ...documenti[idx], ...fresca };
+    }
 
     const container = document.getElementById('modal-ecg-esteso');
     if (container) {
-        container.outerHTML = `<div id="modal-ecg-esteso">${renderGraficoECGEsteso(validazioneCorrente.data)}</div>`;
+        const documentoAggiornato = scegliDocumentoPerGrafico(validazioneCorrente.data);
+        container.outerHTML = `<div id="modal-ecg-esteso">${renderGraficoECGEsteso(documentoAggiornato)}</div>`;
     }
 }
 
@@ -861,15 +976,15 @@ async function aggiornaTracciaECG(annotationId) {
 
 async function init() {
     await caricaProfiloMedico();
-    await caricaAnomalie();
+    await caricaEpisodi();
     await caricaPazienti();
 
     aggiornaBottoneNotifiche();
 
     connettiBroker();
 
-    // Polling REST ogni 8 secondi per anomalie nuove
-    setInterval(caricaAnomalie, 8000);
+    // Polling REST ogni 8 secondi per episodi nuovi
+    setInterval(caricaEpisodi, 8000);
 
     // Polling pazienti ogni 30 secondi (cambiano raramente)
     setInterval(caricaPazienti, 30000);
