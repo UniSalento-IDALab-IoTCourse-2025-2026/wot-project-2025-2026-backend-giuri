@@ -1,10 +1,10 @@
+# backend/mqtt_subscriber.py
 import json
 import signal
 import sys
 import os
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
-from services.ecg_buffer_manager import ECGBufferManager
 
 from db.mongo_client import get_db
 from classifiers.ecg_classifier import ECGClassifier
@@ -13,17 +13,7 @@ from classifiers.temperatura_classifier import TemperaturaClassifier
 from repositories.annotation_repository import AnnotationRepository
 from services.annotation_service import AnnotationService
 from services.notification_service import NotificationService
-
-# 15s prima + 15s dopo = 30s totali centrati sull'anomalia
-ecg_buffer = ECGBufferManager(pre_seconds=15.0, post_seconds=15.0)
-
-annotation_service = AnnotationService(
-    annotation_repo=annotation_repo,
-    ecg_classifier=ecg_classifier,
-    postura_classifier=postura_classifier,
-    temperatura_classifier=temperatura_classifier,
-    ecg_buffer=ecg_buffer
-)
+from services.ecg_buffer_manager import ECGBufferManager
 
 load_dotenv()
 
@@ -52,12 +42,16 @@ temperatura_classifier = TemperaturaClassifier()
 # Repository
 annotation_repo = AnnotationRepository(db)
 
+# Buffer ECG per la finestra estesa (≥30s, prima e dopo l'anomalia)
+ecg_buffer = ECGBufferManager(pre_seconds=15.0, post_seconds=15.0)
+
 # Services
 annotation_service = AnnotationService(
     annotation_repo=annotation_repo,
     ecg_classifier=ecg_classifier,
     postura_classifier=postura_classifier,
-    temperatura_classifier=temperatura_classifier
+    temperatura_classifier=temperatura_classifier,
+    ecg_buffer=ecg_buffer
 )
 notification_service = NotificationService()
 
