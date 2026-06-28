@@ -40,6 +40,12 @@ class Annotation(BaseModel):
     ecg_label: ECGLabel
     ecg_score: float
     rr_intervals: Optional[list[float]] = None
+
+    # Istantanea ECG raw per visualizzazione clinica nel modal di validazione.
+    # Contiene i campioni grezzi (normalizzati in float) della finestra di
+    # acquisizione centrata sull'evento — tipicamente 250 campioni (1s a 250Hz).
+    ecg_raw_snapshot: Optional[list[float]] = None
+
     postura_label: Optional[str] = None
     postura_score: Optional[float] = None
     temperatura_label: TemperaturaLabel

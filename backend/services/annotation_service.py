@@ -63,9 +63,22 @@ class AnnotationService:
         # o un device che fa il pre-processing a bordo), usali direttamente.
         # Altrimenti ricavali dal segnale ECG grezzo via peak detection.
         rr_intervals = payload.get("rr_intervals")
+        ecg_raw = payload.get("ecg_raw", [])
+
         if not rr_intervals:
-            ecg_raw = payload.get("ecg_raw", [])
             rr_intervals = self._estrai_rr_da_raw(ecg_raw)
+
+        # Istantanea ECG raw per visualizzazione clinica.
+        # Normalizziamo i campioni in [-1, 1] per un rendering SVG coerente
+        # indipendentemente dalle unità fisiche del sensore.
+        ecg_raw_snapshot = None
+        if ecg_raw and len(ecg_raw) >= 10:
+            arr = np.array(ecg_raw, dtype=float)
+            vmin, vmax = arr.min(), arr.max()
+            rng = (vmax - vmin) if (vmax - vmin) > 0 else 1.0
+            # Normalizzazione lineare in [-1, 1]
+            normalizzato = (2.0 * (arr - vmin) / rng - 1.0)
+            ecg_raw_snapshot = [round(float(v), 4) for v in normalizzato]
 
         # Classificazione ECG
         ecg_result = self.ecg.predict({
@@ -98,6 +111,7 @@ class AnnotationService:
             ecg_label=ecg_result["label"],
             ecg_score=ecg_result["score"],
             rr_intervals=rr_intervals,
+            ecg_raw_snapshot=ecg_raw_snapshot,
             postura_label=postura_label,
             postura_score=postura_score,
             temperatura_label=temperatura_result["label"],

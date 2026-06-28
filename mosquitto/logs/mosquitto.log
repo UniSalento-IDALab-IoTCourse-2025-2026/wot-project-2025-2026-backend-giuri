@@ -2351,3 +2351,11 @@
 1782568037: mosquitto version 2.0.22 terminating
 1782568037: Saving in-memory database to /mosquitto/data//mosquitto.db.
 1782568037: Client dashboard_98fdba closed its connection.
+1782650694: mosquitto version 2.0.22 starting
+1782650694: Config loaded from /mosquitto/config/mosquitto.conf.
+1782650694: Opening ipv4 listen socket on port 1883.
+1782650694: Opening ipv6 listen socket on port 1883.
+1782650694: Opening websockets listen socket on port 9001.
+1782650694: mosquitto version 2.0.22 running
+1782650904: mosquitto version 2.0.22 terminating
+1782650904: Saving in-memory database to /mosquitto/data//mosquitto.db.

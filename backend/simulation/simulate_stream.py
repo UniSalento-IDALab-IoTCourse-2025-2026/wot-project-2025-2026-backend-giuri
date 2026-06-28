@@ -1,6 +1,7 @@
 import json
 import time
 import random
+import math
 import numpy as np
 import paho.mqtt.client as mqtt
 import os
@@ -15,29 +16,137 @@ load_dotenv()
 TOPIC_DATI = "cardiosense/dati"
 PAZIENTE_ID = "OMU9YFPR"  # codice paziente di test
 
+# Frequenza di campionamento ECG in Hz
+ECG_SAMPLE_RATE = 250
+
+# Durata della finestra ECG pubblicata per ogni messaggio (secondi)
+ECG_WINDOW_SEC = 1.0
+
 # Frequenza di pubblicazione messaggi (secondi)
 INTERVALLO_PUBBLICAZIONE = 1.0
 
 # ============================================================
-# GENERATORI DI SEGNALI SINTETICI (Corretti per Data Science)
+# GENERATORI ECG RAW REALISTICI
 # ============================================================
 
-def genera_ecg_normale(n_campioni: int = 10) -> list:
+def genera_ecg_raw_normale(n_campioni: int = None) -> list:
     """
-    Genera intervalli R-R stabili (intorno a 0.8 secondi).
-    Bassa variabilità = Ritmo normale.
+    Simula una finestra ECG normale a 250Hz.
+
+    Modella le onde P, QRS (con Q negativa, R positiva, S negativa) e T
+    per un ritmo sinusale regolare a ~75 bpm (RR ≈ 0.80s).
     """
-    return [round(random.uniform(0.78, 0.82), 2) for _ in range(n_campioni)]
+    if n_campioni is None:
+        n_campioni = int(ECG_SAMPLE_RATE * ECG_WINDOW_SEC)
+
+    segnale = []
+    rr = 0.80  # RR nominale in secondi
+
+    for i in range(n_campioni):
+        t = i / ECG_SAMPLE_RATE
+        # Fase normalizzata all'interno del ciclo cardiaco corrente [0, 1)
+        fase = (t % rr) / rr
+
+        if 0.10 < fase < 0.20:
+            # Onda P
+            v = 0.15 * math.sin(math.pi * (fase - 0.10) / 0.10)
+        elif 0.28 < fase < 0.31:
+            # Onda Q (negativa)
+            v = -0.10 * math.sin(math.pi * (fase - 0.28) / 0.03)
+        elif 0.31 < fase < 0.37:
+            # Picco R (onda principale)
+            v = 1.00 * math.sin(math.pi * (fase - 0.31) / 0.06)
+        elif 0.37 < fase < 0.40:
+            # Onda S (negativa)
+            v = -0.20 * math.sin(math.pi * (fase - 0.37) / 0.03)
+        elif 0.44 < fase < 0.58:
+            # Onda T (ripolarizzazione ventricolare)
+            v = 0.30 * math.sin(math.pi * (fase - 0.44) / 0.14)
+        else:
+            # Linea isoelettrica
+            v = 0.0
+
+        # Rumore fisiologico di baseline
+        v += random.gauss(0, 0.018)
+        segnale.append(round(v, 4))
+
+    return segnale
 
 
-def genera_ecg_anomalo(n_campioni: int = 10) -> list:
+def genera_ecg_raw_anomalo(n_campioni: int = None) -> list:
     """
-    Genera intervalli R-R caotici e instabili.
-    Forte variabilità (battiti accelerati alternati a pause lunghe) = Aritmia.
-    """
-    opzioni_aritmia = [0.42, 0.45, 1.35, 0.49, 1.41, 0.52, 1.15, 0.41, 1.38, 0.44]
-    return [random.choice(opzioni_aritmia) for _ in range(n_campioni)]
+    Simula una finestra ECG con fibrillazione atriale a 250Hz.
 
+    Caratteristiche cliniche riprodotte:
+    - Assenza di onda P (attività atriale caotica → baseline ondulata)
+    - Intervalli RR irregolari (0.3s – 0.9s)
+    - Complessi QRS variabili in ampiezza
+    - Onda T anomala
+    """
+    if n_campioni is None:
+        n_campioni = int(ECG_SAMPLE_RATE * ECG_WINDOW_SEC)
+
+    durata = n_campioni / ECG_SAMPLE_RATE
+
+    # Genera posizioni temporali dei battiti con RR irregolare
+    battiti = []
+    t_corrente = random.uniform(0.05, 0.15)  # offset iniziale casuale
+    while t_corrente < durata:
+        battiti.append(t_corrente)
+        t_corrente += random.uniform(0.30, 0.90)  # RR caotico tipico di FA
+
+    segnale = []
+    for i in range(n_campioni):
+        t = i / ECG_SAMPLE_RATE
+
+        # Baseline ondulata che simula l'attività atriale caotica (fibrillazione)
+        # Somma di sinusoidi a frequenze diverse per aspetto irregolare
+        v = (0.04 * math.sin(2 * math.pi * 6.2 * t) +
+             0.03 * math.sin(2 * math.pi * 8.7 * t + 1.1) +
+             0.02 * math.sin(2 * math.pi * 11.3 * t + 2.4))
+
+        # Complessi QRS per ogni battito
+        for tb in battiti:
+            dt = t - tb
+            if 0 < dt < 0.04:
+                # Onda Q anomala
+                v -= 0.12 * math.sin(math.pi * dt / 0.04)
+            elif 0.04 <= dt < 0.10:
+                # Picco R con ampiezza variabile (segno di conduzione anomala)
+                ampiezza_r = random.uniform(0.55, 1.10)
+                v += ampiezza_r * math.sin(math.pi * (dt - 0.04) / 0.06)
+            elif 0.10 <= dt < 0.14:
+                # Onda S
+                v -= 0.18 * math.sin(math.pi * (dt - 0.10) / 0.04)
+            elif 0.18 <= dt < 0.32:
+                # Onda T appiattita/invertita (anomala)
+                v += 0.12 * math.sin(math.pi * (dt - 0.18) / 0.14)
+
+        # Rumore di acquisizione leggermente più alto (muscolo + artefatti)
+        v += random.gauss(0, 0.030)
+        segnale.append(round(v, 4))
+
+    return segnale
+
+
+# ============================================================
+# GENERATORI R-R (coerenti con il raw)
+# ============================================================
+
+def genera_rr_normale(n: int = 10) -> list:
+    """Intervalli R-R stabili → ritmo sinusale normale."""
+    return [round(random.uniform(0.76, 0.84), 3) for _ in range(n)]
+
+
+def genera_rr_anomalo(n: int = 10) -> list:
+    """Intervalli R-R caotici → fibrillazione atriale."""
+    pool = [0.38, 0.41, 0.44, 0.49, 0.52, 1.05, 1.18, 1.32, 1.40, 0.47, 0.97]
+    return [random.choice(pool) for _ in range(n)]
+
+
+# ============================================================
+# GENERATORI ACCELEROMETRO
+# ============================================================
 
 def genera_accelerometro_normale() -> dict:
     return {
@@ -55,12 +164,15 @@ def genera_accelerometro_movimento() -> dict:
     }
 
 
+# ============================================================
+# GENERATORI TEMPERATURA
+# ============================================================
+
 def genera_temperatura_normale() -> float:
     return round(random.uniform(36.4, 36.9), 1)
 
 
 def genera_temperatura_febbre() -> float:
-    # Portiamo la febbre a un valore indubitabilmente alto (39.2°C)
     return round(random.uniform(38.8, 39.5), 1)
 
 
@@ -71,57 +183,70 @@ def genera_temperatura_febbre() -> float:
 SCENARI = {
     "normale": {
         "descrizione": "Paziente a riposo, parametri nella norma",
-        "ecg_fn": genera_ecg_normale,
-        "acc_fn": genera_accelerometro_normale,
+        "ecg_fn":  genera_ecg_raw_normale,
+        "rr_fn":   genera_rr_normale,
+        "acc_fn":  genera_accelerometro_normale,
         "temp_fn": genera_temperatura_normale
     },
     "anomalia_ecg": {
-        "descrizione": "Aritmia rilevata, altri parametri normali",
-        "ecg_fn": genera_ecg_anomalo,
-        "acc_fn": genera_accelerometro_normale,
+        "descrizione": "Fibrillazione atriale, altri parametri normali",
+        "ecg_fn":  genera_ecg_raw_anomalo,
+        "rr_fn":   genera_rr_anomalo,
+        "acc_fn":  genera_accelerometro_normale,
         "temp_fn": genera_temperatura_normale
     },
     "febbre": {
         "descrizione": "Temperatura elevata, ECG normale",
-        "ecg_fn": genera_ecg_normale,
-        "acc_fn": genera_accelerometro_normale,
+        "ecg_fn":  genera_ecg_raw_normale,
+        "rr_fn":   genera_rr_normale,
+        "acc_fn":  genera_accelerometro_normale,
         "temp_fn": genera_temperatura_febbre
     },
     "movimento": {
         "descrizione": "Paziente in movimento, ECG normale",
-        "ecg_fn": genera_ecg_normale,
-        "acc_fn": genera_accelerometro_movimento,
+        "ecg_fn":  genera_ecg_raw_normale,
+        "rr_fn":   genera_rr_normale,
+        "acc_fn":  genera_accelerometro_movimento,
         "temp_fn": genera_temperatura_normale
     }
 }
 
 
 # ============================================================
-# PUBBLICAZIONE MQTT
+# COSTRUZIONE PAYLOAD
 # ============================================================
 
 def costruisci_payload(scenario: str) -> dict:
     """
-    Costruisce il payload MQTT includendo la chiave rr_intervals attesa dall'IA.
+    Costruisce il payload MQTT con:
+    - ecg_raw: campioni grezzi sintetici realistici (250 float per 1s a 250Hz)
+    - rr_intervals: intervalli R-R pre-calcolati coerenti con lo scenario
+      (il subscriber li usa direttamente se presenti, saltando la peak detection)
     """
     s = SCENARI[scenario]
     acc = s["acc_fn"]()
-    dati_ecg = s["ecg_fn"]() # Genera la lista di 10 valori
+
+    ecg_raw = s["ecg_fn"]()        # 250 campioni ECG realistici
+    rr_intervals = s["rr_fn"]()    # 10 intervalli R-R coerenti
 
     return {
         "paziente_id": PAZIENTE_ID,
-        "ecg_raw": dati_ecg,
-        "rr_intervals": dati_ecg,  # <--- QUESTA CHIAVE SBLOCCHERÀ L'IA
-        "acc_x": acc["acc_x"],
-        "acc_y": acc["acc_y"],
-        "acc_z": acc["acc_z"],
+        "ecg_raw":     ecg_raw,
+        "rr_intervals": rr_intervals,
+        "acc_x":       acc["acc_x"],
+        "acc_y":       acc["acc_y"],
+        "acc_z":       acc["acc_z"],
         "temperatura": s["temp_fn"]()
     }
 
 
+# ============================================================
+# CALLBACKS MQTT
+# ============================================================
+
 def on_connect(client, userdata, flags, reason_code, properties):
     if reason_code == 0:
-        print(f"Connesso al broker MQTT")
+        print("Connesso al broker MQTT")
     else:
         print(f"Connessione fallita — codice: {reason_code}")
 
@@ -156,10 +281,12 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    print(f"Scenario: {args.scenario} — {SCENARI[args.scenario]['descrizione']}")
-    print(f"Durata: {args.durata}s, Intervallo: {args.intervallo}s")
+    print(f"Scenario:  {args.scenario} — {SCENARI[args.scenario]['descrizione']}")
+    print(f"Durata:    {args.durata}s")
+    print(f"Intervallo: {args.intervallo}s")
     print(f"Paziente ID: {PAZIENTE_ID}")
-    print("-" * 50)
+    print(f"Campioni ECG per messaggio: {int(ECG_SAMPLE_RATE * ECG_WINDOW_SEC)}")
+    print("-" * 60)
 
     client = mqtt.Client(
         client_id="cardiosense_simulator",
@@ -184,10 +311,12 @@ if __name__ == "__main__":
                 qos=1
             )
             messaggi_inviati += 1
-            print(f"[{messaggi_inviati}] Pubblicato — "
-                  f"ECG samples: {len(payload['ecg_raw'])}, "
-                  f"Temp: {payload['temperatura']}°C, "
-                  f"Acc: ({payload['acc_x']}, {payload['acc_y']}, {payload['acc_z']})")
+            print(
+                f"[{messaggi_inviati:3d}] Pubblicato — "
+                f"ECG campioni: {len(payload['ecg_raw'])}, "
+                f"RR: {payload['rr_intervals'][:3]}..., "
+                f"Temp: {payload['temperatura']}°C"
+            )
             time.sleep(args.intervallo)
 
     except KeyboardInterrupt:

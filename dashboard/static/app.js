@@ -20,11 +20,6 @@ let validazioneCorrente = null; // { id, data } per il modal
 // Contatori per i KPI
 let kpiValidateOggi = 0;
 
-// Notifiche desktop — toggle lato JS
-// (il permesso OS non è revocabile da codice, ma possiamo
-//  smettere di chiamare new Notification() quando disattivate)
-let notificheAbilitate = false;
-
 // ============================================================
 // GUARD: redirect se non autenticato
 // ============================================================
@@ -170,12 +165,6 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
 // nativa di Windows/macOS anche se la tab non è in primo piano
 // (basta che il browser sia aperto). Richiede HTTPS o localhost
 // e il permesso esplicito dell'utente.
-//
-// NOTA SUL TOGGLE: il permesso OS non è revocabile via JavaScript
-// per scelta intenzionale del browser (sicurezza). Il toggle lato
-// JS agisce sulla variabile notificheAbilitate: quando false,
-// mostraNotificaSistema() esce subito senza creare nulla.
-// Stessa strategia usata da Slack, Gmail, ecc.
 
 function aggiornaBottoneNotifiche() {
     const btn = document.getElementById('btn-notifiche');
@@ -187,16 +176,15 @@ function aggiornaBottoneNotifiche() {
         return;
     }
 
-    if (Notification.permission === 'denied') {
-        btn.textContent = '🔕 Bloccate (sblocca dal browser)';
-        notificheAbilitate = false;
-        return;
-    }
-
-    if (Notification.permission === 'granted' && notificheAbilitate) {
-        btn.textContent = '🔔 Notifiche attive — clicca per disattivare';
-    } else {
-        btn.textContent = '🔔 Attiva notifiche desktop';
+    switch (Notification.permission) {
+        case 'granted':
+            btn.textContent = '🔔 Notifiche attive';
+            break;
+        case 'denied':
+            btn.textContent = '🔕 Bloccate (sblocca dal browser)';
+            break;
+        default:
+            btn.textContent = '🔔 Attiva notifiche desktop';
     }
 }
 
@@ -206,46 +194,27 @@ async function richiediPermessoNotifiche() {
         return;
     }
 
-    if (Notification.permission === 'denied') {
-        showToast('alarm', 'Permesso negato',
-            'Clicca sull\'icona del lucchetto nella barra degli indirizzi → Notifiche → Consenti, poi ricarica la pagina');
-        return;
-    }
-
-    // Se il permesso è già concesso e le notifiche sono attive → disattiva (toggle off)
-    if (Notification.permission === 'granted' && notificheAbilitate) {
-        notificheAbilitate = false;
-        aggiornaBottoneNotifiche();
-        showToast('success', 'Notifiche disattivate', 'Non riceverai più notifiche desktop per i nuovi allarmi');
-        return;
-    }
-
-    // Prima richiesta o riattivazione dopo disattivazione
     if (Notification.permission === 'default') {
         await Notification.requestPermission();
     }
+    aggiornaBottoneNotifiche();
 
     if (Notification.permission === 'granted') {
-        notificheAbilitate = true;
-        aggiornaBottoneNotifiche();
-        // Notifica di TEST immediata — se non la vedi ora,
+        // Notifica di TEST immediata, indipendente da MQTT — se non la vedi ora,
         // il problema è nel browser/OS, non nella pipeline degli allarmi.
         mostraNotificaSistema(
             '✓ Notifiche desktop attive',
-            'Riceverai una notifica per ogni nuova anomalia ECG rilevata.'
+            'Se vedi questo messaggio come notifica di Windows, è tutto configurato correttamente.'
         );
     } else if (Notification.permission === 'denied') {
-        notificheAbilitate = false;
-        aggiornaBottoneNotifiche();
         showToast('alarm', 'Permesso negato',
-            'Clicca sull\'icona del lucchetto nella barra degli indirizzi → Notifiche → Consenti, poi ricarica la pagina');
+            'Clicca sull\'icona del lucchetto/info nella barra degli indirizzi → Notifiche → Consenti, poi ricarica la pagina');
     }
 }
 
 function mostraNotificaSistema(titolo, corpo) {
     if (!('Notification' in window)) return;
     if (Notification.permission !== 'granted') return;
-    if (!notificheAbilitate) return;   // rispetta il toggle lato JS
 
     try {
         const notif = new Notification(titolo, {
@@ -390,20 +359,21 @@ function aggiornaContatoreBadge(n, setAssoluto = false) {
 }
 
 // ============================================================
-// HELPER — label paziente con nome/cognome se disponibili
+// RENDER — tabella anomalie (panoramica, max 5)
 // ============================================================
 
 function labelPaziente(a) {
     if (a.paziente_nome && a.paziente_cognome) {
-        return `${a.paziente_nome} ${a.paziente_cognome}
-            <span style="display:block;font-family:var(--mono);font-size:0.7rem;color:var(--text-muted)">${a.paziente_id}</span>`;
+        return `
+            <div style="font-weight:600;font-size:0.82rem">
+                ${a.paziente_nome} ${a.paziente_cognome}
+            </div>
+            <div style="font-family:var(--mono);font-size:0.72rem;color:var(--text-muted)">
+                ${a.paziente_id}
+            </div>`;
     }
     return `<span style="font-family:var(--mono);font-size:0.8rem">${a.paziente_id}</span>`;
 }
-
-// ============================================================
-// RENDER — tabella anomalie (panoramica, max 5)
-// ============================================================
 
 function renderTabellaAnomalieCompatta(lista) {
     const tbody = document.getElementById('panoramica-tbody');
@@ -633,13 +603,122 @@ function renderTabellaStorico(lista) {
 }
 
 // ============================================================
-// HELPER — grafico intervalli R-R (per la validazione medica)
+// HELPER — tracciato ECG raw (istantanea clinica)
+// ============================================================
+
+/**
+ * Renderizza un tracciato ECG SVG a partire dai campioni raw normalizzati.
+ *
+ * Il tracciato mostra:
+ * - linea isoelettrica tratteggiata a y = 0
+ * - griglia temporale ogni 50 campioni (0.2s a 250Hz)
+ * - polyline del segnale in verde teal
+ * - etichetta campioni e durata
+ *
+ * Se i dati raw non sono disponibili, cade in fallback sul grafico R-R.
+ */
+function renderGraficoECG(ecgRaw) {
+    if (!ecgRaw || ecgRaw.length < 10) {
+        // Fallback: mostra solo il grafico R-R se non abbiamo raw
+        return renderGraficoRR(null);
+    }
+
+    const W = 460, H = 170, padX = 28, padY = 22;
+    const n = ecgRaw.length;
+
+    // I campioni sono già normalizzati in [-1, 1] dal server
+    const min = Math.min(...ecgRaw);
+    const max = Math.max(...ecgRaw);
+    const rng = (max - min) || 1;
+
+    // Proietta un valore ECG in coordinata Y SVG
+    const toY = v => (padY + (1 - (v - min) / rng) * (H - padY * 2)).toFixed(1);
+    // Proietta un indice campione in coordinata X SVG
+    const toX = i => (padX + (i / (n - 1)) * (W - padX * 2)).toFixed(1);
+
+    // Polyline del tracciato
+    const punti = ecgRaw.map((v, i) => `${toX(i)},${toY(v)}`).join(' ');
+
+    // Griglia verticale ogni 50 campioni (= 0.2s a 250Hz)
+    const gridStep = 50;
+    const gridLines = [];
+    for (let i = gridStep; i < n; i += gridStep) {
+        const x = toX(i);
+        const tSec = (i / 250).toFixed(1);
+        gridLines.push(`
+            <line x1="${x}" y1="${padY}" x2="${x}" y2="${H - padY}"
+                  stroke="var(--border2)" stroke-width="1" stroke-dasharray="3,3" opacity="0.7"/>
+            <text x="${x}" y="${H - 5}" font-size="9" fill="var(--text-muted)"
+                  text-anchor="middle" font-family="'JetBrains Mono', monospace">${tSec}s</text>
+        `);
+    }
+
+    // Linea isoelettrica (y = 0, o al centro se 0 fuori range)
+    const yZero = toY(Math.max(min, Math.min(0, max)));
+
+    // Linea orizzontale iniziale (bordo sinistro griglia)
+    const xStart = padX;
+    const xEnd   = (W - padX).toFixed(1);
+
+    return `
+        <div style="margin:0.5rem 0 1.25rem;">
+            <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;
+                        letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;
+                        display:flex;align-items:center;gap:0.5rem;">
+                <span style="display:inline-block;width:10px;height:2px;
+                             background:var(--teal);border-radius:1px;"></span>
+                Tracciato ECG · ${n} campioni · ${(n / 250).toFixed(1)}s @ 250 Hz
+            </div>
+
+            <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"
+                 style="width:100%;max-width:${W}px;display:block;
+                        background:var(--surface2);border-radius:8px;
+                        border:1px solid var(--border);">
+
+                <!-- griglia temporale verticale -->
+                ${gridLines.join('')}
+
+                <!-- linea isoelettrica orizzontale -->
+                <line x1="${xStart}" y1="${yZero}" x2="${xEnd}" y2="${yZero}"
+                      stroke="var(--border2)" stroke-width="1" stroke-dasharray="4,4" opacity="0.8"/>
+
+                <!-- bordo sinistro dell'area di plot -->
+                <line x1="${xStart}" y1="${padY}" x2="${xStart}" y2="${H - padY}"
+                      stroke="var(--border)" stroke-width="1"/>
+
+                <!-- tracciato ECG -->
+                <polyline points="${punti}"
+                          fill="none"
+                          stroke="var(--teal)"
+                          stroke-width="1.8"
+                          stroke-linejoin="round"
+                          stroke-linecap="round"/>
+
+            </svg>
+
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.45rem;
+                        display:flex;align-items:center;gap:1rem;">
+                <span>
+                    <span style="color:var(--teal)">━</span>
+                    Tracciato ECG normalizzato
+                </span>
+                <span>
+                    <span style="color:var(--border2)">╌╌</span>
+                    Isoelettrica / griglia 0.2s/div
+                </span>
+            </div>
+        </div>
+    `;
+}
+
+// ============================================================
+// HELPER — grafico intervalli R-R (fallback se raw non disponibile)
 // ============================================================
 
 function renderGraficoRR(rrIntervals) {
     if (!rrIntervals || rrIntervals.length === 0) {
         return `<div style="font-size:0.78rem;color:var(--text-muted);padding:0.75rem 0;text-align:center;">
-            Dati R-R non disponibili per questa lettura
+            Tracciato ECG e dati R-R non disponibili per questa lettura.
         </div>`;
     }
 
@@ -656,6 +735,7 @@ function renderGraficoRR(rrIntervals) {
 
     const polyline = punti.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
 
+    // Range fisiologico tipico a riposo per intervalli R-R
     const normMin = 0.6, normMax = 1.0;
     const yNormMin = height - padding - ((normMin - min) / range) * (height - padding * 2);
     const yNormMax = height - padding - ((normMax - min) / range) * (height - padding * 2);
@@ -669,9 +749,10 @@ function renderGraficoRR(rrIntervals) {
     return `
         <div style="margin:0.5rem 0 1.25rem;">
             <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">
-                Intervalli R-R · ultimi ${rrIntervals.length} battiti
+                Intervalli R-R · ${rrIntervals.length} battiti (ECG raw non disponibile)
             </div>
-            <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="width:100%;max-width:${width}px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);display:block;">
+            <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"
+                 style="width:100%;max-width:${width}px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);display:block;">
                 <rect x="${padding}" y="${Math.min(yNormMin, yNormMax).toFixed(1)}"
                       width="${width - padding * 2}" height="${Math.abs(yNormMax - yNormMin).toFixed(1)}"
                       fill="var(--teal)" opacity="0.08" />
@@ -695,14 +776,15 @@ function apriModal(annotationId, data) {
     validazioneCorrente = { id: annotationId, data };
     esitoSelezionato = null;
 
-    // Intestazione modal: mostra nome/cognome se disponibili
-    const intestazione = (data.paziente_nome && data.paziente_cognome)
-        ? `${data.paziente_nome} ${data.paziente_cognome} (${data.paziente_id})`
-        : data.paziente_id;
-    document.getElementById('modal-paziente-info').textContent = `Paziente: ${intestazione}`;
+    // Header: mostra nome paziente se disponibile, altrimenti codice
+    const intestazionePaziente = (data.paziente_nome && data.paziente_cognome)
+        ? `${data.paziente_nome} ${data.paziente_cognome} · <span style="font-family:var(--mono);font-size:0.78rem;color:var(--text-muted)">${data.paziente_id}</span>`
+        : `Paziente: <span style="font-family:var(--mono)">${data.paziente_id}</span>`;
+
+    document.getElementById('modal-paziente-info').innerHTML = intestazionePaziente;
 
     document.getElementById('modal-details').innerHTML = `
-        ${renderGraficoRR(data.rr_intervals)}
+        ${renderGraficoECG(data.ecg_raw_snapshot)}
         <div class="modal-info-row">
             <span class="modal-info-key">ECG Score</span>
             <span class="pill pill-red">${(data.ecg_score * 100).toFixed(1)}%</span>
