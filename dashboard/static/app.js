@@ -702,6 +702,7 @@ function apriModal(annotationId, data) {
     document.getElementById('modal-paziente-info').textContent = `Paziente: ${intestazione}`;
 
     document.getElementById('modal-details').innerHTML = `
+        <div id="modal-ecg-esteso">${renderGraficoECGEsteso(data)}</div>
         ${renderGraficoRR(data.rr_intervals)}
         <div class="modal-info-row">
             <span class="modal-info-key">ECG Score</span>
@@ -844,6 +845,68 @@ function renderEsito(esito) {
     if (esito === 'falso_allarme')
         return '<span class="pill pill-teal">✓ falso allarme</span>';
     return `<span class="pill pill-muted">${esito}</span>`;
+}
+
+// dashboard/static/app.js — aggiungere queste due funzioni
+
+function renderGraficoECGEsteso(data) {
+    if (!data.ecg_window_pronta || !data.ecg_window || data.ecg_window.length === 0) {
+        return `
+            <div style="margin:0.5rem 0 1.25rem;padding:1rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border);text-align:center;">
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.6rem;">
+                    ⏳ Traccia ECG (30s) in elaborazione — attendo i campioni successivi all'anomalia
+                </div>
+                <button class="btn btn-ghost" style="font-size:0.72rem" onclick="aggiornaTracciaECG('${data._id}')">Riprova</button>
+            </div>
+        `;
+    }
+
+    const campioni    = data.ecg_window;
+    const sampleRate   = data.ecg_window_sample_rate || 250;
+    const indiceAnomalia = data.ecg_window_anomalia_index ?? Math.floor(campioni.length / 2);
+
+    const width = 420, height = 150, padding = 18;
+    const n = campioni.length;
+    const min = Math.min(...campioni, -1);
+    const max = Math.max(...campioni, 1);
+    const range = (max - min) || 1;
+
+    const x = i => padding + (n <= 1 ? 0 : (i / (n - 1)) * (width - padding * 2));
+    const y = v => height - padding - ((v - min) / range) * (height - padding * 2);
+
+    const polyline = campioni.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    const xAnomalia = x(Math.min(indiceAnomalia, n - 1));
+    const durataSec = Math.round(n / sampleRate);
+
+    return `
+        <div style="margin:0.5rem 0 1.25rem;">
+            <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">
+                Traccia ECG · ${durataSec}s (prima e dopo l'evento)
+            </div>
+            <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="width:100%;max-width:${width}px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);display:block;">
+                <rect x="${(xAnomalia - 2).toFixed(1)}" y="0" width="4" height="${height}" fill="var(--red)" opacity="0.25" />
+                <polyline points="${polyline}" fill="none" stroke="var(--teal)" stroke-width="1.3" />
+                <line x1="${xAnomalia.toFixed(1)}" y1="0" x2="${xAnomalia.toFixed(1)}" y2="${height}" stroke="var(--red)" stroke-width="1.5" stroke-dasharray="4,3" />
+            </svg>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.4rem;">
+                Linea rossa = istante della classificazione anomala
+            </div>
+        </div>
+    `;
+}
+
+async function aggiornaTracciaECG(annotationId) {
+    const res = await apiFetch(`/annotazioni/${annotationId}`);
+    if (!res || !res.ok) return;
+    const fresca = await res.json();
+
+    if (!validazioneCorrente || validazioneCorrente.id !== annotationId) return;
+    validazioneCorrente.data = { ...validazioneCorrente.data, ...fresca };
+
+    const container = document.getElementById('modal-ecg-esteso');
+    if (container) {
+        container.outerHTML = `<div id="modal-ecg-esteso">${renderGraficoECGEsteso(validazioneCorrente.data)}</div>`;
+    }
 }
 
 // ============================================================

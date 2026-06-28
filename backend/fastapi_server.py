@@ -311,6 +311,27 @@ def get_storico_paziente(
 
     return storico
 
+# backend/fastapi_server.py — aggiungere questo endpoint, ad es. dopo /pazienti/{id}/storico
+
+@app.get("/annotazioni/{annotation_id}", tags=["Annotazioni"])
+def get_annotazione(
+    annotation_id: str,
+    medico: Medico = Depends(get_medico_corrente)
+):
+    """
+    Recupera una singola annotazione — usato dalla dashboard per
+    aggiornare la finestra ECG estesa una volta che è pronta.
+    """
+    db = get_db()
+    repo = AnnotationRepository(db)
+    doc = repo.find_by_id(annotation_id)
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Annotazione non trovata")
+
+    doc["_id"] = str(doc["_id"])
+    return doc
+
 
 @app.patch("/anomalie/{annotation_id}/valida", tags=["Annotazioni"])
 def valida_anomalia(

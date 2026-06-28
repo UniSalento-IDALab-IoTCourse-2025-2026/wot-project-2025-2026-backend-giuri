@@ -59,5 +59,14 @@ class Annotation(BaseModel):
     note_medico: Optional[str] = None
     validato_at: Optional[datetime] = None
 
+    # Finestra ECG estesa (≥30s, prima e dopo l'anomalia), popolata in modo
+    # asincrono da AnnotationService non appena il buffer accumula anche
+    # i campioni successivi all'evento. Finché non è pronta, il medico
+    # vede solo ecg_raw_snapshot (1s) come anteprima immediata.
+    ecg_window: Optional[list[float]] = None
+    ecg_window_sample_rate: int = 250
+    ecg_window_anomalia_index: Optional[int] = None
+    ecg_window_pronta: bool = False
+
     class Config:
         use_enum_values = True

@@ -85,3 +85,33 @@ class AnnotationRepository:
                 "esito_medico": {"$ne": None}
             })
         )
+    
+    def update_ecg_window(
+        self,
+        annotation_id: str,
+        finestra: list,
+        indice_anomalia: int,
+        sample_rate: int = 250
+    ) -> bool:
+        """
+        Aggiorna l'annotazione con la finestra ECG estesa (≥30s, prima e
+        dopo l'anomalia), calcolata in modo asincrono una volta che il
+        buffer ha accumulato anche i campioni successivi all'evento.
+        """
+        aggiornamento = {
+            "$set": {
+                "ecg_window": finestra,
+                "ecg_window_anomalia_index": indice_anomalia,
+                "ecg_window_sample_rate": sample_rate,
+                "ecg_window_pronta": True
+            }
+        }
+        risultato = self.collection.update_one(
+            {"_id": ObjectId(annotation_id)},
+            aggiornamento
+        )
+        return risultato.modified_count > 0
+
+    def find_by_id(self, annotation_id: str) -> dict | None:
+        """Recupera una singola annotazione (usato per il refresh della finestra ECG)."""
+        return self.collection.find_one({"_id": ObjectId(annotation_id)})
