@@ -633,59 +633,6 @@ function renderTabellaStorico(lista) {
 }
 
 // ============================================================
-// HELPER — grafico intervalli R-R (per la validazione medica)
-// ============================================================
-
-function renderGraficoRR(rrIntervals) {
-    if (!rrIntervals || rrIntervals.length === 0) {
-        return `<div style="font-size:0.78rem;color:var(--text-muted);padding:0.75rem 0;text-align:center;">
-            Dati R-R non disponibili per questa lettura
-        </div>`;
-    }
-
-    const width = 420, height = 130, padding = 22;
-    const min = Math.min(...rrIntervals, 0.4);
-    const max = Math.max(...rrIntervals, 1.2);
-    const range = (max - min) || 1;
-
-    const punti = rrIntervals.map((v, i) => ({
-        x: padding + (rrIntervals.length === 1 ? 0 : (i / (rrIntervals.length - 1)) * (width - padding * 2)),
-        y: height - padding - ((v - min) / range) * (height - padding * 2),
-        v
-    }));
-
-    const polyline = punti.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
-
-    const normMin = 0.6, normMax = 1.0;
-    const yNormMin = height - padding - ((normMin - min) / range) * (height - padding * 2);
-    const yNormMax = height - padding - ((normMax - min) / range) * (height - padding * 2);
-
-    const cerchi = punti.map(p => {
-        const fuoriRange = p.v < normMin || p.v > normMax;
-        return `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5"
-                    fill="${fuoriRange ? 'var(--red)' : 'var(--teal)'}" />`;
-    }).join('');
-
-    return `
-        <div style="margin:0.5rem 0 1.25rem;">
-            <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-bottom:0.5rem;">
-                Intervalli R-R · ultimi ${rrIntervals.length} battiti
-            </div>
-            <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="width:100%;max-width:${width}px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);display:block;">
-                <rect x="${padding}" y="${Math.min(yNormMin, yNormMax).toFixed(1)}"
-                      width="${width - padding * 2}" height="${Math.abs(yNormMax - yNormMin).toFixed(1)}"
-                      fill="var(--teal)" opacity="0.08" />
-                <polyline points="${polyline}" fill="none" stroke="var(--red)" stroke-width="1.5" opacity="0.55" />
-                ${cerchi}
-            </svg>
-            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:0.4rem;">
-                Banda verde = range fisiologico a riposo (0.6–1.0s) · punti rossi = fuori range
-            </div>
-        </div>
-    `;
-}
-
-// ============================================================
 // MODAL — validazione anomalia
 // ============================================================
 
@@ -703,7 +650,6 @@ function apriModal(annotationId, data) {
 
     document.getElementById('modal-details').innerHTML = `
         <div id="modal-ecg-esteso">${renderGraficoECGEsteso(data)}</div>
-        ${renderGraficoRR(data.rr_intervals)}
         <div class="modal-info-row">
             <span class="modal-info-key">ECG Score</span>
             <span class="pill pill-red">${(data.ecg_score * 100).toFixed(1)}%</span>

@@ -2643,3 +2643,15 @@
 1782653421: Sending PINGRESP to cardiosense_subscriber
 1782653421: Received PINGREQ from notification_service
 1782653421: Sending PINGRESP to notification_service
+1782653464: Received PINGREQ from dashboard_f84a07
+1782653464: Sending PINGRESP to dashboard_f84a07
+1782653481: Received PINGREQ from cardiosense_subscriber
+1782653481: Sending PINGRESP to cardiosense_subscriber
+1782653482: Received PINGREQ from notification_service
+1782653482: Sending PINGRESP to notification_service
+1782653524: Received PINGREQ from dashboard_f84a07
+1782653524: Sending PINGRESP to dashboard_f84a07
+1782653542: Received PINGREQ from cardiosense_subscriber
+1782653542: Sending PINGRESP to cardiosense_subscriber
+1782653542: Received PINGREQ from notification_service
+1782653542: Sending PINGRESP to notification_service
