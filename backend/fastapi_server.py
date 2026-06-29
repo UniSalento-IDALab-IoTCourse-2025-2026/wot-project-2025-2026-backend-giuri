@@ -394,37 +394,6 @@ def get_annotazione(
     return doc
 
 
-@app.patch("/anomalie/{annotation_id}/valida", tags=["Annotazioni"])
-def valida_anomalia(
-    annotation_id: str,
-    body: ValidazioneRequest,
-    medico: Medico = Depends(get_medico_corrente)
-):
-    """Valida una singola lettura anomala. Mantenuto per compatibilità/debug."""
-    db = get_db()
-    repo = AnnotationRepository(db)
-
-    service = AnnotationService(
-        annotation_repo=repo,
-        ecg_classifier=ml_models["ecg"],
-        postura_classifier=ml_models["postura"],
-        temperatura_classifier=ml_models["temperatura"]
-    )
-    successo = service.valida_anomalia(
-        annotation_id,
-        body.esito,
-        body.note
-    )
-
-    if not successo:
-        raise HTTPException(
-            status_code=404,
-            detail="Annotazione non trovata"
-        )
-
-    return {"messaggio": "Anomalia validata con successo"}
-
-
 @app.patch("/anomalie/episodi/valida", tags=["Annotazioni"])
 def valida_episodio(
     body: ValidazioneEpisodioRequest,
@@ -462,6 +431,38 @@ def valida_episodio(
         "messaggio": "Episodio validato con successo",
         "letture_aggiornate": numero_aggiornati
     }
+
+
+@app.patch("/anomalie/{annotation_id}/valida", tags=["Annotazioni"])
+def valida_anomalia(
+    annotation_id: str,
+    body: ValidazioneRequest,
+    medico: Medico = Depends(get_medico_corrente)
+):
+    """Valida una singola lettura anomala. Mantenuto per compatibilità/debug."""
+    db = get_db()
+    repo = AnnotationRepository(db)
+
+    service = AnnotationService(
+        annotation_repo=repo,
+        ecg_classifier=ml_models["ecg"],
+        postura_classifier=ml_models["postura"],
+        temperatura_classifier=ml_models["temperatura"]
+    )
+    successo = service.valida_anomalia(
+        annotation_id,
+        body.esito,
+        body.note
+    )
+
+    if not successo:
+        raise HTTPException(
+            status_code=404,
+            detail="Annotazione non trovata"
+        )
+
+    return {"messaggio": "Anomalia validata con successo"}
+
 
 
 # ============================================================
