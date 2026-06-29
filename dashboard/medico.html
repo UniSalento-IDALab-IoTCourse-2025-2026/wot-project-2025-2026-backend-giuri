@@ -604,6 +604,61 @@
             justify-content: flex-end;
         }
 
+        /* ─── BANNER ESITO STORICO (nel modal) ────────────── */
+        .esito-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .esito-banner.vp {
+            background: var(--red-subtle);
+            border: 1px solid rgba(229,62,62,0.25);
+            color: var(--red);
+        }
+
+        .esito-banner.fa {
+            background: var(--green-subtle);
+            border: 1px solid rgba(104,211,145,0.25);
+            color: var(--green);
+        }
+
+        .esito-banner.attesa {
+            background: var(--amber-subtle);
+            border: 1px solid rgba(246,173,85,0.25);
+            color: var(--amber);
+        }
+
+        .esito-banner-note {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        .btn-modifica-esito {
+            margin-left: auto;
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            border: 1px solid currentColor;
+            background: transparent;
+            color: inherit;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            opacity: 0.75;
+            transition: opacity 0.15s;
+            flex-shrink: 0;
+        }
+
+        .btn-modifica-esito:hover { opacity: 1; }
+
         /* ─── TOAST ───────────────────────────────────────── */
         .toast-container {
             position: fixed;
@@ -746,7 +801,7 @@
 
         .form-field input:focus { border-color: var(--red); }
 
-        /* ─── STORICO ─────────────────────────────────────── */
+        /* ─── STORICO ANOMALIE ────────────────────────────── */
         .storico-toolbar {
             display: flex;
             align-items: center;
@@ -764,6 +819,72 @@
             font-size: 0.82rem;
             outline: none;
             cursor: pointer;
+        }
+
+        /* Lista episodi storico */
+        .storico-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .storico-episodio {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .storico-episodio:hover {
+            border-color: var(--border2);
+            background: var(--surface3);
+        }
+
+        .storico-episodio.validato-vp {
+            border-left: 3px solid var(--red);
+        }
+
+        .storico-episodio.validato-fa {
+            border-left: 3px solid var(--green);
+        }
+
+        .storico-episodio.in-attesa {
+            border-left: 3px solid var(--amber);
+        }
+
+        .storico-ep-ts {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            min-width: 100px;
+            flex-shrink: 0;
+        }
+
+        .storico-ep-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .storico-ep-score {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .storico-ep-esito {
+            flex-shrink: 0;
+        }
+
+        .storico-ep-arrow {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            flex-shrink: 0;
         }
 
         /* ─── RESPONSIVE ──────────────────────────────────── */
@@ -967,8 +1088,8 @@
         <!-- ── STORICO ─────────────────────────────────────── -->
         <div class="section" id="section-storico">
             <div class="section-header">
-                <div class="section-title">Storico annotazioni</div>
-                <div class="section-sub">Tutte le letture di un paziente, incluse quelle normali</div>
+                <div class="section-title">Storico anomalie</div>
+                <div class="section-sub">Episodi anomali per paziente — validati e in attesa. Clicca per aprire il dettaglio o modificare la valutazione.</div>
             </div>
 
             <div class="storico-toolbar">
@@ -976,28 +1097,17 @@
                     <option value="">— Seleziona paziente —</option>
                 </select>
                 <button class="btn btn-ghost" id="btn-carica-storico">Carica</button>
+                <span id="storico-count" style="font-size:0.75rem;color:var(--text-muted);margin-left:0.25rem;"></span>
             </div>
 
-            <div class="live-panel">
-                <div class="panel-header">
-                    <div class="panel-title">Annotazioni</div>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>ECG</th>
-                                <th>Score</th>
-                                <th>Postura</th>
-                                <th>Temperatura</th>
-                                <th>Esito medico</th>
-                            </tr>
-                        </thead>
-                        <tbody id="storico-tbody">
-                            <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">▤</div>Seleziona un paziente per vedere lo storico</div></td></tr>
-                        </tbody>
-                    </table>
+            <div id="storico-lista-container">
+                <div class="live-panel">
+                    <div class="table-wrap">
+                        <div class="empty-state">
+                            <div class="empty-icon">▤</div>
+                            Seleziona un paziente per vedere lo storico anomalie
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1005,30 +1115,36 @@
     </div><!-- /content -->
 </div><!-- /main -->
 
-<!-- MODAL VALIDAZIONE -->
+<!-- MODAL VALIDAZIONE (usato sia per nuove anomalie che per storico) -->
 <div class="modal-overlay" id="modal-overlay">
     <div class="modal">
-        <div class="modal-title">Valida anomalia ECG</div>
+        <div class="modal-title" id="modal-title">Valida anomalia ECG</div>
         <div class="modal-sub" id="modal-paziente-info">Paziente: —</div>
+
+        <!-- Banner esito (visibile solo in modalità storico quando già validato) -->
+        <div id="modal-esito-banner" style="display:none;"></div>
 
         <div id="modal-details"></div>
 
-        <div class="modal-esito-row">
-            <button class="esito-btn" id="btn-vp" onclick="selezionaEsito('vero_positivo')">
-                ✅ Vero positivo<br>
-                <small style="font-weight:400;color:inherit;opacity:0.7">Anomalia confermata</small>
-            </button>
-            <button class="esito-btn" id="btn-fa" onclick="selezionaEsito('falso_allarme')">
-                ❌ Falso allarme<br>
-                <small style="font-weight:400;color:inherit;opacity:0.7">Parametri nella norma</small>
-            </button>
-        </div>
+        <!-- Sezione validazione (sempre visibile, pre-popolata se già validato) -->
+        <div id="modal-validazione-section">
+            <div class="modal-esito-row">
+                <button class="esito-btn" id="btn-vp" onclick="selezionaEsito('vero_positivo')">
+                    ✅ Vero positivo<br>
+                    <small style="font-weight:400;color:inherit;opacity:0.7">Anomalia confermata</small>
+                </button>
+                <button class="esito-btn" id="btn-fa" onclick="selezionaEsito('falso_allarme')">
+                    ❌ Falso allarme<br>
+                    <small style="font-weight:400;color:inherit;opacity:0.7">Parametri nella norma</small>
+                </button>
+            </div>
 
-        <textarea class="modal-note" id="modal-note" rows="3" placeholder="Note cliniche (opzionale)..."></textarea>
+            <textarea class="modal-note" id="modal-note" rows="3" placeholder="Note cliniche (opzionale)..."></textarea>
 
-        <div class="modal-actions">
-            <button class="btn btn-ghost" onclick="chiudiModal()">Annulla</button>
-            <button class="btn btn-primary" id="btn-conferma-validazione" onclick="confermaValidazione()">Conferma validazione</button>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="chiudiModal()">Annulla</button>
+                <button class="btn btn-primary" id="btn-conferma-validazione" onclick="confermaValidazione()">Conferma validazione</button>
+            </div>
         </div>
     </div>
 </div>

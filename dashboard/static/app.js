@@ -15,7 +15,8 @@ let token        = localStorage.getItem('cs_token');
 let medicoNome   = '';
 let pazienti     = [];          // cache lista pazienti
 let episodi      = [];          // cache episodi anomalia non validati (aggregati)
-let validazioneCorrente = null; // { ids: [...], data } per il modal
+let validazioneCorrente = null; // { ids: [...], data, modalita } per il modal
+                                // modalita: 'valida' | 'storico'
 
 // Contatori per i KPI
 let kpiValidateOggi = 0;
@@ -118,7 +119,7 @@ function navigaA(sezione) {
         panoramica: 'Panoramica',
         anomalie:   'Anomalie da validare',
         pazienti:   'Pazienti',
-        storico:    'Storico annotazioni'
+        storico:    'Storico anomalie'
     };
     document.getElementById('topbar-title').textContent = titoli[sezione] || sezione;
 
@@ -141,15 +142,11 @@ document.getElementById('link-vedi-tutte')?.addEventListener('click', () => {
 // ============================================================
 
 async function caricaProfiloMedico() {
-    // Non esiste un endpoint /me dedicato — usiamo il token JWT decodificato
-    // oppure carichiamo la lista pazienti (che richiede auth) per verificare
-    // e ricaviamo il nome dal token
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const email = payload.sub || '';
         medicoNome = email.split('@')[0];
 
-        // Capitalizza prima lettera
         const nome = medicoNome.charAt(0).toUpperCase() + medicoNome.slice(1);
         document.getElementById('sidebar-name').textContent = `Dr. ${nome}`;
         document.getElementById('sidebar-avatar').textContent = nome.charAt(0).toUpperCase();
@@ -250,11 +247,8 @@ function mostraNotificaSistema(titolo, corpo, tagFisso = null) {
     try {
         const notif = new Notification(titolo, {
             body: corpo,
-            // tag fisso (es. per paziente) -> notifiche successive per lo
-            // stesso episodio sostituiscono quella precedente invece di
-            // accumularsi; tag univoco (default) -> sempre una nuova notifica
             tag: tagFisso || ('cardiosense-' + Date.now()),
-            requireInteraction: true             // resta visibile finché il medico non la chiude
+            requireInteraction: true
         });
 
         notif.onclick = () => {
@@ -352,22 +346,16 @@ function gestisciAllarme(msg) {
     const ultimoAllarme = ultimoAllarmePerPaziente[pazienteId] || 0;
     const nuovoEpisodio = (adesso - ultimoAllarme) > DEBOUNCE_ALLARME_MS;
 
-    // Beep e notifica desktop solo per il primo allarme di un episodio,
-    // non per ogni singola lettura anomala consecutiva
     if (nuovoEpisodio) {
         suonaAllarme();
         mostraNotificaSistema(
             `⚠ Anomalia ECG — Paziente ${pazienteId}`,
             `Score: ${(msg.ecg_score * 100).toFixed(0)}% · Temp: ${msg.temperatura_label} · ${ts}`,
-            `cardiosense-episodio-${pazienteId}`  // tag fisso per paziente: aggiorna la notifica esistente invece di crearne una nuova
+            `cardiosense-episodio-${pazienteId}`
         );
     }
     ultimoAllarmePerPaziente[pazienteId] = adesso;
 
-    // Il toast invece resta per ogni messaggio (più leggero del beep/
-    // della notifica desktop, e conferma che il flusso dati continua),
-    // ma con durata breve per non accumularsi troppo in schermo durante
-    // un episodio lungo.
     showToast(
         'alarm',
         `⚠ Anomalia ECG — Paziente ${pazienteId}`,
@@ -375,22 +363,14 @@ function gestisciAllarme(msg) {
         3000
     );
 
-    // Aggiorna KPI ultimo allarme
     document.getElementById('kpi-ultimo').textContent = ts;
     document.getElementById('kpi-ultimo-meta').textContent =
         `Paziente ${pazienteId}`;
 
-    // Aggiorna badge sidebar solo per nuovi episodi: il numero di
-    // episodi da validare non cresce a ogni singola lettura, solo
-    // quando ne inizia uno nuovo (la lista verrà comunque risincronizzata
-    // dal prossimo polling REST, questo è solo un aggiornamento ottimistico)
     if (nuovoEpisodio) {
         aggiornaContatoreBadge(1);
     }
 
-    // Se siamo già sulla sezione anomalie o panoramica → ricarica
-    // (con un piccolo ritardo per dare tempo al subscriber di scrivere
-    // su Mongo prima che la dashboard interroghi l'API)
     const sezioneAttiva = document.querySelector('.section.active')?.id;
     if (sezioneAttiva === 'section-anomalie' || sezioneAttiva === 'section-panoramica') {
         setTimeout(caricaEpisodi, 800);
@@ -411,8 +391,8 @@ async function caricaEpisodi() {
     document.getElementById('kpi-anomalie').textContent = count;
     aggiornaContatoreBadge(count, true);
 
-    renderTabellaEpisodiCompatta(episodi.slice(0, 5));   // panoramica (max 5)
-    renderTabellaEpisodi(episodi);                        // sezione completa
+    renderTabellaEpisodiCompatta(episodi.slice(0, 5));
+    renderTabellaEpisodi(episodi);
 }
 
 function aggiornaContatoreBadge(n, setAssoluto = false) {
@@ -626,19 +606,17 @@ async function creaPaziente() {
 
     const paziente = await res.json();
 
-    // Mostra codice generato
     document.getElementById('codice-generato').style.display = 'block';
     document.getElementById('codice-value').textContent = paziente.codice_accesso;
     document.getElementById('btn-crea-paziente').style.display = 'none';
 
     showToast('success', 'Paziente creato', `${paziente.nome} ${paziente.cognome} — codice: ${paziente.codice_accesso}`);
 
-    // Ricarica lista
     await caricaPazienti();
 }
 
 // ============================================================
-// STORICO
+// STORICO — episodi anomali per paziente (validati + in attesa)
 // ============================================================
 
 function popolaSelectStorico() {
@@ -665,60 +643,205 @@ document.getElementById('btn-carica-storico')?.addEventListener('click', async (
         return;
     }
 
-    const res = await apiFetch(`/pazienti/${pazienteId}/storico?limit=100`);
-    if (!res || !res.ok) return;
-
-    const storico = await res.json();
-    renderTabellaStorico(storico);
-});
-
-function renderTabellaStorico(lista) {
-    const tbody = document.getElementById('storico-tbody');
-    if (!tbody) return;
-
-    if (lista.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6">
-            <div class="empty-state"><div class="empty-icon">▤</div>Nessuna annotazione trovata</div>
-        </td></tr>`;
+    // Usa l'endpoint pubblico episodi — include validati + in attesa
+    // È pubblico (no auth) ma funziona anche dalla dashboard medico
+    const res = await fetch(`${API}/pazienti/by-codice/${pazienteId}/episodi`);
+    if (!res || !res.ok) {
+        showToast('alarm', 'Errore', 'Impossibile caricare lo storico anomalie');
         return;
     }
 
-    tbody.innerHTML = lista.map(a => `
-        <tr>
-            <td style="font-size:0.75rem;font-family:var(--mono);color:var(--text-muted)">${formatTs(a.timestamp)}</td>
-            <td>${a.ecg_label === 'anomalo'
-                ? '<span class="pill pill-red">anomalo</span>'
-                : '<span class="pill pill-teal">normale</span>'}</td>
-            <td style="font-family:var(--mono);font-size:0.78rem">${(a.ecg_score * 100).toFixed(0)}%</td>
-            <td><span class="pill pill-muted" style="font-size:0.7rem">${a.postura_label || '—'}</span></td>
-            <td>${renderTempPill(a.temperatura_label)}</td>
-            <td>${renderEsito(a.esito_medico)}</td>
-        </tr>
-    `).join('');
+    const episodiStorico = await res.json();
+    renderStoricoEpisodi(episodiStorico, pazienteId);
+});
+
+/**
+ * Renderizza la lista degli episodi anomali (tutti: validati + in attesa)
+ * come card cliccabili nella sezione storico.
+ */
+function renderStoricoEpisodi(lista, pazienteId) {
+    const container = document.getElementById('storico-lista-container');
+    const countEl   = document.getElementById('storico-count');
+
+    if (!container) return;
+
+    // Trova dati paziente dalla cache locale
+    const paz = pazienti.find(p => p.codice_accesso === pazienteId);
+    const nomePaziente = paz ? `${paz.nome} ${paz.cognome}` : pazienteId;
+
+    countEl.textContent = lista.length > 0
+        ? `${lista.length} episodio${lista.length !== 1 ? 'i' : ''} trovato${lista.length !== 1 ? 'i' : ''}`
+        : '';
+
+    if (lista.length === 0) {
+        container.innerHTML = `
+            <div class="live-panel">
+                <div class="table-wrap">
+                    <div class="empty-state">
+                        <div class="empty-icon">✓</div>
+                        Nessuna anomalia registrata per ${nomePaziente}
+                    </div>
+                </div>
+            </div>`;
+        return;
+    }
+
+    // Ordina: più recenti prima (il backend già lo fa, ma per sicurezza)
+    const ordinati = [...lista].sort(
+        (a, b) => new Date(b.timestamp_fine) - new Date(a.timestamp_fine)
+    );
+
+    const items = ordinati.map(ep => {
+        const esito = ep.esito_medico;
+        let classeEsito, iconaEsito, testoEsito;
+
+        if (esito === 'vero_positivo') {
+            classeEsito = 'validato-vp';
+            iconaEsito  = '✅';
+            testoEsito  = '<span class="pill pill-red">Vero positivo</span>';
+        } else if (esito === 'falso_allarme') {
+            classeEsito = 'validato-fa';
+            iconaEsito  = '❌';
+            testoEsito  = '<span class="pill pill-teal">Falso allarme</span>';
+        } else {
+            classeEsito = 'in-attesa';
+            iconaEsito  = '⏳';
+            testoEsito  = '<span class="pill pill-amber">In attesa</span>';
+        }
+
+        const durataStr = ep.numero_letture > 1
+            ? `<span style="font-size:0.7rem;color:var(--text-muted)">${formatDurataEpisodio(ep)}</span>`
+            : '';
+
+        return `
+            <div class="storico-episodio ${classeEsito}"
+                 onclick='apriModalStorico(${JSON.stringify(ep).replace(/'/g, "&apos;")})'>
+                <div style="font-size:1.1rem;flex-shrink:0">${iconaEsito}</div>
+                <div class="storico-ep-info">
+                    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+                        <span class="pill pill-red" style="font-size:0.68rem">anomalo</span>
+                        <span style="font-family:var(--mono);font-size:0.72rem;color:var(--text-muted)">${(ep.ecg_score_max * 100).toFixed(0)}% picco</span>
+                        ${durataStr}
+                    </div>
+                    <div class="storico-ep-ts">${formatIntervalloEpisodio(ep)}</div>
+                    ${ep.note_medico ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:0.1rem;font-style:italic">"${ep.note_medico}"</div>` : ''}
+                </div>
+                <div class="storico-ep-esito">${testoEsito}</div>
+                <div class="storico-ep-arrow">›</div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = `<div class="storico-lista">${items}</div>`;
 }
 
 // ============================================================
-// MODAL — validazione episodio
+// MODAL — validazione episodio (nuove anomalie)
 // ============================================================
 
 let esitoSelezionato = null;
 
 /**
- * Apre il modal di validazione per un intero episodio clinico
- * (una o più letture anomale consecutive raggruppate dal backend).
- * `ep` è l'oggetto restituito da GET /anomalie/episodi, con
- * annotation_ids, intervallo temporale, score aggregati e i
- * documenti grezzi del cluster per il grafico ECG esteso.
+ * Apre il modal in modalità "valida": episodio non ancora validato
+ * proveniente dalla sezione Anomalie.
  */
 function apriModalEpisodio(ep) {
-    validazioneCorrente = { ids: ep.annotation_ids, data: ep };
+    validazioneCorrente = { ids: ep.annotation_ids, data: ep, modalita: 'valida' };
     esitoSelezionato = null;
+
+    _popolaModalHeader(ep, 'Valida anomalia ECG');
+
+    // Nascondi banner esito — non è ancora stato validato
+    document.getElementById('modal-esito-banner').style.display = 'none';
+
+    _popolaModalDettagli(ep);
+
+    // Reset selezione esito
+    document.getElementById('btn-vp').className = 'esito-btn';
+    document.getElementById('btn-fa').className = 'esito-btn';
+    document.getElementById('modal-note').value = '';
+
+    // Testo bottone conferma
+    const btnConferma = document.getElementById('btn-conferma-validazione');
+    btnConferma.textContent = 'Conferma validazione';
+
+    document.getElementById('modal-overlay').classList.add('open');
+}
+
+/**
+ * Apre il modal in modalità "storico": episodio già validato o in attesa,
+ * proveniente dalla sezione Storico. Permette di vedere il dettaglio
+ * e di modificare/aggiungere la validazione.
+ */
+function apriModalStorico(ep) {
+    validazioneCorrente = { ids: ep.annotation_ids, data: ep, modalita: 'storico' };
+    esitoSelezionato = ep.esito_medico || null;  // pre-seleziona esito esistente
+
+    _popolaModalHeader(ep, 'Dettaglio episodio ECG');
+
+    // Banner stato esito
+    const banner = document.getElementById('modal-esito-banner');
+    if (ep.esito_medico === 'vero_positivo') {
+        banner.className = 'esito-banner vp';
+        banner.innerHTML = `
+            <div>
+                <div>✅ Anomalia confermata come vero positivo</div>
+                ${ep.validato_at
+                    ? `<div class="esito-banner-note">Validato il ${formatTs(ep.validato_at)}</div>`
+                    : ''}
+            </div>`;
+    } else if (ep.esito_medico === 'falso_allarme') {
+        banner.className = 'esito-banner fa';
+        banner.innerHTML = `
+            <div>
+                <div>❌ Classificato come falso allarme</div>
+                ${ep.validato_at
+                    ? `<div class="esito-banner-note">Validato il ${formatTs(ep.validato_at)}</div>`
+                    : ''}
+            </div>`;
+    } else {
+        banner.className = 'esito-banner attesa';
+        banner.innerHTML = `<div>⏳ In attesa di validazione medica</div>`;
+    }
+    banner.style.display = 'flex';
+
+    _popolaModalDettagli(ep);
+
+    // Pre-seleziona esito se già presente
+    document.getElementById('btn-vp').className =
+        'esito-btn' + (esitoSelezionato === 'vero_positivo' ? ' selected-vp' : '');
+    document.getElementById('btn-fa').className =
+        'esito-btn' + (esitoSelezionato === 'falso_allarme' ? ' selected-fa' : '');
+
+    // Pre-popola note
+    document.getElementById('modal-note').value = ep.note_medico || '';
+
+    // Testo bottone: "Modifica" se già validato, "Conferma" se in attesa
+    const btnConferma = document.getElementById('btn-conferma-validazione');
+    btnConferma.textContent = ep.esito_medico
+        ? 'Aggiorna validazione'
+        : 'Conferma validazione';
+
+    document.getElementById('modal-overlay').classList.add('open');
+}
+
+/**
+ * Popola header del modal (titolo + info paziente).
+ */
+function _popolaModalHeader(ep, titolo) {
+    document.getElementById('modal-title').textContent = titolo;
 
     const intestazione = (ep.paziente_nome && ep.paziente_cognome)
         ? `${ep.paziente_nome} ${ep.paziente_cognome} (${ep.paziente_id})`
         : ep.paziente_id;
     document.getElementById('modal-paziente-info').textContent = `Paziente: ${intestazione}`;
+}
 
+/**
+ * Popola la sezione dettagli del modal (grafico ECG + dati clinici).
+ * Usato sia da apriModalEpisodio che da apriModalStorico.
+ */
+function _popolaModalDettagli(ep) {
     const rigaDurata = ep.numero_letture > 1
         ? `
             <div class="modal-info-row">
@@ -750,13 +873,6 @@ function apriModalEpisodio(ep) {
             <span style="font-family:var(--mono);font-size:0.78rem">${formatIntervalloEpisodio(ep)}</span>
         </div>
     `;
-
-    // Reset selezione esito
-    document.getElementById('btn-vp').className = 'esito-btn';
-    document.getElementById('btn-fa').className = 'esito-btn';
-    document.getElementById('modal-note').value = '';
-
-    document.getElementById('modal-overlay').classList.add('open');
 }
 
 /**
@@ -797,6 +913,7 @@ async function confermaValidazione() {
 
     const note = document.getElementById('modal-note').value.trim() || null;
     const btn  = document.getElementById('btn-conferma-validazione');
+    const testoOriginale = btn.textContent;
     btn.textContent = 'Salvataggio...';
     btn.disabled = true;
 
@@ -810,7 +927,7 @@ async function confermaValidazione() {
         })
     });
 
-    btn.textContent = 'Conferma validazione';
+    btn.textContent = testoOriginale;
     btn.disabled = false;
 
     if (!res || !res.ok) {
@@ -820,8 +937,12 @@ async function confermaValidazione() {
 
     chiudiModal();
 
-    kpiValidateOggi++;
-    document.getElementById('kpi-validate').textContent = kpiValidateOggi;
+    const eraGiaValidato = validazioneCorrente?.data?.esito_medico;
+
+    if (!eraGiaValidato) {
+        kpiValidateOggi++;
+        document.getElementById('kpi-validate').textContent = kpiValidateOggi;
+    }
 
     const messaggioBase = esitoSelezionato === 'vero_positivo'
         ? 'Anomalia confermata — dati inviati al ri-addestramento'
@@ -829,10 +950,23 @@ async function confermaValidazione() {
     const suffissoEpisodio = numeroLetture > 1
         ? ` (${numeroLetture} letture validate in un'unica azione)`
         : '';
+    const suffissoModifica = eraGiaValidato ? ' (aggiornato)' : '';
 
-    showToast('success', 'Validazione salvata', messaggioBase + suffissoEpisodio);
+    showToast('success', 'Validazione salvata', messaggioBase + suffissoEpisodio + suffissoModifica);
 
-    // Ricarica tabelle
+    // Se eravamo in modalità storico → ricarica la lista storico
+    if (validazioneCorrente?.modalita === 'storico') {
+        const sel = document.getElementById('storico-select');
+        if (sel?.value) {
+            const resFresco = await fetch(`${API}/pazienti/by-codice/${sel.value}/episodi`);
+            if (resFresco?.ok) {
+                const aggiornati = await resFresco.json();
+                renderStoricoEpisodi(aggiornati, sel.value);
+            }
+        }
+    }
+
+    // Ricarica sempre la tabella anomalie da validare
     await caricaEpisodi();
 }
 
@@ -956,7 +1090,6 @@ async function aggiornaTracciaECG(annotationId) {
 
     if (!validazioneCorrente) return;
 
-    // Aggiorna il documento corrispondente nella cache dell'episodio corrente
     const documenti = validazioneCorrente.data.documenti || [];
     const idx = documenti.findIndex(d => d._id === annotationId);
     if (idx !== -1) {
@@ -983,10 +1116,7 @@ async function init() {
 
     connettiBroker();
 
-    // Polling REST ogni 8 secondi per episodi nuovi
     setInterval(caricaEpisodi, 8000);
-
-    // Polling pazienti ogni 30 secondi (cambiano raramente)
     setInterval(caricaPazienti, 30000);
 }
 
