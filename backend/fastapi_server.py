@@ -475,6 +475,34 @@ def health_check():
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
 
+@app.get("/pazienti/by-codice/{codice}", tags=["Pazienti"])
+def valida_codice_paziente(codice: str, session=Depends(get_session)):
+    """Endpoint pubblico: l'app paziente lo usa per validare il codice di accesso."""
+    repo = UserRepository(session)
+    paziente = repo.find_paziente_by_codice(codice)
+    if not paziente:
+        raise HTTPException(status_code=404, detail="Codice non valido")
+    return {
+        "id": paziente.id,
+        "nome": paziente.nome,
+        "cognome": paziente.cognome,
+        "codice_accesso": paziente.codice_accesso,
+    }
+
+
+@app.get("/pazienti/by-codice/{codice}/storico", tags=["Pazienti"])
+def storico_pubblico_paziente(codice: str, limit: int = 50):
+    """
+    Variante pubblica di get_storico_paziente, usata dall'app paziente
+    (che non ha un token medico). paziente_id nelle annotazioni == codice_accesso.
+    """
+    db = get_db()
+    repo = AnnotationRepository(db)
+    storico = repo.find_by_patient(codice, limit)
+    for a in storico:
+        a["_id"] = str(a["_id"])
+    return storico
+
 
 # ============================================================
 # ENTRY POINT
