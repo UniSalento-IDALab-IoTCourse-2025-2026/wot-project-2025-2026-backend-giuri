@@ -495,6 +495,12 @@ def storico_pubblico_paziente(codice: str, limit: int = 50):
     """
     Variante pubblica di get_storico_paziente, usata dall'app paziente
     (che non ha un token medico). paziente_id nelle annotazioni == codice_accesso.
+
+    Restituisce TUTTE le annotazioni (anche quelle normali): rimane
+    pensata per un eventuale storico completo, ma il popup "Anomalie"
+    dell'app paziente NON deve usare questo endpoint — deve usare
+    /pazienti/by-codice/{codice}/episodi qui sotto, che filtra e
+    raggruppa solo gli eventi anomali.
     """
     db = get_db()
     repo = AnnotationRepository(db)
@@ -502,6 +508,43 @@ def storico_pubblico_paziente(codice: str, limit: int = 50):
     for a in storico:
         a["_id"] = str(a["_id"])
     return storico
+
+
+@app.get("/pazienti/by-codice/{codice}/episodi", tags=["Pazienti"])
+def episodi_pubblico_paziente(codice: str):
+    """
+    Endpoint pubblico per l'app paziente: restituisce SOLO gli episodi
+    anomali del paziente (codice_accesso == paziente_id), raggruppati
+    esattamente come nella vista medico (stessa soglia di gap temporale
+    di AnnotationRepository.GAP_MASSIMO_EPISODIO_SECONDI), così un
+    episodio di 30 letture anomale consecutive appare come un solo
+    evento anche qui — non 30 righe.
+
+    A differenza di /anomalie/episodi (vista medico, solo non validati),
+    qui vengono restituiti sia gli episodi in attesa di validazione sia
+    quelli già validati, in modo che il paziente possa vedere anche
+    l'esito (vero_positivo / falso_allarme) e le eventuali note del
+    medico una volta disponibili.
+
+    I documenti grezzi di ciascun episodio hanno _id già convertiti in
+    stringa, come per l'analogo endpoint medico.
+    """
+    db = get_db()
+    repo = AnnotationRepository(db)
+
+    service = AnnotationService(
+        annotation_repo=repo,
+        ecg_classifier=ml_models["ecg"],
+        postura_classifier=ml_models["postura"],
+        temperatura_classifier=ml_models["temperatura"]
+    )
+    episodi = service.get_episodi_per_paziente(codice)
+
+    for ep in episodi:
+        for doc in ep.get("documenti", []):
+            doc["_id"] = str(doc["_id"])
+
+    return episodi
 
 
 # ============================================================

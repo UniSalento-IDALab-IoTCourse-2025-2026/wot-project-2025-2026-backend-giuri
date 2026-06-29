@@ -134,6 +134,69 @@ class AnnotationRepository:
         episodi.sort(key=lambda e: e["timestamp_fine"], reverse=True)
         return episodi
 
+    def find_episodi_per_paziente(
+        self,
+        paziente_id: str,
+        gap_massimo_secondi: int = None
+    ) -> list[dict]:
+        """
+        Variante di find_episodi_anomalia_non_validati() per un singolo
+        paziente, usata dall'app paziente per mostrare le anomalie nello
+        stesso identico raggruppamento in episodi clinici visto dal medico
+        (stessa soglia di gap temporale, stessa logica di clustering).
+
+        Differenza principale rispetto alla vista medico: qui NON si
+        filtra per esito_medico — vengono inclusi sia gli episodi ancora
+        in attesa di validazione sia quelli già validati, così il
+        paziente vede anche l'esito (vero_positivo / falso_allarme) e le
+        eventuali note lasciate dal medico.
+
+        Dato che si lavora già su un singolo paziente non serve
+        raggruppare anche per paziente_id: il clustering considera solo
+        il gap temporale tra letture consecutive.
+
+        Restituisce una lista di episodi (stesso formato di
+        _costruisci_episodio, quindi con annotation_ids, intervallo
+        temporale, score aggregati e documenti grezzi del cluster),
+        ordinati per timestamp_fine decrescente (più recente prima).
+        """
+        soglia = gap_massimo_secondi if gap_massimo_secondi is not None \
+            else self.GAP_MASSIMO_EPISODIO_SECONDI
+
+        documenti = list(
+            self.collection.find({
+                "paziente_id": paziente_id,
+                "ecg_label": "anomalo",
+            }).sort("timestamp", 1)
+        )
+
+        episodi = []
+        cluster_corrente = []
+
+        def chiudi_cluster():
+            if not cluster_corrente:
+                return
+            episodi.append(self._costruisci_episodio(cluster_corrente))
+
+        for doc in documenti:
+            if not cluster_corrente:
+                cluster_corrente.append(doc)
+                continue
+
+            precedente = cluster_corrente[-1]
+            gap = (doc["timestamp"] - precedente["timestamp"]).total_seconds()
+
+            if gap <= soglia:
+                cluster_corrente.append(doc)
+            else:
+                chiudi_cluster()
+                cluster_corrente = [doc]
+
+        chiudi_cluster()
+
+        episodi.sort(key=lambda e: e["timestamp_fine"], reverse=True)
+        return episodi
+
     def _costruisci_episodio(self, cluster: list[dict]) -> dict:
         """Aggrega un cluster di documenti (stesso paziente, gap contiguo) in un episodio."""
         ultima = cluster[-1]
@@ -150,6 +213,9 @@ class AnnotationRepository:
             "postura_label": ultima.get("postura_label"),
             "temperatura_label": ultima.get("temperatura_label"),
             "temperatura_valore": ultima.get("temperatura_valore"),
+            "esito_medico": ultima.get("esito_medico"),
+            "note_medico": ultima.get("note_medico"),
+            "validato_at": ultima.get("validato_at"),
             "documenti": cluster
         }
 

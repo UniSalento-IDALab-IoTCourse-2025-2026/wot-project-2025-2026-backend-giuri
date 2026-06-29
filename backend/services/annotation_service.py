@@ -188,5 +188,16 @@ class AnnotationService:
         """
         return self.repo.find_episodi_anomalia_non_validati()
 
+    def get_episodi_per_paziente(self, paziente_id: str) -> list[dict]:
+        """
+        Restituisce TUTTI gli episodi anomali (validati + in attesa) di
+        un singolo paziente, raggruppati esattamente come per la vista
+        medico (stessa soglia di gap temporale). Usato dall'app paziente
+        per il popup "Anomalie": mostra solo eventi anomali — non lo
+        storico completo con le letture normali — e include l'esito del
+        medico quando già presente.
+        """
+        return self.repo.find_episodi_per_paziente(paziente_id)
+
     def get_storico_paziente(self, paziente_id: str, limit: int = 50) -> list[dict]:
         return self.repo.find_by_patient(paziente_id, limit)
