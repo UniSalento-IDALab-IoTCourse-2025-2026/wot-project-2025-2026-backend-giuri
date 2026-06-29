@@ -350,6 +350,77 @@ def get_episodi_anomalia_non_validati(
     _arricchisci_con_dati_paziente(episodi, session)
     return episodi
 
+@app.get("/pazienti/by-codice/{codice}", tags=["Pazienti"])
+def valida_codice_paziente(codice: str, session=Depends(get_session)):
+    """Endpoint pubblico: l'app paziente lo usa per validare il codice di accesso."""
+    repo = UserRepository(session)
+    paziente = repo.find_paziente_by_codice(codice)
+    if not paziente:
+        raise HTTPException(status_code=404, detail="Codice non valido")
+    return {
+        "id": paziente.id,
+        "nome": paziente.nome,
+        "cognome": paziente.cognome,
+        "codice_accesso": paziente.codice_accesso,
+    }
+
+
+@app.get("/pazienti/by-codice/{codice}/storico", tags=["Pazienti"])
+def storico_pubblico_paziente(codice: str, limit: int = 50):
+    """
+    Variante pubblica di get_storico_paziente, usata dall'app paziente
+    (che non ha un token medico). paziente_id nelle annotazioni == codice_accesso.
+
+    Restituisce TUTTE le annotazioni (anche quelle normali): rimane
+    pensata per un eventuale storico completo, ma il popup "Anomalie"
+    dell'app paziente NON deve usare questo endpoint — deve usare
+    /pazienti/by-codice/{codice}/episodi qui sotto, che filtra e
+    raggruppa solo gli eventi anomali.
+    """
+    db = get_db()
+    repo = AnnotationRepository(db)
+    storico = repo.find_by_patient(codice, limit)
+    for a in storico:
+        a["_id"] = str(a["_id"])
+    return storico
+
+
+@app.get("/pazienti/by-codice/{codice}/episodi", tags=["Pazienti"])
+def episodi_pubblico_paziente(codice: str):
+    """
+    Endpoint pubblico per l'app paziente: restituisce SOLO gli episodi
+    anomali del paziente (codice_accesso == paziente_id), raggruppati
+    esattamente come nella vista medico (stessa soglia di gap temporale
+    di AnnotationRepository.GAP_MASSIMO_EPISODIO_SECONDI), così un
+    episodio di 30 letture anomale consecutive appare come un solo
+    evento anche qui — non 30 righe.
+
+    A differenza di /anomalie/episodi (vista medico, solo non validati),
+    qui vengono restituiti sia gli episodi in attesa di validazione sia
+    quelli già validati, in modo che il paziente possa vedere anche
+    l'esito (vero_positivo / falso_allarme) e le eventuali note del
+    medico una volta disponibili.
+
+    I documenti grezzi di ciascun episodio hanno _id già convertiti in
+    stringa, come per l'analogo endpoint medico.
+    """
+    db = get_db()
+    repo = AnnotationRepository(db)
+
+    service = AnnotationService(
+        annotation_repo=repo,
+        ecg_classifier=ml_models["ecg"],
+        postura_classifier=ml_models["postura"],
+        temperatura_classifier=ml_models["temperatura"]
+    )
+    episodi = service.get_episodi_per_paziente(codice)
+
+    for ep in episodi:
+        for doc in ep.get("documenti", []):
+            doc["_id"] = str(doc["_id"])
+
+    return episodi
+
 
 @app.get("/pazienti/{paziente_id}/storico", tags=["Annotazioni"])
 def get_storico_paziente(
@@ -475,77 +546,6 @@ def health_check():
         "status": "ok",
         "timestamp": datetime.now(timezone.utc).isoformat()
     }
-
-@app.get("/pazienti/by-codice/{codice}", tags=["Pazienti"])
-def valida_codice_paziente(codice: str, session=Depends(get_session)):
-    """Endpoint pubblico: l'app paziente lo usa per validare il codice di accesso."""
-    repo = UserRepository(session)
-    paziente = repo.find_paziente_by_codice(codice)
-    if not paziente:
-        raise HTTPException(status_code=404, detail="Codice non valido")
-    return {
-        "id": paziente.id,
-        "nome": paziente.nome,
-        "cognome": paziente.cognome,
-        "codice_accesso": paziente.codice_accesso,
-    }
-
-
-@app.get("/pazienti/by-codice/{codice}/storico", tags=["Pazienti"])
-def storico_pubblico_paziente(codice: str, limit: int = 50):
-    """
-    Variante pubblica di get_storico_paziente, usata dall'app paziente
-    (che non ha un token medico). paziente_id nelle annotazioni == codice_accesso.
-
-    Restituisce TUTTE le annotazioni (anche quelle normali): rimane
-    pensata per un eventuale storico completo, ma il popup "Anomalie"
-    dell'app paziente NON deve usare questo endpoint — deve usare
-    /pazienti/by-codice/{codice}/episodi qui sotto, che filtra e
-    raggruppa solo gli eventi anomali.
-    """
-    db = get_db()
-    repo = AnnotationRepository(db)
-    storico = repo.find_by_patient(codice, limit)
-    for a in storico:
-        a["_id"] = str(a["_id"])
-    return storico
-
-
-@app.get("/pazienti/by-codice/{codice}/episodi", tags=["Pazienti"])
-def episodi_pubblico_paziente(codice: str):
-    """
-    Endpoint pubblico per l'app paziente: restituisce SOLO gli episodi
-    anomali del paziente (codice_accesso == paziente_id), raggruppati
-    esattamente come nella vista medico (stessa soglia di gap temporale
-    di AnnotationRepository.GAP_MASSIMO_EPISODIO_SECONDI), così un
-    episodio di 30 letture anomale consecutive appare come un solo
-    evento anche qui — non 30 righe.
-
-    A differenza di /anomalie/episodi (vista medico, solo non validati),
-    qui vengono restituiti sia gli episodi in attesa di validazione sia
-    quelli già validati, in modo che il paziente possa vedere anche
-    l'esito (vero_positivo / falso_allarme) e le eventuali note del
-    medico una volta disponibili.
-
-    I documenti grezzi di ciascun episodio hanno _id già convertiti in
-    stringa, come per l'analogo endpoint medico.
-    """
-    db = get_db()
-    repo = AnnotationRepository(db)
-
-    service = AnnotationService(
-        annotation_repo=repo,
-        ecg_classifier=ml_models["ecg"],
-        postura_classifier=ml_models["postura"],
-        temperatura_classifier=ml_models["temperatura"]
-    )
-    episodi = service.get_episodi_per_paziente(codice)
-
-    for ep in episodi:
-        for doc in ep.get("documenti", []):
-            doc["_id"] = str(doc["_id"])
-
-    return episodi
 
 
 # ============================================================

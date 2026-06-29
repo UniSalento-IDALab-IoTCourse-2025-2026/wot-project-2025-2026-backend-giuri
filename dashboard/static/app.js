@@ -1110,10 +1110,9 @@ async function aggiornaTracciaECG(annotationId) {
 async function init() {
     await caricaProfiloMedico();
     await caricaEpisodi();
-    await caricaPazienti();
+    await caricaPazienti();   // già così — ok, è awaited
 
     aggiornaBottoneNotifiche();
-
     connettiBroker();
 
     setInterval(caricaEpisodi, 8000);
