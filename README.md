@@ -239,7 +239,7 @@ python backend/mqtt_subscriber.py   # terminale 3
 
 Servire la cartella `dashboard/` con l'estensione **Live Server** di VS Code.
 
-> ⚠️ Con TLS attivo (porte `8443`/`9002`), serve `python -m http.server` o altri server statici semplici non sono più sufficienti: l'app fa richieste verso `https://localhost:8443` e `wss://localhost:9002`, quindi conviene comunque servire `dashboard/` da `https://` per evitare problemi di mixed content nel browser. Live Server di VS Code supporta l'avvio HTTPS locale con un certificato proprio, oppure puoi configurarlo per puntare ai certificati mkcert già generati in `mosquitto/certs/`.
+> ⚠️ Con TLS attivo (porte `8443`/`9002`), server `python -m http.server` o altri server statici semplici non sono più sufficienti: l'app fa richieste verso `https://localhost:8443` e `wss://localhost:9002`, quindi conviene comunque servire `dashboard/` da `https://` per evitare problemi di mixed content nel browser. Live Server di VS Code supporta l'avvio HTTPS locale con un certificato proprio, oppure puoi configurarlo per puntare ai certificati mkcert già generati in `mosquitto/certs/`.
 
 ### 4. Test senza dispositivo fisico
 
