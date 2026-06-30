@@ -45,7 +45,7 @@
 
 **CardioSense** è un sistema IoT end-to-end per il monitoraggio in tempo reale di pazienti affetti da **insufficienza cardiaca congestizia**. Il sistema acquisisce segnali fisiologici (ECG, postura tramite accelerometro, temperatura corporea) da un dispositivo wearable, li classifica tramite modelli di Machine Learning per rilevare anomalie cliniche, e mette in comunicazione diretta **paziente** e **medico** attraverso un'architettura event-driven basata su MQTT, con persistenza su database e validazione clinica delle anomalie rilevate.
 
-Il progetto nasce come progetto universitario con l'obiettivo di costruire — partendo da un dispositivo di acquisizione biomedicale esistente (**IIT BioDataAcq**) — un sistema cloud-like completo: dall'acquisizione del segnale grezzo fino alla dashboard clinica, passando per classificazione automatica, notifiche in tempo reale e un ciclo di **retraining periodico** dei modelli sulla base delle validazioni mediche.
+Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di acquisizione biomedicale esistente (**IIT BioDataAcq**) — un sistema cloud-like completo: dall'acquisizione del segnale grezzo fino alla dashboard clinica, passando per classificazione automatica, notifiche in tempo reale e un ciclo di **retraining periodico** dei modelli sulla base delle validazioni mediche.
 
 > 📦 **Nota sui repository**: questo repository contiene il **backend** (classificazione, API, persistenza, notifiche) e la **dashboard medico**. L'app paziente **IIT BioDataAcq** — di proprietà dell'Istituto Italiano di Tecnologia — risiede in un repository separato, non incluso qui. In questo repo viene solo documentato a livello architetturale il layer di integrazione MQTT che si aggancia ad essa (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`), citato a scopo descrittivo ma non distribuito in questo codice.
 
@@ -238,6 +238,7 @@ python backend/mqtt_subscriber.py   # terminale 3
 ### 3. Dashboard medico
 
 Servire la cartella `dashboard/` (es. `python -m http.server`) e navigare su `index.html`.
+Oppure con estensione Live Server di VS Code.
 
 ### 4. Test senza dispositivo fisico
 
@@ -314,7 +315,7 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 
 Progetto sviluppato come elaborato/tesi universitaria presso l'**Università del Salento**, in collaborazione con:
 
-- **IDA Lab** (Industrial Data Analytics Lab)
+- **IDA Lab** - Università del Salento
 - **IIT — Istituto Italiano di Tecnologia**
 
 L'app di acquisizione dati **"IIT BioDataAcq"**, su cui è stato costruito il layer di integrazione MQTT descritto in questo repository, è fornita da IIT come base hardware/software per l'acquisizione dei segnali fisiologici tramite dongle USB/BLE.
@@ -334,7 +335,7 @@ Sviluppato in collaborazione con:
   - IIT — Istituto Italiano di Tecnologia
 ```
 
-Questo progetto è stato realizzato a scopo accademico nell'ambito di un percorso di tesi/elaborato universitario. Il codice è reso pubblico a fini di documentazione, valutazione didattica e condivisione di conoscenza.
+Questo progetto è stato realizzato a scopo accademico nell'ambito di un esame universitario.
 
 **Componenti di terze parti:**
 - L'applicazione di acquisizione dati **IIT BioDataAcq** e l'hardware dongle associato sono proprietà dell'Istituto Italiano di Tecnologia (IIT) e risiedono in un **repository separato**, non incluso in questo progetto. Il presente repository ne documenta soltanto, a livello architetturale, il layer di comunicazione MQTT che vi si integra in modo non invasivo, senza distribuirne né modificarne il codice originale.
