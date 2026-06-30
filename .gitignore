@@ -28,3 +28,7 @@ backend/ai/trained/*.pkl
 *$py.class
 
 mosquitto/logs/
+
+# Chiavi private TLS (i .crt restano versionabili, sono pubblici)
+mosquitto/certs/*.key
+mosquitto/certs/*.srl
