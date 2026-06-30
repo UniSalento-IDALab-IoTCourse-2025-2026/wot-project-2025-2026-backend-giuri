@@ -670,8 +670,8 @@ function renderStoricoEpisodi(lista, pazienteId) {
     const nomePaziente = paz ? `${paz.nome} ${paz.cognome}` : pazienteId;
 
     countEl.textContent = lista.length > 0
-        ? `${lista.length} episodio${lista.length !== 1 ? 'i' : ''} trovato${lista.length !== 1 ? 'i' : ''}`
-        : '';
+    ? `${lista.length} ${lista.length === 1 ? 'episodio trovato' : 'episodi trovati'}`
+    : '';
 
     if (lista.length === 0) {
         container.innerHTML = `

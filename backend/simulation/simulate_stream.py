@@ -19,7 +19,7 @@ load_dotenv()
 # ============================================================
 
 TOPIC_DATI = "cardiosense/dati"
-PAZIENTE_ID = "OMU9YFPR"  # codice paziente di test
+PAZIENTE_ID = "QMQUGLKD"  # codice paziente di test
 
 # Frequenza di campionamento ECG in Hz
 ECG_SAMPLE_RATE = 250
