@@ -55,10 +55,10 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 
 ## Architettura
 
-> Lo schema sotto mostra l'intero sistema end-to-end. Le caselle tratteggiate indicano componenti che vivono in un **repository separato** (app paziente IIT BioDataAcq); tutto il resto è contenuto in questo repository.
+> Lo schema sotto mostra l'intero sistema end-to-end.
 
 ```
-┌───────────────────────────────────────────────────────────────┐
+                ┌───────────────────────────────────────────────────────────────┐
                 │ App Python "IIT BioDataAcq" + dongle USB/BLE  (repo separato) │
                 │ (acquisizione segnali grezzi: ECG, IMU, Temperatura)          │
                 └───────────────────────────────────────────────────────────────┘
