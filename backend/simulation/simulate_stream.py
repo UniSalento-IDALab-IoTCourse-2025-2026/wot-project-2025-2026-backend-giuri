@@ -7,6 +7,11 @@ import paho.mqtt.client as mqtt
 import os
 from dotenv import load_dotenv
 
+# utility TLS condivisa
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))  # per importare db.mqtt_tls
+from db.mqtt_tls import configura_tls, get_mqtt_port
+
 load_dotenv()
 
 # ============================================================
@@ -405,9 +410,10 @@ if __name__ == "__main__":
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2
     )
     client.on_connect = on_connect
+    configura_tls(client)
     client.connect(
         os.getenv("MQTT_BROKER", "localhost"),
-        int(os.getenv("MQTT_PORT", 1883))
+        get_mqtt_port()
     )
     client.loop_start()
 

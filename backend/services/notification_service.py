@@ -3,6 +3,7 @@ import paho.mqtt.client as mqtt
 import os
 from dotenv import load_dotenv
 from models.annotation import Annotation
+from db.mqtt_tls import configura_tls, get_mqtt_port
 
 load_dotenv()
 
@@ -22,9 +23,10 @@ class NotificationService:
             client_id="notification_service",
             callback_api_version=mqtt.CallbackAPIVersion.VERSION2
         )
+        configura_tls(self.client)
         self.client.connect(
             os.getenv("MQTT_BROKER", "localhost"),
-            int(os.getenv("MQTT_PORT", 1883))
+            get_mqtt_port()
         )
         # Senza il network loop in background, connect() apre solo il socket:
         # publish() accoderebbe i messaggi senza mai scriverli realmente.

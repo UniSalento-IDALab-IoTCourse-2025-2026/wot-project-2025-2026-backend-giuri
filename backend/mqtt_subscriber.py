@@ -7,6 +7,7 @@ import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 
 from db.mongo_client import get_db
+from db.mqtt_tls import configura_tls, get_mqtt_port
 from classifiers.ecg_classifier import ECGClassifier
 from classifiers.postura_classifier import PosturaClassifier
 from classifiers.temperatura_classifier import TemperaturaClassifier
@@ -133,6 +134,8 @@ if __name__ == "__main__":
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2
     )
 
+    configura_tls(client)
+
     client.on_connect = on_connect
     client.on_message = on_message
     client.on_disconnect = on_disconnect
@@ -140,7 +143,7 @@ if __name__ == "__main__":
     print("Avvio CardioSense MQTT Subscriber...")
     client.connect(
         os.getenv("MQTT_BROKER", "localhost"),
-        int(os.getenv("MQTT_PORT", 1883)),
+        get_mqtt_port(),
         keepalive=60
     )
 

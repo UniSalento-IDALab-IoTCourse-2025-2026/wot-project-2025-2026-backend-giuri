@@ -3,8 +3,8 @@
 // Dashboard medico: MQTT WebSocket + polling REST ibrido
 // ============================================================
 
-const API    = 'http://localhost:8000';
-const BROKER = 'ws://localhost:9001';   // WebSocket Mosquitto
+const API    = 'https://localhost:8443';
+const BROKER = 'wss://localhost:9002'; 
 const TOPIC_ALLARMI = 'cardiosense/allarmi';
 
 // ============================================================

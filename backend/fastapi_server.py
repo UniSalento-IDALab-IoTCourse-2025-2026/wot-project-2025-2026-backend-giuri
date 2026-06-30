@@ -557,6 +557,8 @@ if __name__ == "__main__":
     uvicorn.run(
         "fastapi_server:app",
         host="0.0.0.0",
-        port=8000,
+        port=8443,
+        ssl_keyfile="../mosquitto/certs/server.key",
+        ssl_certfile="../mosquitto/certs/server.crt",
         reload=True
     )
