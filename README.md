@@ -74,20 +74,20 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
                                                 │
                           ┌─────────────────────┴──────────────────────┐
                           ▼                                            ▼
-  ┌───────────────────────────────────────────────┐        ┌──────────────────────────┐
-  │ mqtt_subscriber.py                             │       │ fastapi_server.py        │
-  │                                                 │      │                          │
-  │ • ECGClassifier (Random Forest / chfdb)         │      │ • REST API (JWT auth)    │
-  │ • PosturaClassifier (Random Forest / MHEALTH)   │      │ • CRUD pazienti / medici │
-  │ • TemperaturaClassifier (soglie cliniche)       │      │ • Validazione episodi    │
-  │ • Salvataggio annotazioni su MongoDB            │      │ • Storico anomalie       │
-  │ • Notifiche allarme → medico                    │      └──────────────────────────┘
+  ┌───────────────────────────────────────────────┐       ┌──────────────────────────┐
+  │ mqtt_subscriber.py                            │       │ fastapi_server.py        │
+  │                                               │       │                          │
+  │ • ECGClassifier (Random Forest / chfdb)       │       │ • REST API (JWT auth)    │
+  │ • PosturaClassifier (Random Forest / MHEALTH) │       │ • CRUD pazienti / medici │
+  │ • TemperaturaClassifier (soglie cliniche)     │       │ • Validazione episodi    │
+  │ • Salvataggio annotazioni su MongoDB          │       │ • Storico anomalie       │
+  │ • Notifiche allarme → medico                  │       └──────────────────────────┘
   └───────────────────────────────────────────────┘
                           │                                            │
                           ▼                                            ▼
          ┌─────────────────────────────────┐            ┌────────────────────────────┐
-         │ MongoDB (annotazioni)            │            │ Dashboard Web (medico)     │
-         │ MySQL (profili medico/paziente)  │            │ HTML + JS · MQTT WebSocket │
+         │ MongoDB (annotazioni)           │            │ Dashboard Web (medico)     │
+         │ MySQL (profili medico/paziente) │            │ HTML + JS · MQTT WebSocket │
          └─────────────────────────────────┘            └────────────────────────────┘
                           │ retrain notturno
                           ▲
