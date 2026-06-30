@@ -12,6 +12,15 @@ modello agli ECGClassifier già in esecuzione avviene tramite il
 meccanismo di hot-reload basato su mtime del file .pkl (vedi
 classifiers/ecg_classifier.py), non tramite comunicazione diretta.
 
+NOTA SULL'ARRESTO (Ctrl+C):
+Usiamo BackgroundScheduler invece di BlockingScheduler. BlockingScheduler
+blocca il thread principale per ore (fino al prossimo trigger), e su
+Windows l'inoltro del segnale SIGINT durante un'attesa così lunga non è
+affidabile. Con BackgroundScheduler lo scheduler gira su un thread
+separato, mentre il thread principale resta in un loop con sleep brevi
+(1s): KeyboardInterrupt viene quindi sempre intercettato quasi
+istantaneamente.
+
 Avvio:
     cd backend
     python retrain_scheduler.py
@@ -22,11 +31,11 @@ Variabili d'ambiente (opzionali, .env):
 """
 import argparse
 import os
-import signal
 import sys
+import time
 from datetime import datetime, timezone
 
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from dotenv import load_dotenv
 
@@ -71,12 +80,6 @@ def esegui_retrain():
         print(f"[{adesso}] Errore durante il ri-addestramento: {e}")
 
 
-def shutdown(signum, frame):
-    print("\nArresto retrain_scheduler in corso...")
-    scheduler.shutdown(wait=False)
-    sys.exit(0)
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="CardioSense — Scheduler retrain ECG"
@@ -94,7 +97,7 @@ if __name__ == "__main__":
         esegui_retrain()
         sys.exit(0)
 
-    scheduler = BlockingScheduler(timezone="UTC")
+    scheduler = BackgroundScheduler(timezone="UTC")
 
     scheduler.add_job(
         esegui_retrain,
@@ -105,11 +108,20 @@ if __name__ == "__main__":
         coalesce=True             # se più esecuzioni sono "in ritardo", ne esegue una sola
     )
 
-    signal.signal(signal.SIGINT, shutdown)
-    signal.signal(signal.SIGTERM, shutdown)
+    scheduler.start()
 
     print("CardioSense Retrain Scheduler avviato.")
     print(f"Prossimo retrain pianificato ogni giorno alle {RETRAIN_ORA:02d}:{RETRAIN_MINUTO:02d} UTC.")
     print("Premi CTRL+C per fermare.\n")
 
-    scheduler.start()
+    try:
+        # Thread principale libero: sleep brevi così Ctrl+C viene
+        # intercettato quasi subito, invece di restare bloccati per
+        # ore su scheduler.start() come con BlockingScheduler.
+        while True:
+            time.sleep(1)
+    except (KeyboardInterrupt, SystemExit):
+        print("\nArresto retrain_scheduler in corso...")
+        scheduler.shutdown(wait=False)
+        print("Arresto completato.")
+        sys.exit(0)

@@ -45,7 +45,7 @@
 
 **CardioSense** è un sistema IoT end-to-end per il monitoraggio in tempo reale di pazienti affetti da **insufficienza cardiaca congestizia**. Il sistema acquisisce segnali fisiologici (ECG, postura tramite accelerometro, temperatura corporea) da un dispositivo wearable, li classifica tramite modelli di Machine Learning per rilevare anomalie cliniche, e mette in comunicazione diretta **paziente** e **medico** attraverso un'architettura event-driven basata su MQTT, con persistenza su database e validazione clinica delle anomalie rilevate.
 
-Il progetto nasce come tesi/progetto universitario con l'obiettivo di costruire — partendo da un dispositivo di acquisizione biomedicale esistente (**IIT BioDataAcq**) — un sistema cloud-like completo: dall'acquisizione del segnale grezzo fino alla dashboard clinica, passando per classificazione automatica, notifiche in tempo reale e un ciclo di **retraining periodico** dei modelli sulla base delle validazioni mediche.
+Il progetto nasce come progetto universitario con l'obiettivo di costruire — partendo da un dispositivo di acquisizione biomedicale esistente (**IIT BioDataAcq**) — un sistema cloud-like completo: dall'acquisizione del segnale grezzo fino alla dashboard clinica, passando per classificazione automatica, notifiche in tempo reale e un ciclo di **retraining periodico** dei modelli sulla base delle validazioni mediche.
 
 > 📦 **Nota sui repository**: questo repository contiene il **backend** (classificazione, API, persistenza, notifiche) e la **dashboard medico**. L'app paziente **IIT BioDataAcq** — di proprietà dell'Istituto Italiano di Tecnologia — risiede in un repository separato, non incluso qui. In questo repo viene solo documentato a livello architetturale il layer di integrazione MQTT che si aggancia ad essa (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`), citato a scopo descrittivo ma non distribuito in questo codice.
 
@@ -181,7 +181,7 @@ cardiosense/
 
 | Repository | Contenuto | Stato |
 |---|---|---|
-| **CardioSense** *(questo repo)* | Backend, classificazione, API, dashboard medico | Pubblico |
+| **CardioSense** *(questo repo)* | Backend, classificazione, API, dashboard medico | Privato |
 | **IIT BioDataAcq** *(repo separato)* | App Kivy di acquisizione segnali via dongle USB/BLE, proprietà IIT, con layer di integrazione MQTT (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`) | Repository distinto, non incluso qui |
 
 Il layer di integrazione lato paziente è descritto in questo README a scopo di documentazione architetturale (sezione [App paziente](#app-paziente)), ma il relativo codice sorgente risiede esclusivamente nel repository IIT BioDataAcq.
@@ -228,9 +228,11 @@ python ai/train_ecg.py
 python ai/train_postura.py
 
 # Avvio servizi
-python mqtt_subscriber.py        # terminale 1
-python fastapi_server.py         # terminale 2
-python retrain_scheduler.py      # terminale 3 (opzionale, retrain notturno)
+python fastapi_server.py            # terminale 1
+python retrain_scheduler.py         # terminale 2 (opzionale, retrain notturno)
+cd ..
+python backend/mqtt_subscriber.py   # terminale 3
+
 ```
 
 ### 3. Dashboard medico
