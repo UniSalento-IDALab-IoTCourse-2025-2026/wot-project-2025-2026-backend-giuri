@@ -235,11 +235,23 @@ python backend/mqtt_subscriber.py   # terminale 3
 
 ```
 
-### 3. Dashboard medico
+## 3. Dashboard medico
 
-Servire la cartella `dashboard/` con l'estensione **Live Server** di VS Code.
+Servire la cartella `dashboard/` con l'estensione **Live Server** di VS Code, configurata per servire in HTTPS con i certificati mkcert.
 
-> ⚠️ Con TLS attivo (porte `8443`/`9002`), server `python -m http.server` o altri server statici semplici non sono più sufficienti: l'app fa richieste verso `https://localhost:8443` e `wss://localhost:9002`, quindi conviene comunque servire `dashboard/` da `https://` per evitare problemi di mixed content nel browser. Live Server di VS Code supporta l'avvio HTTPS locale con un certificato proprio, oppure puoi configurarlo per puntare ai certificati mkcert già generati in `mosquitto/certs/`.
+In `.vscode/settings.json`:
+
+```json
+{
+  "liveServer.settings.https": {
+    "enable": true,
+    "cert": "<percorso-assoluto-a>/mosquitto/certs/server.crt",
+    "key": "<percorso-assoluto-a>/mosquitto/certs/server.key"
+  }
+}
+```
+
+> ℹ️ Usando gli stessi certificati mkcert già generati per FastAPI e Mosquitto, il browser li riconosce come fidati (grazie a `mkcert -install`) senza bisogno di un certificato separato per la dashboard. Navigare quindi su `https://localhost:5500` (o la porta configurata) anziché `http://`.
 
 ### 4. Test senza dispositivo fisico
 
