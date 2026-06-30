@@ -935,17 +935,21 @@ async function confermaValidazione() {
         return;
     }
 
-    chiudiModal();
-
+    // Catturiamo i valori PRIMA di chiudere il modal: chiudiModal()
+    // azzera sia validazioneCorrente che esitoSelezionato.
     const eraGiaValidato = validazioneCorrente?.data?.esito_medico;
+    const esitoConfermato = esitoSelezionato;
+    const modalitaCorrente = validazioneCorrente?.modalita;
+
+    chiudiModal();
 
     if (!eraGiaValidato) {
         kpiValidateOggi++;
         document.getElementById('kpi-validate').textContent = kpiValidateOggi;
     }
 
-    const messaggioBase = esitoSelezionato === 'vero_positivo'
-        ? 'Anomalia confermata — dati inviati al ri-addestramento'
+    const messaggioBase = esitoConfermato === 'vero_positivo'
+        ? 'Anomalia confermata'
         : 'Falso allarme registrato';
     const suffissoEpisodio = numeroLetture > 1
         ? ` (${numeroLetture} letture validate in un'unica azione)`
@@ -955,7 +959,7 @@ async function confermaValidazione() {
     showToast('success', 'Validazione salvata', messaggioBase + suffissoEpisodio + suffissoModifica);
 
     // Se eravamo in modalità storico → ricarica la lista storico
-    if (validazioneCorrente?.modalita === 'storico') {
+    if (modalitaCorrente === 'storico') {
         const sel = document.getElementById('storico-select');
         if (sel?.value) {
             const resFresco = await fetch(`${API}/pazienti/by-codice/${sel.value}/episodi`);
