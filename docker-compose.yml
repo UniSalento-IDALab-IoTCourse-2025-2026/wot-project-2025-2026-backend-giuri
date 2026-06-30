@@ -1,16 +1,17 @@
 services:
 
   mosquitto:
-    image: eclipse-mosquitto:latest
+    image: eclipse-mosquitto:2.0
+    container_name: cardiosense-mosquitto
     ports:
-      - "1883:1883"
-      - "8883:8883"
-      - "9002:9002"
+      - "1883:1883"  # MQTT in chiaro (solo debug locale)
+      - "8883:8883"  # MQTT sicuro con TLS (App / Backend)
+      - "9002:9002"  # WebSocket sicuro con TLS (Dashboard Browser)
     volumes:
-      - ./mosquitto/config:/mosquitto/config
-      - ./mosquitto/data:/mosquitto/data
-      - ./mosquitto/log:/mosquitto/log
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./mosquitto/certs:/mosquitto/certs:ro
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log          
     restart: unless-stopped
 
   mongodb:
