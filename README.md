@@ -58,47 +58,43 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 > Lo schema sotto mostra l'intero sistema end-to-end. Le caselle tratteggiate indicano componenti che vivono in un **repository separato** (app paziente IIT BioDataAcq); tutto il resto è contenuto in questo repository.
 
 ```
-┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-│  App Python "IIT BioDataAcq" + dongle USB/BLE   (repo separato)       │
-│  (acquisizione segnali grezzi: ECG, IMU, Temperatura)                 │
-│         │                                                            │
-│         ▼  layer di integrazione non invasivo (mqtt_bridge.py)        │
-└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
-                              │
-                              │  MQTT over TLS (mkcert / OpenSSL)
-                              ▼
-┌──────────────────────────────────────────── questo repository ──────┐
-│                  ┌───────────────────────┐                          │
-│                  │   Broker Mosquitto     │   (porte 8883 TLS, 9002 WSS) │
-│                  └───────────┬───────────┘                          │
-│                              │                                      │
-│            ┌─────────────────┼─────────────────────┐                │
-│            ▼                                       ▼                │
-│ ┌────────────────────────┐               ┌────────────────────────┐ │
-│ │  mqtt_subscriber.py     │               │  fastapi_server.py      │ │
-│ │                         │               │                          │ │
-│ │  • ECGClassifier         │               │  • REST API (JWT auth)   │ │
-│ │    (Random Forest/chfdb) │               │  • CRUD pazienti/medici  │ │
-│ │  • PosturaClassifier     │               │  • Validazione episodi   │ │
-│ │    (Random Forest/MHEALTH)│              │  • Storico anomalie      │ │
-│ │  • TemperaturaClassifier │               │                          │ │
-│ │    (soglie cliniche)     │               └────────────┬─────────────┘ │
-│ │  • Salvataggio MongoDB    │                            │             │
-│ │  • Notifiche → medico     │                            ▼             │
-│ └────────────┬────────────┘               ┌────────────────────────┐ │
-│              │                            │   Dashboard Web (medico) │ │
-│              ▼                            │   HTML + JS + MQTT/WSS   │ │
-│    ┌──────────────────┐                   └────────────────────────┘ │
-│    │ MongoDB (annot.)  │                                              │
-│    │ MySQL  (profili)  │                                              │
-│    └──────────────────┘                                              │
-│              ▲                                                       │
-│              │  retrain notturno                                     │
-│    ┌──────────────────┐                                              │
-│    │ retrain_scheduler │                                              │
-│    │  + RetrainService │                                              │
-│    └──────────────────┘                                              │
-└───────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+                │ App Python "IIT BioDataAcq" + dongle USB/BLE  (repo separato) │
+                │ (acquisizione segnali grezzi: ECG, IMU, Temperatura)          │
+                └───────────────────────────────────────────────────────────────┘
+                                                │
+                                                │  layer non invasivo (mqtt_bridge.py)
+                                                ▼
+                                                  MQTT su TLS (mkcert)
+                                                │
+                                 ┌─────────────────────────────┐
+                                 │ Broker Mosquitto            │
+                                 │ (porte 8883 TLS · 9002 WSS) │
+                                 └─────────────────────────────┘
+                                                │
+                          ┌─────────────────────┴──────────────────────┐
+                          ▼                                            ▼
+  ┌───────────────────────────────────────────────┐        ┌──────────────────────────┐
+  │ mqtt_subscriber.py                             │       │ fastapi_server.py        │
+  │                                                 │      │                          │
+  │ • ECGClassifier (Random Forest / chfdb)         │      │ • REST API (JWT auth)    │
+  │ • PosturaClassifier (Random Forest / MHEALTH)   │      │ • CRUD pazienti / medici │
+  │ • TemperaturaClassifier (soglie cliniche)       │      │ • Validazione episodi    │
+  │ • Salvataggio annotazioni su MongoDB            │      │ • Storico anomalie       │
+  │ • Notifiche allarme → medico                    │      └──────────────────────────┘
+  └───────────────────────────────────────────────┘
+                          │                                            │
+                          ▼                                            ▼
+         ┌─────────────────────────────────┐            ┌────────────────────────────┐
+         │ MongoDB (annotazioni)            │            │ Dashboard Web (medico)     │
+         │ MySQL (profili medico/paziente)  │            │ HTML + JS · MQTT WebSocket │
+         └─────────────────────────────────┘            └────────────────────────────┘
+                          │ retrain notturno
+                          ▲
+              ┌──────────────────────┐
+              │ retrain_scheduler.py │
+              │ + RetrainService     │
+              └──────────────────────┘
 ```
 
 ---
