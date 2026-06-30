@@ -32,3 +32,6 @@ mosquitto/logs/
 # Chiavi private TLS (i .crt restano versionabili, sono pubblici)
 mosquitto/certs/*.key
 mosquitto/certs/*.srl
+
+# Vecchi certificati OpenSSL (sostituiti da mkcert), tenuti solo localmente
+mosquitto/certs/old/*
