@@ -28,6 +28,7 @@
 - [Funzionalità principali](#funzionalità-principali)
 - [Modelli di Machine Learning](#modelli-di-machine-learning)
 - [Struttura del repository](#struttura-del-repository)
+  - [Repository collegati](#repository-collegati)
 - [Sicurezza — TLS end-to-end](#sicurezza--tls-end-to-end)
 - [Installazione e avvio](#installazione-e-avvio)
 - [Flusso dati](#flusso-dati)
@@ -46,52 +47,58 @@
 
 Il progetto nasce come tesi/progetto universitario con l'obiettivo di costruire — partendo da un dispositivo di acquisizione biomedicale esistente (**IIT BioDataAcq**) — un sistema cloud-like completo: dall'acquisizione del segnale grezzo fino alla dashboard clinica, passando per classificazione automatica, notifiche in tempo reale e un ciclo di **retraining periodico** dei modelli sulla base delle validazioni mediche.
 
+> 📦 **Nota sui repository**: questo repository contiene il **backend** (classificazione, API, persistenza, notifiche) e la **dashboard medico**. L'app paziente **IIT BioDataAcq** — di proprietà dell'Istituto Italiano di Tecnologia — risiede in un repository separato, non incluso qui. In questo repo viene solo documentato a livello architetturale il layer di integrazione MQTT che si aggancia ad essa (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`), citato a scopo descrittivo ma non distribuito in questo codice.
+
 > 🩺 **Closed-loop**: ogni anomalia rilevata automaticamente viene validata da un medico (vero positivo / falso allarme); queste validazioni rientrano nel dataset di addestramento per ri-calibrare periodicamente il classificatore ECG, chiudendo il ciclo tra IA e giudizio clinico.
 
 ---
 
 ## Architettura
 
+> Lo schema sotto mostra l'intero sistema end-to-end. Le caselle tratteggiate indicano componenti che vivono in un **repository separato** (app paziente IIT BioDataAcq); tutto il resto è contenuto in questo repository.
+
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│  App Python "IIT BioDataAcq" + dongle USB/BLE                        │
+┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+│  App Python "IIT BioDataAcq" + dongle USB/BLE   (repo separato)       │
 │  (acquisizione segnali grezzi: ECG, IMU, Temperatura)                 │
 │         │                                                            │
 │         ▼  layer di integrazione non invasivo (mqtt_bridge.py)        │
-└─────────────────────────────────────────────────────────────────────┘
+└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
                               │
                               │  MQTT over TLS (mkcert / OpenSSL)
                               ▼
-                  ┌───────────────────────┐
-                  │   Broker Mosquitto     │   (porte 8883 TLS, 9002 WSS)
-                  └───────────┬───────────┘
-                              │
-            ┌─────────────────┼─────────────────────┐
-            ▼                                       ▼
-┌────────────────────────┐               ┌────────────────────────┐
-│  mqtt_subscriber.py     │               │  fastapi_server.py      │
-│                         │               │                          │
-│  • ECGClassifier         │               │  • REST API (JWT auth)   │
-│    (Random Forest/chfdb) │               │  • CRUD pazienti/medici  │
-│  • PosturaClassifier     │               │  • Validazione episodi   │
-│    (Random Forest/MHEALTH)│              │  • Storico anomalie      │
-│  • TemperaturaClassifier │               │                          │
-│    (soglie cliniche)     │               └────────────┬─────────────┘
-│  • Salvataggio MongoDB    │                            │
-│  • Notifiche → medico     │                            ▼
-└────────────┬────────────┘               ┌────────────────────────┐
-             │                            │   Dashboard Web (medico) │
-             ▼                            │   HTML + JS + MQTT/WSS   │
-   ┌──────────────────┐                   └────────────────────────┘
-   │ MongoDB (annot.)  │
-   │ MySQL  (profili)  │
-   └──────────────────┘
-             ▲
-             │  retrain notturno
-   ┌──────────────────┐
-   │ retrain_scheduler │
-   │  + RetrainService │
-   └──────────────────┘
+┌──────────────────────────────────────────── questo repository ──────┐
+│                  ┌───────────────────────┐                          │
+│                  │   Broker Mosquitto     │   (porte 8883 TLS, 9002 WSS) │
+│                  └───────────┬───────────┘                          │
+│                              │                                      │
+│            ┌─────────────────┼─────────────────────┐                │
+│            ▼                                       ▼                │
+│ ┌────────────────────────┐               ┌────────────────────────┐ │
+│ │  mqtt_subscriber.py     │               │  fastapi_server.py      │ │
+│ │                         │               │                          │ │
+│ │  • ECGClassifier         │               │  • REST API (JWT auth)   │ │
+│ │    (Random Forest/chfdb) │               │  • CRUD pazienti/medici  │ │
+│ │  • PosturaClassifier     │               │  • Validazione episodi   │ │
+│ │    (Random Forest/MHEALTH)│              │  • Storico anomalie      │ │
+│ │  • TemperaturaClassifier │               │                          │ │
+│ │    (soglie cliniche)     │               └────────────┬─────────────┘ │
+│ │  • Salvataggio MongoDB    │                            │             │
+│ │  • Notifiche → medico     │                            ▼             │
+│ └────────────┬────────────┘               ┌────────────────────────┐ │
+│              │                            │   Dashboard Web (medico) │ │
+│              ▼                            │   HTML + JS + MQTT/WSS   │ │
+│    ┌──────────────────┐                   └────────────────────────┘ │
+│    │ MongoDB (annot.)  │                                              │
+│    │ MySQL  (profili)  │                                              │
+│    └──────────────────┘                                              │
+│              ▲                                                       │
+│              │  retrain notturno                                     │
+│    ┌──────────────────┐                                              │
+│    │ retrain_scheduler │                                              │
+│    │  + RetrainService │                                              │
+│    └──────────────────┘                                              │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -146,6 +153,8 @@ Tutti i classificatori implementano un'interfaccia comune (`BaseClassifier.predi
 
 ## Struttura del repository
 
+> Questo repository contiene **solo** backend e dashboard medico. L'app paziente IIT BioDataAcq vive in un repository a parte (vedi [Repository collegati](#repository-collegati)).
+
 ```
 cardiosense/
 ├── docker-compose.yml
@@ -163,14 +172,19 @@ cardiosense/
 │   ├── ai/                          # script di training + modelli .pkl
 │   ├── db/                          # client Mongo/MySQL (Singleton) + utility TLS
 │   └── simulation/                  # simulatore di stream paziente per test end-to-end
-├── dashboard/
-│   ├── index.html / medico.html     # login + dashboard clinica
-│   └── static/app.js                # MQTT WebSocket + polling REST
-└── [App paziente IIT BioDataAcq — Kivy]
-    ├── mqtt_bridge.py               # layer MQTT non invasivo
-    ├── patient_login.py             # validazione codice paziente
-    └── patient_anomalies.py         # badge + storico anomalie real-time
+└── dashboard/
+    ├── index.html / medico.html     # login + dashboard clinica
+    └── static/app.js                # MQTT WebSocket + polling REST
 ```
+
+### Repository collegati
+
+| Repository | Contenuto | Stato |
+|---|---|---|
+| **CardioSense** *(questo repo)* | Backend, classificazione, API, dashboard medico | Pubblico |
+| **IIT BioDataAcq** *(repo separato)* | App Kivy di acquisizione segnali via dongle USB/BLE, proprietà IIT, con layer di integrazione MQTT (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`) | Repository distinto, non incluso qui |
+
+Il layer di integrazione lato paziente è descritto in questo README a scopo di documentazione architetturale (sezione [App paziente](#app-paziente)), ma il relativo codice sorgente risiede esclusivamente nel repository IIT BioDataAcq.
 
 ---
 
@@ -230,11 +244,17 @@ cd backend/simulation
 python simulate_stream.py --scenario misto --durata 120
 ```
 
-### 5. App paziente (con dispositivo IIT BioDataAcq)
+### 5. App paziente (repository separato)
+
+L'app paziente **IIT BioDataAcq** non è contenuta in questo repository. Per eseguirla con il dispositivo wearable fisico e il layer di integrazione MQTT:
 
 ```bash
+git clone <url-repo-IIT-BioDataAcq>     # repository separato
+cd IIT-BioDataAcq
 python software.py
 ```
+
+Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosquitto (host, porta TLS, percorso del certificato CA) configurato per questo backend.
 
 ---
 
@@ -259,6 +279,8 @@ python software.py
 - **Notifiche desktop**: Web Notifications API + allarme sonoro via Web Audio API
 
 ## App paziente
+
+> ℹ️ Codice in repository separato — sezione descrittiva a scopo architetturale.
 
 - Login tramite codice di accesso fornito dal medico
 - Badge anomalie in tempo reale (via sottoscrizione MQTT)
@@ -313,7 +335,7 @@ Sviluppato in collaborazione con:
 Questo progetto è stato realizzato a scopo accademico nell'ambito di un percorso di tesi/elaborato universitario. Il codice è reso pubblico a fini di documentazione, valutazione didattica e condivisione di conoscenza.
 
 **Componenti di terze parti:**
-- L'applicazione di acquisizione dati **IIT BioDataAcq** e l'hardware dongle associato sono proprietà dell'Istituto Italiano di Tecnologia (IIT); il presente repository ne integra il layer di comunicazione tramite un'estensione non invasiva, senza modificarne il codice originale.
+- L'applicazione di acquisizione dati **IIT BioDataAcq** e l'hardware dongle associato sono proprietà dell'Istituto Italiano di Tecnologia (IIT) e risiedono in un **repository separato**, non incluso in questo progetto. Il presente repository ne documenta soltanto, a livello architetturale, il layer di comunicazione MQTT che vi si integra in modo non invasivo, senza distribuirne né modificarne il codice originale.
 - I dataset utilizzati per l'addestramento dei modelli (**chfdb** via PhysioNet, **MHEALTH** via UCI Machine Learning Repository) sono soggetti alle rispettive licenze d'uso accademico/ricerca pubblicate dai fornitori originali.
 
 **Uso del codice:** salvo diversa indicazione, il riuso, la modifica e la redistribuzione del codice di questo repository per finalità didattiche o di ricerca sono consentiti con citazione dell'autore e dell'ateneo di riferimento. Per usi commerciali o clinici reali, contattare l'autore: il sistema è stato sviluppato come prototipo dimostrativo e **non è certificato come dispositivo medico**.
@@ -322,6 +344,6 @@ Questo progetto è stato realizzato a scopo accademico nell'ambito di un percors
 
 <div align="center">
 
-Realizzato con 🩺 da **Francesco Giuri** — Università del Salento
+Realizzato da **Francesco Giuri** — Università del Salento
 
 </div>
