@@ -13659,3 +13659,195 @@
 1782771165: Sending PINGRESP to cardiosense_subscriber
 1782771165: Received PINGREQ from notification_service
 1782771165: Sending PINGRESP to notification_service
+1782771179: Received PINGREQ from dashboard_45a3f9
+1782771179: Sending PINGRESP to dashboard_45a3f9
+1782771225: Received PINGREQ from cardiosense_subscriber
+1782771225: Sending PINGRESP to cardiosense_subscriber
+1782771225: Received PINGREQ from notification_service
+1782771225: Sending PINGRESP to notification_service
+1782771239: Received PINGREQ from dashboard_45a3f9
+1782771239: Sending PINGRESP to dashboard_45a3f9
+1782771286: Received PINGREQ from cardiosense_subscriber
+1782771286: Sending PINGRESP to cardiosense_subscriber
+1782771286: Received PINGREQ from notification_service
+1782771286: Sending PINGRESP to notification_service
+1782771299: Received PINGREQ from dashboard_45a3f9
+1782771299: Sending PINGRESP to dashboard_45a3f9
+1782771346: Received PINGREQ from cardiosense_subscriber
+1782771346: Sending PINGRESP to cardiosense_subscriber
+1782771346: Received PINGREQ from notification_service
+1782771346: Sending PINGRESP to notification_service
+1782771359: Received PINGREQ from dashboard_45a3f9
+1782771359: Sending PINGRESP to dashboard_45a3f9
+1782771381: Client dashboard_45a3f9 closed its connection.
+1782771382: New client connected from 172.18.0.1:40038 as dashboard_626c64 (p2, c1, k60).
+1782771382: No will message specified.
+1782771382: Sending CONNACK to dashboard_626c64 (0, 0)
+1782771382: Received SUBSCRIBE from dashboard_626c64
+1782771382: 	cardiosense/allarmi (QoS 1)
+1782771382: dashboard_626c64 1 cardiosense/allarmi
+1782771382: Sending SUBACK to dashboard_626c64
+1782771407: Received PINGREQ from cardiosense_subscriber
+1782771407: Sending PINGRESP to cardiosense_subscriber
+1782771407: Received PINGREQ from notification_service
+1782771407: Sending PINGRESP to notification_service
+1782771426: Received DISCONNECT from cardiosense_subscriber
+1782771426: Client cardiosense_subscriber disconnected.
+1782771427: Client notification_service closed its connection.
+1782771434: New connection from 172.18.0.1:34394 on port 1883.
+1782771434: New client connected from 172.18.0.1:34394 as notification_service (p2, c1, k60).
+1782771434: No will message specified.
+1782771434: Sending CONNACK to notification_service (0, 0)
+1782771434: New connection from 172.18.0.1:34396 on port 1883.
+1782771434: New client connected from 172.18.0.1:34396 as cardiosense_subscriber (p2, c1, k60).
+1782771434: No will message specified.
+1782771434: Sending CONNACK to cardiosense_subscriber (0, 0)
+1782771434: Received SUBSCRIBE from cardiosense_subscriber
+1782771434: 	cardiosense/dati (QoS 1)
+1782771434: cardiosense_subscriber 1 cardiosense/dati
+1782771434: Sending SUBACK to cardiosense_subscriber
+1782771442: Received PINGREQ from dashboard_626c64
+1782771442: Sending PINGRESP to dashboard_626c64
+1782771444: Client dashboard_626c64 closed its connection.
+1782771445: New client connected from 172.18.0.1:39726 as dashboard_148316 (p2, c1, k60).
+1782771445: No will message specified.
+1782771445: Sending CONNACK to dashboard_148316 (0, 0)
+1782771445: Received SUBSCRIBE from dashboard_148316
+1782771445: 	cardiosense/allarmi (QoS 1)
+1782771445: dashboard_148316 1 cardiosense/allarmi
+1782771445: Sending SUBACK to dashboard_148316
+1782771457: New client connected from 172.18.0.1:46572 as dashboard_86dabd (p2, c1, k60).
+1782771457: No will message specified.
+1782771457: Sending CONNACK to dashboard_86dabd (0, 0)
+1782771457: Received SUBSCRIBE from dashboard_86dabd
+1782771457: 	cardiosense/allarmi (QoS 1)
+1782771457: dashboard_86dabd 1 cardiosense/allarmi
+1782771457: Sending SUBACK to dashboard_86dabd
+1782771494: Received PINGREQ from notification_service
+1782771494: Sending PINGRESP to notification_service
+1782771494: Received PINGREQ from cardiosense_subscriber
+1782771494: Sending PINGRESP to cardiosense_subscriber
+1782771517: Received PINGREQ from dashboard_86dabd
+1782771517: Sending PINGRESP to dashboard_86dabd
+1782771536: Client dashboard_148316 closed its connection.
+1782771555: Received PINGREQ from notification_service
+1782771555: Sending PINGRESP to notification_service
+1782771555: Received PINGREQ from cardiosense_subscriber
+1782771555: Sending PINGRESP to cardiosense_subscriber
+1782771577: Received PINGREQ from dashboard_86dabd
+1782771577: Sending PINGRESP to dashboard_86dabd
+1782771615: Received PINGREQ from notification_service
+1782771615: Sending PINGRESP to notification_service
+1782771615: Received PINGREQ from cardiosense_subscriber
+1782771615: Sending PINGRESP to cardiosense_subscriber
+1782771637: Received PINGREQ from dashboard_86dabd
+1782771637: Sending PINGRESP to dashboard_86dabd
+1782771674: Client dashboard_86dabd closed its connection.
+1782771675: New client connected from 172.18.0.1:35770 as dashboard_2cc690 (p2, c1, k60).
+1782771675: No will message specified.
+1782771675: Sending CONNACK to dashboard_2cc690 (0, 0)
+1782771675: Received SUBSCRIBE from dashboard_2cc690
+1782771675: 	cardiosense/allarmi (QoS 1)
+1782771675: dashboard_2cc690 1 cardiosense/allarmi
+1782771675: Sending SUBACK to dashboard_2cc690
+1782771676: Received PINGREQ from cardiosense_subscriber
+1782771676: Sending PINGRESP to cardiosense_subscriber
+1782771676: Received PINGREQ from notification_service
+1782771676: Sending PINGRESP to notification_service
+1782771735: Received PINGREQ from dashboard_2cc690
+1782771735: Sending PINGRESP to dashboard_2cc690
+1782771737: Received PINGREQ from cardiosense_subscriber
+1782771737: Sending PINGRESP to cardiosense_subscriber
+1782771737: Received PINGREQ from notification_service
+1782771737: Sending PINGRESP to notification_service
+1782771794: Client dashboard_2cc690 closed its connection.
+1782771796: New client connected from 172.18.0.1:43728 as dashboard_5c3f75 (p2, c1, k60).
+1782771796: No will message specified.
+1782771796: Sending CONNACK to dashboard_5c3f75 (0, 0)
+1782771796: Received SUBSCRIBE from dashboard_5c3f75
+1782771796: 	cardiosense/allarmi (QoS 1)
+1782771796: dashboard_5c3f75 1 cardiosense/allarmi
+1782771796: Sending SUBACK to dashboard_5c3f75
+1782771797: Received PINGREQ from cardiosense_subscriber
+1782771797: Sending PINGRESP to cardiosense_subscriber
+1782771797: Received PINGREQ from notification_service
+1782771797: Sending PINGRESP to notification_service
+1782771856: Received PINGREQ from dashboard_5c3f75
+1782771856: Sending PINGRESP to dashboard_5c3f75
+1782771858: Received PINGREQ from cardiosense_subscriber
+1782771858: Sending PINGRESP to cardiosense_subscriber
+1782771858: Received PINGREQ from notification_service
+1782771858: Sending PINGRESP to notification_service
+1782771916: Received PINGREQ from dashboard_5c3f75
+1782771916: Sending PINGRESP to dashboard_5c3f75
+1782771918: Received PINGREQ from cardiosense_subscriber
+1782771918: Sending PINGRESP to cardiosense_subscriber
+1782771918: Received PINGREQ from notification_service
+1782771918: Sending PINGRESP to notification_service
+1782771969: New connection from 172.18.0.1:39034 on port 1883.
+1782771969: New client connected from 172.18.0.1:39034 as cardiosense_app_bridge (p2, c1, k60).
+1782771969: No will message specified.
+1782771969: Sending CONNACK to cardiosense_app_bridge (0, 0)
+1782771970: New connection from 172.18.0.1:39050 on port 1883.
+1782771970: New client connected from 172.18.0.1:39050 as cardiosense_app_anomalie_monitor (p2, c1, k60).
+1782771970: No will message specified.
+1782771970: Sending CONNACK to cardiosense_app_anomalie_monitor (0, 0)
+1782771970: Received SUBSCRIBE from cardiosense_app_anomalie_monitor
+1782771970: 	cardiosense/allarmi (QoS 1)
+1782771970: cardiosense_app_anomalie_monitor 1 cardiosense/allarmi
+1782771970: Sending SUBACK to cardiosense_app_anomalie_monitor
+1782771976: Received PINGREQ from dashboard_5c3f75
+1782771976: Sending PINGRESP to dashboard_5c3f75
+1782771979: Received PINGREQ from cardiosense_subscriber
+1782771979: Sending PINGRESP to cardiosense_subscriber
+1782771979: Received PINGREQ from notification_service
+1782771979: Sending PINGRESP to notification_service
+1782772030: Received PINGREQ from cardiosense_app_bridge
+1782772030: Sending PINGRESP to cardiosense_app_bridge
+1782772030: Received PINGREQ from cardiosense_app_anomalie_monitor
+1782772030: Sending PINGRESP to cardiosense_app_anomalie_monitor
+1782772036: Received PINGREQ from dashboard_5c3f75
+1782772036: Sending PINGRESP to dashboard_5c3f75
+1782772039: Received PINGREQ from cardiosense_subscriber
+1782772039: Sending PINGRESP to cardiosense_subscriber
+1782772039: Received PINGREQ from notification_service
+1782772039: Sending PINGRESP to notification_service
+1782772053: Client cardiosense_app_anomalie_monitor closed its connection.
+1782772053: Client cardiosense_app_bridge closed its connection.
+1782772096: Received PINGREQ from dashboard_5c3f75
+1782772096: Sending PINGRESP to dashboard_5c3f75
+1782772100: Received PINGREQ from cardiosense_subscriber
+1782772100: Sending PINGRESP to cardiosense_subscriber
+1782772100: Received PINGREQ from notification_service
+1782772100: Sending PINGRESP to notification_service
+1782772136: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1782772156: Received PINGREQ from dashboard_5c3f75
+1782772156: Sending PINGRESP to dashboard_5c3f75
+1782772160: Received PINGREQ from notification_service
+1782772160: Sending PINGRESP to notification_service
+1782772160: Received PINGREQ from cardiosense_subscriber
+1782772160: Sending PINGRESP to cardiosense_subscriber
+1782772216: Received PINGREQ from dashboard_5c3f75
+1782772216: Sending PINGRESP to dashboard_5c3f75
+1782772221: Received PINGREQ from notification_service
+1782772221: Sending PINGRESP to notification_service
+1782772221: Received PINGREQ from cardiosense_subscriber
+1782772221: Sending PINGRESP to cardiosense_subscriber
+1782772264: Client dashboard_5c3f75 closed its connection.
+1782772264: New client connected from 172.18.0.1:40272 as dashboard_b8060e (p2, c1, k60).
+1782772264: No will message specified.
+1782772264: Sending CONNACK to dashboard_b8060e (0, 0)
+1782772264: Received SUBSCRIBE from dashboard_b8060e
+1782772264: 	cardiosense/allarmi (QoS 1)
+1782772264: dashboard_b8060e 1 cardiosense/allarmi
+1782772264: Sending SUBACK to dashboard_b8060e
+1782772281: Received PINGREQ from cardiosense_subscriber
+1782772281: Sending PINGRESP to cardiosense_subscriber
+1782772281: Received PINGREQ from notification_service
+1782772281: Sending PINGRESP to notification_service
+1782772306: Client dashboard_b8060e closed its connection.
+1782772313: Received DISCONNECT from cardiosense_subscriber
+1782772313: Client cardiosense_subscriber disconnected.
+1782772313: Client notification_service closed its connection.
+1782772478: mosquitto version 2.0.22 terminating
+1782772478: Saving in-memory database to /mosquitto/data//mosquitto.db.
