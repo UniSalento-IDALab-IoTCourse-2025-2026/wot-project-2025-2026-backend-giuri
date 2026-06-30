@@ -27,7 +27,7 @@ load_dotenv()
 # CONFIGURAZIONE
 # ============================================================
 
-SECRET_KEY = os.getenv("JWT_SECRET", "cambia_questa_chiave")
+SECRET_KEY = os.getenv("JWT_SECRET", "chiave_di_default")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 ore
 
