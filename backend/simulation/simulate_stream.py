@@ -200,43 +200,71 @@ def genera_imu_normale(n_campioni: int = 104) -> list[dict]:
         })
     return campioni
 
+# Livelli di intensità per lo scenario "movimento" (ampiezze in m/s^2 per
+# l'accelerometro e °/s per il giroscopio, coerenti con le unità MHEALTH).
+LIVELLI_MOVIMENTO = {
+    "camminata":    {"acc": (5.0, 4.0, 6.0),    "gyro": (35.0, 45.0, 25.0)},
+    "salita_scale": {"acc": (7.5, 6.5, 8.5),    "gyro": (55.0, 65.0, 40.0)},
+    "corsa":        {"acc": (10.5, 9.0, 11.5),  "gyro": (85.0, 100.0, 65.0)},
+    "salto":        {"acc": (14.0, 12.0, 16.0), "gyro": (130.0, 150.0, 105.0)},
+}
+
+# Stato del generatore di movimento: il livello scelto deve rimanere
+# fisso per più messaggi consecutivi, non cambiare ad ogni chiamata.
+#
+# PosturaClassifier classifica su finestre di 208 campioni con hop di
+# 104 (50% overlap, vedi PosturaClassifier.WINDOW_SIZE/STEP_SIZE): ogni
+# finestra analizzata copre quindi DUE messaggi consecutivi (~2s). Se il
+# livello di intensità cambiasse ad ogni singolo messaggio (104 campioni),
+# quasi ogni finestra risulterebbe composta per metà da un livello e per
+# metà da un altro — le feature std/max/range su una finestra "mista"
+# sono dominate dal segmento più energico dei due, per cui il modello
+# vede quasi sempre un'energia artificialmente più alta del livello
+# realmente scelto (bias sistematico verso corsa/salto, indipendentemente
+# da quale livello si stia effettivamente simulando).
+#
+# Mantenendo lo stesso livello per diversi messaggi consecutivi, la
+# stragrande maggioranza delle finestre ricade interamente in un unico
+# livello, eliminando questa contaminazione tra classi.
+_movimento_stato = {"livello": None, "messaggi_rimanenti": 0}
+
+
 def genera_imu_movimento(n_campioni: int = 104) -> list[dict]:
     """
-    Paziente in movimento dinamico (cammino deciso / corsa / attività
-    ad alta energia). Ampiezze scalate su ordini di grandezza reali per
-    un sensore da polso/braccio in movimento (coerenti con le unità
-    MHEALTH: accelerazione in m/s^2, giroscopio in gradi/s):
-
-    - L'asse Z mantiene la componente di gravità (~9.81 m/s^2) come
-      baseline, con il movimento sovrapposto sopra — non sostituita da
-      un'altra costante arbitraria: un braccio che si muove non smette
-      di "sentire" la gravità.
-    - Le oscillazioni di accelerazione arrivano a ampiezze picco-picco
-      dell'ordine di 10-25 m/s^2, plausibili per lo swing del braccio
-      durante camminata/corsa.
-    - Il giroscopio arriva a ampiezze dell'ordine di 80-150 gradi/s,
-      plausibili per la rotazione del polso/avambraccio durante un
-      movimento energico — non più i pochi gradi/s della versione
-      precedente, indistinguibili dal rumore di quiete.
+    Paziente in movimento dinamico. Il livello di intensità
+    (camminata/salita_scale/corsa/salto) viene scelto casualmente e
+    mantenuto per diversi messaggi consecutivi (vedi _movimento_stato),
+    così le finestre di classificazione (che coprono ~2s, cioè più
+    messaggi) restano coerenti con un solo livello invece di mescolarne
+    due, permettendo al modello di distinguere correttamente tutte le
+    classi di movimento invece di sbilanciarsi verso le più energiche.
     """
+    global _movimento_stato
+
+    if _movimento_stato["messaggi_rimanenti"] <= 0:
+        _movimento_stato["livello"] = random.choice(list(LIVELLI_MOVIMENTO))
+        # Mantieni lo stesso livello per 8-20 messaggi (~8-20s a 1 msg/s)
+        _movimento_stato["messaggi_rimanenti"] = random.randint(8, 20)
+
+    _movimento_stato["messaggi_rimanenti"] -= 1
+
+    livello = LIVELLI_MOVIMENTO[_movimento_stato["livello"]]
+    amp_ax, amp_ay, amp_az = livello["acc"]
+    amp_gx, amp_gy, amp_gz = livello["gyro"]
+
     campioni = []
     for i in range(n_campioni):
         t = i / 104.0
-        # Onda a 2.5 Hz (tipica cadenza di camminata veloce/jogging)
         onda = math.sin(2 * math.pi * 2.5 * t)
         cosonda = math.cos(2 * math.pi * 2.5 * t)
 
         campioni.append({
-            # Accelerazione: gravità di base + oscillazione da movimento,
-            # in m/s^2 (stessa unità del training MHEALTH)
-            "acc_x": round((onda * 12.0) + random.uniform(-2.0, 2.0), 3),
-            "acc_y": round((cosonda * 10.0) + random.uniform(-2.0, 2.0), 3),
-            "acc_z": round(GRAVITA_MS2 + (onda * 14.0) + random.uniform(-2.5, 2.5), 3),
-            # Giroscopio in gradi/s, ampiezza realistica per rotazione del
-            # polso durante un movimento energico
-            "gyro_x": round((onda * 120.0) + random.uniform(-10.0, 10.0), 3),
-            "gyro_y": round((cosonda * 150.0) + random.uniform(-10.0, 10.0), 3),
-            "gyro_z": round((onda * 90.0) + random.uniform(-10.0, 10.0), 3),
+            "acc_x": round((onda * amp_ax) + random.uniform(-1.5, 1.5), 3),
+            "acc_y": round((cosonda * amp_ay) + random.uniform(-1.5, 1.5), 3),
+            "acc_z": round(GRAVITA_MS2 + (onda * amp_az) + random.uniform(-2.0, 2.0), 3),
+            "gyro_x": round((onda * amp_gx) + random.uniform(-8.0, 8.0), 3),
+            "gyro_y": round((cosonda * amp_gy) + random.uniform(-8.0, 8.0), 3),
+            "gyro_z": round((onda * amp_gz) + random.uniform(-8.0, 8.0), 3),
         })
     return campioni
 

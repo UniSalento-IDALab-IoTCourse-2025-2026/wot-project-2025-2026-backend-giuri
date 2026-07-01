@@ -30,6 +30,16 @@ class ECGClassifier(BaseClassifier):
 
     def _carica_modello(self) -> None:
         self.modello = joblib.load(self.model_path)
+        # Il modello è stato addestrato con n_jobs=-1 (utile in fase di
+        # training/batch), ma qui si predice UN campione alla volta in
+        # tempo reale ad ogni messaggio MQTT: parallelizzare i 100 alberi
+        # su più core per una singola predizione è puro overhead e, in
+        # alcune versioni di scikit-learn/joblib, genera un warning
+        # cosmetico ("delayed should be used with Parallel..."). Forzare
+        # n_jobs=1 a runtime elimina sia l'overhead sia il warning, senza
+        # dover ri-addestrare il modello (n_jobs è un iperparametro letto
+        # a ogni predict/predict_proba, non un dato "cotto" nei pesi).
+        self.modello.n_jobs = 1
         self._ultimo_mtime = os.path.getmtime(self.model_path)
 
     def _controlla_reload(self) -> None:

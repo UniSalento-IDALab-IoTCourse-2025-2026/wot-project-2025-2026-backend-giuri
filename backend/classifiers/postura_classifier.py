@@ -34,6 +34,13 @@ class PosturaClassifier(BaseClassifier):
         self.modello = payload['modello']
         self.etichette = payload['etichette']
 
+        # Stesso motivo di ECGClassifier: qui si predice una finestra
+        # alla volta in tempo reale, non un batch. n_jobs=-1 (impostato
+        # in fase di training) parallelizza inutilmente i 100 alberi su
+        # più core per ogni singola predizione, con overhead e warning
+        # cosmetico di scikit-learn. n_jobs=1 elimina entrambi.
+        self.modello.n_jobs = 1
+
         # Buffer interno per accumulare i dati IMU (acc+giro) per le finestre live.
         # Ogni elemento del buffer è un vettore a 6 componenti: [ax, ay, az, gx, gy, gz]
         self.buffer = []

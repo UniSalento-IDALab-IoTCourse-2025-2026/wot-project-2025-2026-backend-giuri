@@ -15,18 +15,18 @@ MODEL_PATH = 'backend/ai/trained/postura_model.pkl'
 
 ETICHETTE = {
     0:  'nessuna_attivita',
-    1:  'in_piedi',
-    2:  'seduto',
-    3:  'sdraiato',
-    4:  'camminata',
-    5:  'salita_scale',
-    6:  'piegamento_gomito',
-    7:  'piegamento_ginocchio',
-    8:  'ciclismo',
-    9:  'jogging',
-    10: 'corsa',
-    11: 'salto',
-    12: 'squat'
+    1:  'in_piedi',                      # L1 - Standing still
+    2:  'seduto',                        # L2 - Sitting and relaxing
+    3:  'sdraiato',                      # L3 - Lying down
+    4:  'camminata',                     # L4 - Walking
+    5:  'salita_scale',                  # L5 - Climbing stairs
+    6:  'piegamento_busto_avanti',       # L6 - Waist bends forward
+    7:  'elevazione_frontale_braccia',   # L7 - Frontal elevation of arms
+    8:  'piegamento_ginocchia',          # L8 - Knees bending (crouching)
+    9:  'ciclismo',                      # L9 - Cycling
+    10: 'jogging',                       # L10 - Jogging
+    11: 'corsa',                         # L11 - Running
+    12: 'salto'                          # L12 - Jump front & back
 }
 
 COLONNE = [
@@ -67,7 +67,7 @@ FEATURE_COLS = [
 # classi escluse contaminerebbero comunque la maggioranza di una
 # finestra confinante.
 # --------------------------------------------------------
-LABELS_DESIDERATE = {1, 2, 3, 4, 5, 10, 11, 12}
+LABELS_DESIDERATE = {1, 2, 3, 4, 5, 11, 12}
 
 # ============================================================
 # NUOVO STEP: ESTRAZIONE FEATURE A FINESTRE (SLIDING WINDOW)
