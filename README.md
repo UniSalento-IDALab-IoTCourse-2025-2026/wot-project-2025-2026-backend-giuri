@@ -58,7 +58,7 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 ```
                 ┌───────────────────────────────────────────────────────────────┐
                 │ App Python "IIT BioDataAcq" + dongle USB/BLE  (repo separato) │
-                │ (acquisizione segnali grezzi: ECG, IMU acc+gyro, Temperatura)│
+                │ (acquisizione segnali grezzi: ECG, IMU acc+gyro, Temperatura) │
                 └───────────────────────────────────────────────────────────────┘
                                                 │
                                                 │  layer non invasivo (mqtt_bridge.py)
