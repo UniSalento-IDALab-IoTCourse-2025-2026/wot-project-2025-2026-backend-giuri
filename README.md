@@ -41,7 +41,7 @@
 
 ## Panoramica
 
-**CardioSense** è un sistema IoT end-to-end per il monitoraggio in tempo reale di pazienti affetti da **insufficienza cardiaca congestizia**. Il sistema acquisisce segnali fisiologici (ECG, postura tramite accelerometro, temperatura corporea) da un dispositivo wearable, li classifica tramite modelli di Machine Learning per rilevare anomalie cliniche, e mette in comunicazione diretta **paziente** e **medico** attraverso un'architettura event-driven basata su MQTT, con persistenza su database e validazione clinica delle anomalie rilevate.
+**CardioSense** è un sistema IoT end-to-end per il monitoraggio in tempo reale di pazienti affetti da **insufficienza cardiaca congestizia**. Il sistema acquisisce segnali fisiologici (ECG, postura tramite IMU a 6 assi — accelerometro + giroscopio, temperatura corporea) da un dispositivo wearable, li classifica tramite modelli di Machine Learning per rilevare anomalie cliniche, e mette in comunicazione diretta **paziente** e **medico** attraverso un'architettura event-driven basata su MQTT, con persistenza su database e validazione clinica delle anomalie rilevate.
 
 Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di acquisizione biomedicale esistente (**IIT BioDataAcq**) — un sistema cloud-like completo: dall'acquisizione del segnale grezzo fino alla dashboard clinica, passando per classificazione automatica, notifiche in tempo reale e un ciclo di **retraining periodico** dei modelli sulla base delle validazioni mediche.
 
@@ -58,7 +58,7 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 ```
                 ┌───────────────────────────────────────────────────────────────┐
                 │ App Python "IIT BioDataAcq" + dongle USB/BLE  (repo separato) │
-                │ (acquisizione segnali grezzi: ECG, IMU, Temperatura)          │
+                │ (acquisizione segnali grezzi: ECG, IMU acc+gyro, Temperatura)│
                 └───────────────────────────────────────────────────────────────┘
                                                 │
                                                 │  layer non invasivo (mqtt_bridge.py)
@@ -77,9 +77,10 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
   │                                               │       │                          │
   │ • ECGClassifier (Random Forest / chfdb)       │       │ • REST API (JWT auth)    │
   │ • PosturaClassifier (Random Forest / MHEALTH) │       │ • CRUD pazienti / medici │
-  │ • TemperaturaClassifier (soglie cliniche)     │       │ • Validazione episodi    │
-  │ • Salvataggio annotazioni su MongoDB          │       │ • Storico anomalie       │
-  │ • Notifiche allarme → medico                  │       └──────────────────────────┘
+  │   — feature su accelerometro + giroscopio     │       │ • Validazione episodi    │
+  │ • TemperaturaClassifier (soglie cliniche)     │       │ • Storico anomalie       │
+  │ • Salvataggio annotazioni su MongoDB          │       └──────────────────────────┘
+  │ • Notifiche allarme → medico                  │
   └───────────────────────────────────────────────┘
                           │                                            │
                           ▼                                            ▼
@@ -117,11 +118,11 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 
 ## Funzionalità principali
 
-- 📡 **Acquisizione in tempo reale** di ECG (250 Hz), accelerometro IMU (104 Hz) e temperatura corporea, tramite layer MQTT non invasivo sopra il core headless dell'app di acquisizione esistente
+- 📡 **Acquisizione in tempo reale** di ECG (250 Hz), IMU a 6 assi — accelerometro + giroscopio del sensore da polso/braccio (104 Hz) — e temperatura corporea, tramite layer MQTT non invasivo sopra il core headless dell'app di acquisizione esistente
 - 🔐 **Login paziente** tramite codice di accesso univoco a 8 caratteri generato dal medico
 - 🧠 **Classificazione automatica multi-segnale**:
   - ECG → normale / anomalo (con score di confidenza)
-  - Postura → 13 classi di attività motoria (da fermo a corsa/salti)
+  - Postura → 8 classi di attività motoria (da fermo a corsa/salti/squat), su feature statistiche congiunte di accelerometro e giroscopio
   - Temperatura → ipotermia / normale / febbre / febbre alta
 - 🚨 **Notifiche in tempo reale** al medico via MQTT + Web Notifications native del browser, con beep sonoro
 - 📊 **Raggruppamento clinico in episodi**: letture anomale consecutive (gap < 10s) vengono unite in un singolo episodio da validare, invece di mostrare decine di righe per lo stesso evento
@@ -138,10 +139,14 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 | Classificatore | Algoritmo | Dataset di training | Feature |
 |---|---|---|---|
 | **ECGClassifier** | Random Forest (`class_weight='balanced'`) | [chfdb](https://physionet.org/content/chfdb/) (PhysioNet) | media, std, min, max, range degli intervalli R-R su finestre di 10 battiti |
-| **PosturaClassifier** | Random Forest (`class_weight='balanced'`) | [MHEALTH](https://archive.ics.uci.edu/dataset/319/mhealth+dataset) (UCI) | statistiche su finestre accelerometriche di 100 campioni (2s @ 50Hz, overlap 50%) + Signal Magnitude Area |
+| **PosturaClassifier** | Random Forest (`class_weight='balanced'`) | [MHEALTH](https://archive.ics.uci.edu/dataset/319/mhealth+dataset) (UCI) | media, std, min, max per asse + Signal Magnitude Area, su finestre a 6 assi (accelerometro X/Y/Z + giroscopio X/Y/Z) del sensore da polso/braccio — 100 campioni in training (2s @ 50Hz, overlap 50%), 208 campioni a runtime (2s @ 104Hz, hop 1s, per allinearsi al sample rate reale del sensore IMU del dongle) |
 | **TemperaturaClassifier** | Regole deterministiche (soglie cliniche) | — | valore di temperatura corporea |
 
 Tutti i classificatori implementano un'interfaccia comune (`BaseClassifier.predict()`), secondo il **Strategy Pattern**, rendendo intercambiabile la logica di classificazione senza impatto sul resto del sistema.
+
+### Nota sulle unità fisiche del segnale IMU
+
+Il dataset MHEALTH esprime esplicitamente l'accelerazione in **m/s²** e la velocità angolare in **°/s** ([documentazione ufficiale UCI](https://archive.ics.uci.edu/dataset/319/mhealth+dataset)). Tutta la pipeline che alimenta `PosturaClassifier` — sia i dati reali (`mqtt_bridge.py`, che converte i conteggi raw ADC del dongle in unità fisiche) sia i dati simulati (`backend/simulation/simulate_stream.py`) — è tenuta coerente con queste stesse unità: qualunque discrepanza di scala (es. accelerazione lasciata in *g* invece che convertita in m/s², oppure ampiezze di movimento non plausibili rispetto ai reali range MHEALTH) fa sì che il Random Forest, addestrato su una distribuzione di valori diversa, sottostimi sistematicamente l'energia del segnale e classifichi movimento reale come posture a bassa energia (es. `sdraiato`). Questo vincolo va preservato in ogni futura modifica ai generatori di dati di test o al layer di acquisizione.
 
 ---
 
@@ -254,6 +259,8 @@ cd backend/simulation
 python simulate_stream.py --scenario misto --durata 120
 ```
 
+> Lo scenario `movimento` genera dati accelerometrici e giroscopici in unità fisiche coerenti con il training MHEALTH (m/s² e °/s), così da attivare correttamente le classi di attività motoria ad alta energia (`camminata`, `salita_scale`, `corsa`, `salto`) invece di essere confuso con posture a riposo.
+
 ### 5. App paziente (repository separato)
 
 L'app paziente **IIT BioDataAcq** non è contenuta in questo repository. Per eseguirla con il dispositivo wearable fisico e il layer di integrazione MQTT:
@@ -270,8 +277,8 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 
 ## Flusso dati
 
-1. Il dispositivo wearable trasmette via BLE → l'app paziente acquisisce ECG/IMU/temperatura
-2. `mqtt_bridge.py` pubblica un messaggio al secondo su `cardiosense/dati` (solo se acquisizione attiva e paziente loggato)
+1. Il dispositivo wearable trasmette via BLE → l'app paziente acquisisce ECG, IMU (accelerometro + giroscopio) e temperatura
+2. `mqtt_bridge.py` pubblica un messaggio al secondo su `cardiosense/dati` (solo se acquisizione attiva e paziente loggato), convertendo i conteggi raw del dongle nelle stesse unità fisiche usate in training (accelerazione in m/s², velocità angolare in °/s)
 3. `mqtt_subscriber.py` riceve, classifica con i tre modelli, salva su MongoDB
 4. Se l'ECG è anomalo → `NotificationService` pubblica su `cardiosense/allarmi`
 5. La dashboard medico riceve l'allarme via WebSocket (notifica istantanea) **e** aggiorna la lista completa via polling REST ogni 8s
@@ -315,6 +322,8 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 - **Badge anomalie paziente non persistente tra sessioni**: il contatore lato app paziente è in-memory (azzerato al riavvio), mentre il badge medico è basato su query REST persistenti su MongoDB. Scelta di design motivata da semplicità/basso overhead lato dispositivo; lo storico completo resta sempre accessibile e corretto. Estendibile con polling REST periodico anche lato paziente.
 - **Soglia di classificazione ECG** (0.5) calibrata empiricamente; suscettibile di affinamento con dataset più ampi o tecniche di calibrazione delle probabilità.
 - **Portabilità certificati TLS**: la CA mkcert non è multi-macchina; per deployment distribuiti è necessaria una CA condivisa o certificati firmati da un'autorità riconosciuta.
+- **`PosturaClassifier` mono-buffer**: `mqtt_subscriber.py` istanzia un solo `PosturaClassifier` condiviso da tutti i messaggi in arrivo sul topic `cardiosense/dati`; il buffer interno per la sliding window non è per-paziente. Con un solo paziente di test non è un problema, ma con più pazienti simultanei i campioni IMU di pazienti diversi finirebbero mescolati nella stessa finestra. Da correggere (buffer keyed per `paziente_id`) prima di un deployment multi-paziente.
+- **Etichette classi 6-12 in `train_postura.py`**: il dizionario `ETICHETTE` per i codici di attività non usati in training (`piegamento_gomito`, `piegamento_ginocchio`, `ciclismo`) è disallineato rispetto alla codifica reale del dataset MHEALTH. Non influisce sulle 8 classi effettivamente addestrate (`LABELS_DESIDERATE`), ma andrebbe corretto prima di un eventuale ampliamento del set di attività riconosciute.
 
 ---
 
