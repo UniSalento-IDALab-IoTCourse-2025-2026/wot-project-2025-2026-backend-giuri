@@ -33,6 +33,18 @@ INTERVALLO_PUBBLICAZIONE = 1.0
 # Aggiungi la costante in cima a simulate_stream.py
 IMU_SAMPLE_RATE = 104 
 
+# Accelerazione di gravità standard, in m/s^2. Il modello di postura è
+# addestrato su MHEALTH, le cui unità sono ESPLICITAMENTE documentate
+# come m/s^2 per l'accelerometro e gradi/s (deg/s) per il giroscopio
+# (fonte: https://archive.ics.uci.edu/dataset/319/mhealth+dataset).
+# Qualsiasi generatore qui sotto DEVE produrre valori in queste stesse
+# unità fisiche, altrimenti le feature statistiche (media, std, min,
+# max, SMA) calcolate da PosturaClassifier finiscono in una scala
+# completamente diversa da quella vista in training e il Random Forest
+# classifica sistematicamente male (es. movimento scambiato per
+# sdraiato/salita_scale per mancanza di "energia" nel segnale).
+GRAVITA_MS2 = 9.81
+
 # ============================================================
 # GENERATORI ECG RAW REALISTICI
 # ============================================================
@@ -162,6 +174,17 @@ def genera_rr_anomalo(n: int = 10) -> list:
 # giroscopio è vicino a zero (nessuna rotazione), in movimento oscilla
 # in un range più ampio, proporzionale all'intensità del movimento
 # simulato dall'accelerometro.
+#
+# IMPORTANTE (fix): tutte le ampiezze qui sotto sono espresse nelle
+# STESSE unità fisiche di MHEALTH (accelerazione in m/s^2, giroscopio
+# in gradi/s — non in "g" e non in unità arbitrarie). In precedenza il
+# generatore di movimento usava ampiezze di pochi m/s^2 sull'accelerometro
+# e di pochi gradi/s sul giroscopio: valori così piccoli, confrontati
+# con le vere ampiezze MHEALTH per camminata/corsa/salto (che arrivano
+# a decine di m/s^2 e centinaia di gradi/s per il sensore da polso),
+# fanno sembrare "quasi fermo" qualunque movimento simulato — il
+# modello quindi lo classifica come sdraiato (bassa energia) o al più
+# salita_scale (energia intermedia), mai come camminata/corsa/salto.
 
 def genera_imu_normale(n_campioni: int = 104) -> list[dict]:
     """Paziente fermo/seduto: asse Z dominante vicino a 9.81 m/s2 (gravità standard MHEALTH)."""
@@ -170,7 +193,7 @@ def genera_imu_normale(n_campioni: int = 104) -> list[dict]:
         campioni.append({
             "acc_x": round(random.uniform(-0.2, 0.2), 3),
             "acc_y": round(random.uniform(-0.2, 0.2), 3),
-            "acc_z": round(9.81 + random.uniform(-0.3, 0.3), 3),
+            "acc_z": round(GRAVITA_MS2 + random.uniform(-0.3, 0.3), 3),
             "gyro_x": round(random.uniform(-0.1, 0.1), 3),
             "gyro_y": round(random.uniform(-0.1, 0.1), 3),
             "gyro_z": round(random.uniform(-0.1, 0.1), 3),
@@ -178,23 +201,42 @@ def genera_imu_normale(n_campioni: int = 104) -> list[dict]:
     return campioni
 
 def genera_imu_movimento(n_campioni: int = 104) -> list[dict]:
-    """Paziente in movimento dinamico: induce forti accelerazioni alternate su tutti gli assi e rotazioni giroscopiche."""
+    """
+    Paziente in movimento dinamico (cammino deciso / corsa / attività
+    ad alta energia). Ampiezze scalate su ordini di grandezza reali per
+    un sensore da polso/braccio in movimento (coerenti con le unità
+    MHEALTH: accelerazione in m/s^2, giroscopio in gradi/s):
+
+    - L'asse Z mantiene la componente di gravità (~9.81 m/s^2) come
+      baseline, con il movimento sovrapposto sopra — non sostituita da
+      un'altra costante arbitraria: un braccio che si muove non smette
+      di "sentire" la gravità.
+    - Le oscillazioni di accelerazione arrivano a ampiezze picco-picco
+      dell'ordine di 10-25 m/s^2, plausibili per lo swing del braccio
+      durante camminata/corsa.
+    - Il giroscopio arriva a ampiezze dell'ordine di 80-150 gradi/s,
+      plausibili per la rotazione del polso/avambraccio durante un
+      movimento energico — non più i pochi gradi/s della versione
+      precedente, indistinguibili dal rumore di quiete.
+    """
     campioni = []
     for i in range(n_campioni):
         t = i / 104.0
         # Onda a 2.5 Hz (tipica cadenza di camminata veloce/jogging)
         onda = math.sin(2 * math.pi * 2.5 * t)
         cosonda = math.cos(2 * math.pi * 2.5 * t)
-        
+
         campioni.append({
-            # Distribuzione di valori tipica del braccio che oscilla avanti e indietro in m/s2
-            "acc_x": round((onda * 6.0) + random.uniform(-1.0, 1.0), 3),
-            "acc_y": round((cosonda * 4.0) + random.uniform(-1.0, 1.0), 3),
-            "acc_z": round(4.0 + (onda * 8.0) + random.uniform(-1.5, 1.5), 3), 
-            # Valori del giroscopio molto alti in rad/s o deg/s (MHEALTH ha oscillazioni angolari importanti sul braccio)
-            "gyro_x": round((onda * 2.5) + random.uniform(-0.2, 0.2), 3),
-            "gyro_y": round((cosonda * 3.5) + random.uniform(-0.2, 0.2), 3),
-            "gyro_z": round((onda * 1.8) + random.uniform(-0.2, 0.2), 3),
+            # Accelerazione: gravità di base + oscillazione da movimento,
+            # in m/s^2 (stessa unità del training MHEALTH)
+            "acc_x": round((onda * 12.0) + random.uniform(-2.0, 2.0), 3),
+            "acc_y": round((cosonda * 10.0) + random.uniform(-2.0, 2.0), 3),
+            "acc_z": round(GRAVITA_MS2 + (onda * 14.0) + random.uniform(-2.5, 2.5), 3),
+            # Giroscopio in gradi/s, ampiezza realistica per rotazione del
+            # polso durante un movimento energico
+            "gyro_x": round((onda * 120.0) + random.uniform(-10.0, 10.0), 3),
+            "gyro_y": round((cosonda * 150.0) + random.uniform(-10.0, 10.0), 3),
+            "gyro_z": round((onda * 90.0) + random.uniform(-10.0, 10.0), 3),
         })
     return campioni
 
