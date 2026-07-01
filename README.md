@@ -323,13 +323,12 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 - **Soglia di classificazione ECG** (0.5) calibrata empiricamente; suscettibile di affinamento con dataset più ampi o tecniche di calibrazione delle probabilità.
 - **Portabilità certificati TLS**: la CA mkcert non è multi-macchina; per deployment distribuiti è necessaria una CA condivisa o certificati firmati da un'autorità riconosciuta.
 - **`PosturaClassifier` mono-buffer**: `mqtt_subscriber.py` istanzia un solo `PosturaClassifier` condiviso da tutti i messaggi in arrivo sul topic `cardiosense/dati`; il buffer interno per la sliding window non è per-paziente. Con un solo paziente di test non è un problema, ma con più pazienti simultanei i campioni IMU di pazienti diversi finirebbero mescolati nella stessa finestra. Da correggere (buffer keyed per `paziente_id`) prima di un deployment multi-paziente.
-- **Etichette classi 6-12 in `train_postura.py`**: il dizionario `ETICHETTE` per i codici di attività non usati in training (`piegamento_gomito`, `piegamento_ginocchio`, `ciclismo`) è disallineato rispetto alla codifica reale del dataset MHEALTH. Non influisce sulle 8 classi effettivamente addestrate (`LABELS_DESIDERATE`), ma andrebbe corretto prima di un eventuale ampliamento del set di attività riconosciute.
 
 ---
 
 ## Contesto accademico
 
-Progetto sviluppato come elaborato/tesi universitaria presso l'**Università del Salento**, in collaborazione con:
+Elaborato progettuale sviluppato per l'esame di Internet of Things presso l'Università del Salento, in collaborazione con:
 
 - **IDA Lab** - Università del Salento
 - **IIT — Istituto Italiano di Tecnologia**
