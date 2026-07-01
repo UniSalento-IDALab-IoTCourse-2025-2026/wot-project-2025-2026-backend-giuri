@@ -122,7 +122,7 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 - 🔐 **Login paziente** tramite codice di accesso univoco a 8 caratteri generato dal medico
 - 🧠 **Classificazione automatica multi-segnale**:
   - ECG → normale / anomalo (con score di confidenza)
-  - Postura → 8 classi di attività motoria (da fermo a corsa/salti/squat), su feature statistiche congiunte di accelerometro e giroscopio
+  - Postura → 8 classi di attività motoria (da fermo a corsa/salti), su feature statistiche congiunte di accelerometro e giroscopio
   - Temperatura → ipotermia / normale / febbre / febbre alta
 - 🚨 **Notifiche in tempo reale** al medico via MQTT + Web Notifications native del browser, con beep sonoro
 - 📊 **Raggruppamento clinico in episodi**: letture anomale consecutive (gap < 10s) vengono unite in un singolo episodio da validare, invece di mostrare decine di righe per lo stesso evento
