@@ -279,7 +279,7 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 
 1. Il dispositivo wearable trasmette via BLE → l'app paziente acquisisce ECG, IMU (accelerometro + giroscopio) e temperatura
 2. `mqtt_bridge.py` pubblica un messaggio al secondo su `cardiosense/dati` (solo se acquisizione attiva e paziente loggato), convertendo i conteggi raw del dongle nelle stesse unità fisiche usate in training (accelerazione in m/s², velocità angolare in °/s)
-3. `mqtt_subscriber.py` riceve, classifica con i tre modelli, salva su MongoDB
+3. `mqtt_subscriber.py` riceve, classifica con i due modelli, salva su MongoDB
 4. Se l'ECG è anomalo → `NotificationService` pubblica su `cardiosense/allarmi`
 5. La dashboard medico riceve l'allarme via WebSocket (notifica istantanea) **e** aggiorna la lista completa via polling REST ogni 8s
 6. Il medico valida l'episodio (vero positivo / falso allarme + note) → scritto su MongoDB
