@@ -55,6 +55,20 @@ FEATURE_COLS = [
     'giro_braccio_x', 'giro_braccio_y', 'giro_braccio_z',
 ]
 
+# --------------------------------------------------------
+# Bug #3: MHEALTH contiene 12 classi (0-12), ma al dispositivo reale
+# interessano solo 8 attività: in_piedi, seduto, sdraiato, camminata,
+# salita_scale, corsa, salto, squat. Includere le altre 4
+# (piegamento_gomito, piegamento_ginocchio, ciclismo, jogging) nel
+# training introduce confusione: il modello può "scivolare" su una di
+# queste classi indesiderate anche quando la vera attività è una di
+# quelle che servono. Il filtro va applicato PRIMA della segmentazione
+# a finestre (estrai_feature_finestra), altrimenti campioni delle
+# classi escluse contaminerebbero comunque la maggioranza di una
+# finestra confinante.
+# --------------------------------------------------------
+LABELS_DESIDERATE = {1, 2, 3, 4, 5, 10, 11, 12}
+
 # ============================================================
 # NUOVO STEP: ESTRAZIONE FEATURE A FINESTRE (SLIDING WINDOW)
 # ============================================================
@@ -121,7 +135,11 @@ def carica_dataset() -> tuple[np.ndarray, np.ndarray]:
         
         # Rimuoviamo i momenti di inattività
         df = df[df['activity_label'] != 0]
-        
+
+        # Bug #3: teniamo solo le 8 classi che interessano al dispositivo
+        # reale, scartando le 4 attività MHEALTH non rilevanti
+        df = df[df['activity_label'].isin(LABELS_DESIDERATE)]
+
         if df.empty:
             continue
             

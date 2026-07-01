@@ -30,6 +30,9 @@ ECG_WINDOW_SEC = 1.0
 # Frequenza di pubblicazione messaggi (secondi)
 INTERVALLO_PUBBLICAZIONE = 1.0
 
+# Aggiungi la costante in cima a simulate_stream.py
+IMU_SAMPLE_RATE = 104 
+
 # ============================================================
 # GENERATORI ECG RAW REALISTICI
 # ============================================================
@@ -160,28 +163,40 @@ def genera_rr_anomalo(n: int = 10) -> list:
 # in un range più ampio, proporzionale all'intensità del movimento
 # simulato dall'accelerometro.
 
-def genera_imu_normale() -> dict:
-    """Paziente fermo/a riposo: accelerometro stabile, giroscopio quasi a zero."""
-    return {
-        "acc_x": round(random.uniform(-0.05, 0.05), 3),
-        "acc_y": round(random.uniform(-0.05, 0.05), 3),
-        "acc_z": round(random.uniform(0.98, 1.02), 3),
-        "gyro_x": round(random.uniform(-2.0, 2.0), 3),
-        "gyro_y": round(random.uniform(-2.0, 2.0), 3),
-        "gyro_z": round(random.uniform(-2.0, 2.0), 3),
-    }
+def genera_imu_normale(n_campioni: int = 104) -> list[dict]:
+    """Paziente fermo/seduto: asse Z dominante vicino a 9.81 m/s2 (gravità standard MHEALTH)."""
+    campioni = []
+    for _ in range(n_campioni):
+        campioni.append({
+            "acc_x": round(random.uniform(-0.2, 0.2), 3),
+            "acc_y": round(random.uniform(-0.2, 0.2), 3),
+            "acc_z": round(9.81 + random.uniform(-0.3, 0.3), 3),
+            "gyro_x": round(random.uniform(-0.1, 0.1), 3),
+            "gyro_y": round(random.uniform(-0.1, 0.1), 3),
+            "gyro_z": round(random.uniform(-0.1, 0.1), 3),
+        })
+    return campioni
 
-
-def genera_imu_movimento() -> dict:
-    """Paziente in movimento: accelerometro e giroscopio entrambi ampiamente variabili."""
-    return {
-        "acc_x": round(random.uniform(-0.6, 0.6), 3),
-        "acc_y": round(random.uniform(-0.6, 0.6), 3),
-        "acc_z": round(random.uniform(0.5, 1.5), 3),
-        "gyro_x": round(random.uniform(-120.0, 120.0), 3),
-        "gyro_y": round(random.uniform(-120.0, 120.0), 3),
-        "gyro_z": round(random.uniform(-120.0, 120.0), 3),
-    }
+def genera_imu_movimento(n_campioni: int = 104) -> list[dict]:
+    """Paziente in movimento dinamico: induce forti accelerazioni alternate su tutti gli assi e rotazioni giroscopiche."""
+    campioni = []
+    for i in range(n_campioni):
+        t = i / 104.0
+        # Onda a 2.5 Hz (tipica cadenza di camminata veloce/jogging)
+        onda = math.sin(2 * math.pi * 2.5 * t)
+        cosonda = math.cos(2 * math.pi * 2.5 * t)
+        
+        campioni.append({
+            # Distribuzione di valori tipica del braccio che oscilla avanti e indietro in m/s2
+            "acc_x": round((onda * 6.0) + random.uniform(-1.0, 1.0), 3),
+            "acc_y": round((cosonda * 4.0) + random.uniform(-1.0, 1.0), 3),
+            "acc_z": round(4.0 + (onda * 8.0) + random.uniform(-1.5, 1.5), 3), 
+            # Valori del giroscopio molto alti in rad/s o deg/s (MHEALTH ha oscillazioni angolari importanti sul braccio)
+            "gyro_x": round((onda * 2.5) + random.uniform(-0.2, 0.2), 3),
+            "gyro_y": round((cosonda * 3.5) + random.uniform(-0.2, 0.2), 3),
+            "gyro_z": round((onda * 1.8) + random.uniform(-0.2, 0.2), 3),
+        })
+    return campioni
 
 
 # ============================================================
@@ -329,32 +344,25 @@ def costruisci_payload_misto(generatore: GeneratoreMisto, delta_t: float = INTER
 
 def costruisci_payload(scenario: str) -> dict:
     """
-    Costruisce il payload MQTT con:
-    - ecg_raw: campioni grezzi sintetici realistici (250 float per 1s a 250Hz)
-    - rr_intervals: intervalli R-R pre-calcolati coerenti con lo scenario
-      (il subscriber li usa direttamente se presenti, saltando la peak detection)
-    - acc_x/y/z + gyro_x/y/z: accelerometro e giroscopio del braccio,
-      coerenti con PosturaClassifier addestrato su 6 assi
+    Costruisce il payload MQTT passando correttamente IMU_SAMPLE_RATE (104).
     """
     s = SCENARI[scenario]
-    imu = s["imu_fn"]()
+    
+    # Chiama la funzione passando la costante (104) per avere campioni realistici
+    imu_window = s["imu_fn"](n_campioni=IMU_SAMPLE_RATE)
+    ultimo_campione = imu_window[-1]
 
-    ecg_raw = s["ecg_fn"]()        # 250 campioni ECG realistici
-    rr_intervals = s["rr_fn"]()    # 10 intervalli R-R coerenti
+    ecg_raw = s["ecg_fn"]()        
+    rr_intervals = s["rr_fn"]()    
 
     return {
-        "paziente_id": PAZIENTE_ID,
-        "ecg_raw":     ecg_raw,
+        "paziente_id":  PAZIENTE_ID,
+        "ecg_raw":      ecg_raw,
         "rr_intervals": rr_intervals,
-        "acc_x":       imu["acc_x"],
-        "acc_y":       imu["acc_y"],
-        "acc_z":       imu["acc_z"],
-        "gyro_x":      imu["gyro_x"],
-        "gyro_y":      imu["gyro_y"],
-        "gyro_z":      imu["gyro_z"],
-        "temperatura": s["temp_fn"]()
+        "imu_window":   imu_window,   # Serie temporale densa inviata al server
+        **ultimo_campione,            # Campi flat per la dashboard live
+        "temperatura":  s["temp_fn"]()
     }
-
 
 # ============================================================
 # CALLBACKS MQTT

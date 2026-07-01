@@ -84,20 +84,27 @@ class AnnotationService:
 
         ecg_result = self.ecg.predict({"rr_intervals": rr_intervals})
 
-        # Accelerometro + giroscopio del braccio: entrambi sono necessari
-        # perché PosturaClassifier è ora addestrato su 6 assi (vedi
-        # train_postura.py e postura_classifier.py). Se il payload non
-        # contiene ancora i campi giroscopio (es. dispositivi/simulatori
-        # non aggiornati), il default 0.0 mantiene comunque il sistema
-        # funzionante, anche se con feature meno informative.
-        postura_result = self.postura.predict({
+        # Finestra IMU completa (~1s di campioni a 104Hz), non il singolo
+        # ultimo valore: PosturaClassifier.predict_batch() accoda tutti i
+        # campioni in un colpo solo al buffer interno, così le feature
+        # statistiche (media, std, SMA...) vengono calcolate su un
+        # segnale continuo coerente col training MHEALTH invece che su
+        # punti isolati presi uno al secondo (vedi Bug #1).
+        #
+        # Fallback: se il payload non contiene ancora "imu_window" (es.
+        # bridge non aggiornato, payload di test legacy), si ricostruisce
+        # una finestra di un solo campione dagli scalari piatti acc_x..
+        # gyro_z, mantenendo il sistema funzionante anche se con feature
+        # meno informative fino all'aggiornamento del mittente.
+        imu_window = payload.get("imu_window") or [{
             "acc_x": payload.get("acc_x", 0.0),
             "acc_y": payload.get("acc_y", 0.0),
-            "acc_z": payload.get("acc_z", 0.0),
+            "acc_z": payload.get("acc_z", 1.0),
             "gyro_x": payload.get("gyro_x", 0.0),
             "gyro_y": payload.get("gyro_y", 0.0),
-            "gyro_z": payload.get("gyro_z", 0.0)
-        })
+            "gyro_z": payload.get("gyro_z", 0.0),
+        }]
+        postura_result = self.postura.predict_batch(imu_window)
         postura_label = postura_result["label"] \
             if postura_result["label"] != "in_accumulo" else None
         postura_score = postura_result["score"] \
