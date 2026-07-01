@@ -41,7 +41,19 @@ COLONNE = [
     'activity_label'
 ]
 
-FEATURE_COLS = ['acc_torace_x', 'acc_torace_y', 'acc_torace_z']
+# --------------------------------------------------------
+# CAMBIO PUNTO DI ATTACCO: braccio (polso) invece che petto.
+# Motivo: in MHEALTH il sensore toracico espone SOLO
+# l'accelerometro (nessun giroscopio a quel punto anatomico),
+# mentre il sensore da braccio espone sia acc che giroscopio —
+# è l'unico che permette di addestrare un modello a 6 assi
+# coerente con il dispositivo reale (IIT BioDataAcq), che sul
+# polso ha sia accelerometro sia giroscopio disponibili.
+# --------------------------------------------------------
+FEATURE_COLS = [
+    'acc_braccio_x', 'acc_braccio_y', 'acc_braccio_z',
+    'giro_braccio_x', 'giro_braccio_y', 'giro_braccio_z',
+]
 
 # ============================================================
 # NUOVO STEP: ESTRAZIONE FEATURE A FINESTRE (SLIDING WINDOW)
@@ -50,6 +62,11 @@ def estrai_feature_finestra(segnali_grezzi: np.ndarray, labels_grezze: np.ndarra
     """
     Trasforma i segnali continui in finestre temporali ed estrae feature statistiche.
     MHEALTH è a 50Hz -> 100 campioni = 2 secondi di attività.
+
+    Generico rispetto al numero di colonne in FEATURE_COLS: con 6 colonne
+    (acc_x,y,z + giro_x,y,z) ogni finestra produce 6*4 + 1 = 25 feature
+    (media, std, min, max per asse + SMA aggregato), contro le 13 di
+    prima quando si usava solo l'accelerometro a 3 assi.
     """
     WINDOW_SIZE = 100 
     STEP_SIZE = 50     # Overlap del 50%
@@ -66,13 +83,15 @@ def estrai_feature_finestra(segnali_grezzi: np.ndarray, labels_grezze: np.ndarra
         valori, conteggi = np.unique(finestra_labels, return_counts=True)
         label_finestra = valori[np.argmax(conteggi)]
         
-        # Estrazione feature per asse (X, Y, Z)
+        # Estrazione feature per asse (Ax, Ay, Az, Gx, Gy, Gz)
         medie = np.mean(finestra, axis=0)
         stds = np.std(finestra, axis=0)
         mins = np.min(finestra, axis=0)
         maxs = np.max(finestra, axis=0)
         
-        # Signal Magnitude Area (SMA) -> Ottimo indicatore di energia motoria complessiva
+        # Signal Magnitude Area (SMA) -> Ottimo indicatore di energia motoria complessiva.
+        # Calcolata sulla somma di TUTTI gli assi disponibili (ora anche il giroscopio),
+        # quindi cattura sia intensità del movimento lineare che rotazionale del polso.
         sma = np.mean(np.sum(np.abs(finestra), axis=1))
         
         # Uniamo tutte le feature calcolate in un unico vettore
@@ -87,7 +106,7 @@ def estrai_feature_finestra(segnali_grezzi: np.ndarray, labels_grezze: np.ndarra
 # STEP 1 — CARICAMENTO E PRE-ELABORAZIONE
 # ============================================================
 def carica_dataset() -> tuple[np.ndarray, np.ndarray]:
-    print("Caricamento dataset MHEALTH con Feature Engineering...")
+    print("Caricamento dataset MHEALTH con Feature Engineering (acc+giro braccio)...")
     
     X_totale = []
     y_totale = []
@@ -119,7 +138,8 @@ def carica_dataset() -> tuple[np.ndarray, np.ndarray]:
     X_totale = np.concatenate(X_totale, axis=0)
     y_totale = np.concatenate(y_totale, axis=0)
     
-    print(f"\nDataset convertito in {X_totale.shape[0]} finestre temporali.")
+    print(f"\nDataset convertito in {X_totale.shape[0]} finestre temporali "
+          f"({X_totale.shape[1]} feature per finestra: 6 assi × 4 statistiche + 1 SMA).")
     print("Distribuzione nuove macro-attività:")
     for label, count in zip(*np.unique(y_totale, return_counts=True)):
         print(f"  {ETICHETTE[label]}: {count}")
@@ -139,7 +159,8 @@ def train():
         stratify=y
     )
     
-    print(f"\nTraining di Random Forest su {X_train.shape[0]} finestre...")
+    print(f"\nTraining di Random Forest su {X_train.shape[0]} finestre "
+          f"({X_train.shape[1]} feature: acc+giro braccio)...")
     
     modello = RandomForestClassifier(
         n_estimators=100,
@@ -171,7 +192,7 @@ def train():
         'etichette': ETICHETTE
     }, MODEL_PATH)
     
-    print(f"\nModello ottimizzato salvato in: {MODEL_PATH}")
+    print(f"\nModello ottimizzato (acc+giro braccio) salvato in: {MODEL_PATH}")
 
 if __name__ == '__main__':
     train()

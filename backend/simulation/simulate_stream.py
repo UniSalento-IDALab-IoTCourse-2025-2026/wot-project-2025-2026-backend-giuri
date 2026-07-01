@@ -150,22 +150,37 @@ def genera_rr_anomalo(n: int = 10) -> list:
 
 
 # ============================================================
-# GENERATORI ACCELEROMETRO
+# GENERATORI ACCELEROMETRO + GIROSCOPIO (braccio/polso)
 # ============================================================
+#
+# Il PosturaClassifier è addestrato su 6 assi (acc_x,y,z + gyro_x,y,z
+# del braccio, vedi train_postura.py). Questi generatori producono
+# quindi entrambi i gruppi di assi in modo coerente: a riposo il
+# giroscopio è vicino a zero (nessuna rotazione), in movimento oscilla
+# in un range più ampio, proporzionale all'intensità del movimento
+# simulato dall'accelerometro.
 
-def genera_accelerometro_normale() -> dict:
+def genera_imu_normale() -> dict:
+    """Paziente fermo/a riposo: accelerometro stabile, giroscopio quasi a zero."""
     return {
         "acc_x": round(random.uniform(-0.05, 0.05), 3),
         "acc_y": round(random.uniform(-0.05, 0.05), 3),
-        "acc_z": round(random.uniform(0.98, 1.02), 3)
+        "acc_z": round(random.uniform(0.98, 1.02), 3),
+        "gyro_x": round(random.uniform(-2.0, 2.0), 3),
+        "gyro_y": round(random.uniform(-2.0, 2.0), 3),
+        "gyro_z": round(random.uniform(-2.0, 2.0), 3),
     }
 
 
-def genera_accelerometro_movimento() -> dict:
+def genera_imu_movimento() -> dict:
+    """Paziente in movimento: accelerometro e giroscopio entrambi ampiamente variabili."""
     return {
         "acc_x": round(random.uniform(-0.6, 0.6), 3),
         "acc_y": round(random.uniform(-0.6, 0.6), 3),
-        "acc_z": round(random.uniform(0.5, 1.5), 3)
+        "acc_z": round(random.uniform(0.5, 1.5), 3),
+        "gyro_x": round(random.uniform(-120.0, 120.0), 3),
+        "gyro_y": round(random.uniform(-120.0, 120.0), 3),
+        "gyro_z": round(random.uniform(-120.0, 120.0), 3),
     }
 
 
@@ -190,28 +205,28 @@ SCENARI = {
         "descrizione": "Paziente a riposo, parametri nella norma",
         "ecg_fn":  genera_ecg_raw_normale,
         "rr_fn":   genera_rr_normale,
-        "acc_fn":  genera_accelerometro_normale,
+        "imu_fn":  genera_imu_normale,
         "temp_fn": genera_temperatura_normale
     },
     "anomalia_ecg": {
         "descrizione": "Fibrillazione atriale, altri parametri normali",
         "ecg_fn":  genera_ecg_raw_anomalo,
         "rr_fn":   genera_rr_anomalo,
-        "acc_fn":  genera_accelerometro_normale,
+        "imu_fn":  genera_imu_normale,
         "temp_fn": genera_temperatura_normale
     },
     "febbre": {
         "descrizione": "Temperatura elevata, ECG normale",
         "ecg_fn":  genera_ecg_raw_normale,
         "rr_fn":   genera_rr_normale,
-        "acc_fn":  genera_accelerometro_normale,
+        "imu_fn":  genera_imu_normale,
         "temp_fn": genera_temperatura_febbre
     },
     "movimento": {
         "descrizione": "Paziente in movimento, ECG normale",
         "ecg_fn":  genera_ecg_raw_normale,
         "rr_fn":   genera_rr_normale,
-        "acc_fn":  genera_accelerometro_movimento,
+        "imu_fn":  genera_imu_movimento,
         "temp_fn": genera_temperatura_normale
     }
 }
@@ -318,9 +333,11 @@ def costruisci_payload(scenario: str) -> dict:
     - ecg_raw: campioni grezzi sintetici realistici (250 float per 1s a 250Hz)
     - rr_intervals: intervalli R-R pre-calcolati coerenti con lo scenario
       (il subscriber li usa direttamente se presenti, saltando la peak detection)
+    - acc_x/y/z + gyro_x/y/z: accelerometro e giroscopio del braccio,
+      coerenti con PosturaClassifier addestrato su 6 assi
     """
     s = SCENARI[scenario]
-    acc = s["acc_fn"]()
+    imu = s["imu_fn"]()
 
     ecg_raw = s["ecg_fn"]()        # 250 campioni ECG realistici
     rr_intervals = s["rr_fn"]()    # 10 intervalli R-R coerenti
@@ -329,9 +346,12 @@ def costruisci_payload(scenario: str) -> dict:
         "paziente_id": PAZIENTE_ID,
         "ecg_raw":     ecg_raw,
         "rr_intervals": rr_intervals,
-        "acc_x":       acc["acc_x"],
-        "acc_y":       acc["acc_y"],
-        "acc_z":       acc["acc_z"],
+        "acc_x":       imu["acc_x"],
+        "acc_y":       imu["acc_y"],
+        "acc_z":       imu["acc_z"],
+        "gyro_x":      imu["gyro_x"],
+        "gyro_y":      imu["gyro_y"],
+        "gyro_z":      imu["gyro_z"],
         "temperatura": s["temp_fn"]()
     }
 
@@ -439,6 +459,7 @@ if __name__ == "__main__":
                 f"[{messaggi_inviati:3d}] ({scenario_label:13s}) Pubblicato — "
                 f"ECG campioni: {len(payload['ecg_raw'])}, "
                 f"RR: {payload['rr_intervals'][:3]}..., "
+                f"Gyro: ({payload['gyro_x']:.1f}, {payload['gyro_y']:.1f}, {payload['gyro_z']:.1f}), "
                 f"Temp: {payload['temperatura']}°C"
             )
             time.sleep(args.intervallo)

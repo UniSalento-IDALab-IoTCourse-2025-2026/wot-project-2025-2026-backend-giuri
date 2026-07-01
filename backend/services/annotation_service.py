@@ -84,10 +84,19 @@ class AnnotationService:
 
         ecg_result = self.ecg.predict({"rr_intervals": rr_intervals})
 
+        # Accelerometro + giroscopio del braccio: entrambi sono necessari
+        # perché PosturaClassifier è ora addestrato su 6 assi (vedi
+        # train_postura.py e postura_classifier.py). Se il payload non
+        # contiene ancora i campi giroscopio (es. dispositivi/simulatori
+        # non aggiornati), il default 0.0 mantiene comunque il sistema
+        # funzionante, anche se con feature meno informative.
         postura_result = self.postura.predict({
             "acc_x": payload.get("acc_x", 0.0),
             "acc_y": payload.get("acc_y", 0.0),
-            "acc_z": payload.get("acc_z", 0.0)
+            "acc_z": payload.get("acc_z", 0.0),
+            "gyro_x": payload.get("gyro_x", 0.0),
+            "gyro_y": payload.get("gyro_y", 0.0),
+            "gyro_z": payload.get("gyro_z", 0.0)
         })
         postura_label = postura_result["label"] \
             if postura_result["label"] != "in_accumulo" else None
