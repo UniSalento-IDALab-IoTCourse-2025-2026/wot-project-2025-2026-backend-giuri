@@ -10,13 +10,15 @@ load_dotenv()
 
 class NotificationService:
     """
-    Gestisce l'invio di notifiche al medico
-    pubblicando su un topic MQTT dedicato agli allarmi.
-    Il broker consegna il messaggio alla dashboard
-    che lo trasforma in Web Push Notification.
+    Gestisce l'invio di notifiche via MQTT sia al medico (nuove anomalie)
+    sia al paziente (esito della validazione medica di un episodio).
+    Due topic distinti perché i consumer si aspettano forme di payload
+    diverse: la dashboard medico e patient_anomalies.py leggerebbero
+    campi (es. ecg_score) che non hanno senso per un evento di validazione.
     """
 
     TOPIC_ALLARMI = "cardiosense/allarmi"
+    TOPIC_VALIDAZIONI = "cardiosense/validazioni"
 
     def __init__(self):
         self.client = mqtt.Client(
@@ -52,4 +54,30 @@ class NotificationService:
             self.TOPIC_ALLARMI,
             json.dumps(payload),
             qos=1  # almeno una consegna garantita
+        )
+
+    def notifica_validazione(
+        self,
+        paziente_id: str,
+        esito: str,
+        note: str | None,
+        numero_letture: int = 1
+    ) -> None:
+        """
+        Pubblica l'esito della validazione medica di un episodio (singola
+        lettura o gruppo raggruppato), così l'app paziente può notificarlo
+        in tempo reale senza dover fare polling sullo storico.
+        """
+        payload = {
+            "tipo": "validazione_medico",
+            "paziente_id": paziente_id,
+            "esito_medico": esito,
+            "note_medico": note,
+            "numero_letture": numero_letture
+        }
+
+        self.client.publish(
+            self.TOPIC_VALIDAZIONI,
+            json.dumps(payload),
+            qos=1
         )

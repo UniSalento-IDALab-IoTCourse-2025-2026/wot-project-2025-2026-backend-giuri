@@ -17,6 +17,7 @@ from models.annotation import EsitoMedico
 from repositories.annotation_repository import AnnotationRepository
 from repositories.user_repository import UserRepository
 from services.annotation_service import AnnotationService
+from services.notification_service import NotificationService
 from classifiers.ecg_classifier import ECGClassifier
 from classifiers.postura_classifier import PosturaClassifier
 from classifiers.temperatura_classifier import TemperaturaClassifier
@@ -34,7 +35,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 8  # 8 ore
 ECG_MODEL_PATH = "ai/trained/ecg_model.pkl"
 POSTURA_MODEL_PATH = "ai/trained/postura_model.pkl"
 
-# Dizionario globale per mantenere i classificatori in memoria
+# Dizionario globale per mantenere i classificatori (e il notifier MQTT) in memoria
 ml_models = {}
 
 # ============================================================
@@ -50,6 +51,11 @@ async def lifespan(app: FastAPI):
     ml_models["ecg"] = ECGClassifier(ECG_MODEL_PATH)
     ml_models["postura"] = PosturaClassifier(POSTURA_MODEL_PATH)
     ml_models["temperatura"] = TemperaturaClassifier()
+
+    # Client MQTT unico per pubblicare notifiche (allarmi + validazioni),
+    # riusato per tutta la vita del processo — stesso motivo dei modelli:
+    # aprire una connessione MQTT ad ogni richiesta sarebbe inutile overhead.
+    ml_models["notifier"] = NotificationService()
 
     print("CardioSense API avviata e modelli IA caricati correttamente")
 
@@ -476,6 +482,10 @@ def valida_episodio(
     riga). Lo stesso esito e la stessa nota vengono scritti su ciascun
     documento — il dato grezzo per il retraining resta granulare per
     singola lettura, cambia solo l'azione che il medico deve compiere.
+
+    Dopo l'aggiornamento pubblica un evento MQTT su
+    cardiosense/validazioni, così l'app paziente notifica l'esito in
+    tempo reale senza dover fare polling sullo storico.
     """
     db = get_db()
     repo = AnnotationRepository(db)
@@ -498,6 +508,17 @@ def valida_episodio(
             detail="Nessuna annotazione trovata per l'episodio indicato"
         )
 
+    # body.annotation_ids non contiene paziente_id: lo recuperiamo dal
+    # primo documento dell'episodio appena aggiornato.
+    primo_doc = repo.find_by_id(body.annotation_ids[0])
+    if primo_doc:
+        ml_models["notifier"].notifica_validazione(
+            paziente_id=primo_doc["paziente_id"],
+            esito=body.esito.value if hasattr(body.esito, "value") else body.esito,
+            note=body.note,
+            numero_letture=numero_aggiornati
+        )
+
     return {
         "messaggio": "Episodio validato con successo",
         "letture_aggiornate": numero_aggiornati
@@ -510,7 +531,11 @@ def valida_anomalia(
     body: ValidazioneRequest,
     medico: Medico = Depends(get_medico_corrente)
 ):
-    """Valida una singola lettura anomala. Mantenuto per compatibilità/debug."""
+    """
+    Valida una singola lettura anomala. Mantenuto per compatibilità/debug.
+    Come valida_episodio(), pubblica anche qui l'evento MQTT di
+    validazione per notificare il paziente.
+    """
     db = get_db()
     repo = AnnotationRepository(db)
 
@@ -530,6 +555,15 @@ def valida_anomalia(
         raise HTTPException(
             status_code=404,
             detail="Annotazione non trovata"
+        )
+
+    doc = repo.find_by_id(annotation_id)
+    if doc:
+        ml_models["notifier"].notifica_validazione(
+            paziente_id=doc["paziente_id"],
+            esito=body.esito.value if hasattr(body.esito, "value") else body.esito,
+            note=body.note,
+            numero_letture=1
         )
 
     return {"messaggio": "Anomalia validata con successo"}
