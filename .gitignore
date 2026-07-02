@@ -35,3 +35,5 @@ mosquitto/certs/*.srl
 
 # Vecchi certificati OpenSSL (sostituiti da mkcert), tenuti solo localmente
 mosquitto/certs/old/*
+
+dashboard/*

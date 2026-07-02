@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="dashboard/static/favicon.svg" width="80" height="80" alt="CardioSense logo">
+<img src="favicon.svg" width="80" height="80" alt="CardioSense logo">
 
 # CardioSense
 
