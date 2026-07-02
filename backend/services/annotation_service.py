@@ -72,6 +72,8 @@ class AnnotationService:
         return [round(float(v), 4) for v in normalizzato]
 
     def processa_lettura(self, payload: dict) -> tuple[Annotation, bool]:
+        paziente_id = payload.get("paziente_id")
+
         rr_intervals = payload.get("rr_intervals")
         ecg_raw = payload.get("ecg_raw", [])
 
@@ -86,10 +88,15 @@ class AnnotationService:
 
         # Finestra IMU completa (~1s di campioni a 104Hz), non il singolo
         # ultimo valore: PosturaClassifier.predict_batch() accoda tutti i
-        # campioni in un colpo solo al buffer interno, così le feature
-        # statistiche (media, std, SMA...) vengono calcolate su un
-        # segnale continuo coerente col training MHEALTH invece che su
-        # punti isolati presi uno al secondo (vedi Bug #1).
+        # campioni in un colpo solo al buffer interno DEL PAZIENTE
+        # corrente, così le feature statistiche (media, std, SMA...)
+        # vengono calcolate su un segnale continuo coerente col training
+        # MHEALTH invece che su punti isolati presi uno al secondo (vedi
+        # Bug #1), e senza mescolare campioni di pazienti diversi nella
+        # stessa finestra dato che l'istanza di PosturaClassifier è
+        # condivisa globalmente da mqtt_subscriber.py per tutti i
+        # pazienti connessi (vedi Bug #4 — buffer ora keyed per
+        # paziente_id dentro PosturaClassifier stesso).
         #
         # Fallback: se il payload non contiene ancora "imu_window" (es.
         # bridge non aggiornato, payload di test legacy), si ricostruisce
@@ -104,7 +111,7 @@ class AnnotationService:
             "gyro_y": payload.get("gyro_y", 0.0),
             "gyro_z": payload.get("gyro_z", 0.0),
         }]
-        postura_result = self.postura.predict_batch(imu_window)
+        postura_result = self.postura.predict_batch(imu_window, paziente_id=paziente_id)
         postura_label = postura_result["label"] \
             if postura_result["label"] != "in_accumulo" else None
         postura_score = postura_result["score"] \
@@ -114,7 +121,7 @@ class AnnotationService:
         temperatura_result = self.temperatura.predict({"temperatura": temp_value})
 
         annotation = Annotation(
-            paziente_id=payload.get("paziente_id"),
+            paziente_id=paziente_id,
             timestamp=datetime.now(timezone.utc),
             ecg_label=ecg_result["label"],
             ecg_score=ecg_result["score"],
@@ -132,7 +139,6 @@ class AnnotationService:
 
         # --- Gestione finestra ECG estesa (≥30s, prima e dopo l'anomalia) ---
         if self.ecg_buffer is not None:
-            paziente_id = annotation.paziente_id
             indice_corrente = self.ecg_buffer.aggiungi_campioni(paziente_id, ecg_raw)
 
             if is_anomalia:
