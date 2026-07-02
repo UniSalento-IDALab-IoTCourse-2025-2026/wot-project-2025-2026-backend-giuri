@@ -13,6 +13,7 @@
 [![MQTT](https://img.shields.io/badge/MQTT-Mosquitto-3C5280?logo=eclipsemosquitto&logoColor=white)](https://mosquitto.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
+[![React](https://img.shields.io/badge/React-Dashboard-61DAFB?logo=react&logoColor=black)](https://react.dev/)
 [![Kivy](https://img.shields.io/badge/Kivy-Patient%20App-1B6CA8?logo=python&logoColor=white)](https://kivy.org/)
 </div>
 
@@ -45,7 +46,7 @@
 
 Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di acquisizione biomedicale esistente (**IIT BioDataAcq**) — un sistema cloud-like completo: dall'acquisizione del segnale grezzo fino alla dashboard clinica, passando per classificazione automatica, notifiche in tempo reale e un ciclo di **retraining periodico** dei modelli sulla base delle validazioni mediche.
 
-> 📦 **Nota sui repository**: questo repository contiene il **backend** (classificazione, API, persistenza, notifiche) e la **dashboard medico**. L'app paziente **IIT BioDataAcq** — di proprietà dell'Istituto Italiano di Tecnologia — risiede in un repository separato, non incluso qui. In questo repo viene solo documentato a livello architetturale il layer di integrazione MQTT che si aggancia ad essa (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`), citato a scopo descrittivo ma non distribuito in questo codice.
+> 📦 **Nota sui repository**: questo repository contiene **solo il backend** (classificazione, API, persistenza, notifiche). La **dashboard medico** è stata portata a React e vive ora in un repository separato — vedi [Repository collegati](#repository-collegati). L'app paziente **IIT BioDataAcq** — di proprietà dell'Istituto Italiano di Tecnologia — risiede anch'essa in un repository separato, non incluso qui. In questo repo viene solo documentato a livello architetturale il layer di integrazione MQTT che si aggancia ad essa (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`), citato a scopo descrittivo ma non distribuito in questo codice.
 
 > 🩺 **Closed-loop**: ogni anomalia rilevata automaticamente viene validata da un medico (vero positivo / falso allarme); queste validazioni rientrano nel dataset di addestramento per ri-calibrare periodicamente il classificatore ECG, chiudendo il ciclo tra IA e giudizio clinico.
 
@@ -84,11 +85,11 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
   └───────────────────────────────────────────────┘
                           │                                            │
                           ▼                                            ▼
-         ┌─────────────────────────────────┐            ┌────────────────────────────┐
-         │ MongoDB (annotazioni)           │            │ Dashboard Web (medico)     │
-         │ MySQL (profili medico/paziente) │            │ HTML + JS · MQTT WebSocket │
-         └─────────────────────────────────┘            └────────────────────────────┘
-                          │ retrain notturno
+         ┌─────────────────────────────────┐            ┌──────────────────────────────┐
+         │ MongoDB (annotazioni)           │            │ Dashboard Web (medico)       │
+         │ MySQL (profili medico/paziente) │            │ React (Vite) · repo separato │
+         └─────────────────────────────────┘            │ MQTT via WebSocket           │
+                          │ retrain notturno              └──────────────────────────────┘
                           ▲
               ┌──────────────────────┐
               │ retrain_scheduler.py │
@@ -110,7 +111,7 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 | **Database relazionale** | MySQL (profili medico/paziente) |
 | **Scheduling** | APScheduler (retrain notturno) |
 | **Sicurezza trasporto** | TLS 1.2+ — certificati locali trusted via [mkcert](https://github.com/FiloSottile/mkcert) |
-| **Dashboard medico** | HTML5 · CSS · JavaScript vanilla · MQTT.js (WebSocket) |
+| **Dashboard medico** | React (Vite) · MQTT.js (WebSocket) — **repository separato**, vedi [Repository collegati](#repository-collegati) |
 | **App paziente** | Python · Kivy |
 | **Containerizzazione** | Docker · Docker Compose |
 
@@ -152,7 +153,7 @@ Il dataset MHEALTH esprime esplicitamente l'accelerazione in **m/s²** e la velo
 
 ## Struttura del repository
 
-> Questo repository contiene **solo** backend e dashboard medico. L'app paziente IIT BioDataAcq vive in un repository a parte (vedi [Repository collegati](#repository-collegati)).
+> Questo repository contiene **solo il backend**. La dashboard medico (React) e l'app paziente IIT BioDataAcq vivono in repository a parte — vedi [Repository collegati](#repository-collegati).
 
 ```
 cardiosense/
@@ -160,30 +161,30 @@ cardiosense/
 ├── mosquitto/
 │   ├── config/mosquitto.conf       # listener TLS 8883 + WSS 9002
 │   └── certs/                       # certificati (non versionati)
-├── backend/
-│   ├── fastapi_server.py            # REST API + JWT auth
-│   ├── mqtt_subscriber.py           # pipeline classificazione + persistenza
-│   ├── retrain_scheduler.py         # job notturno APScheduler
-│   ├── classifiers/                 # ECG · Postura · Temperatura (Strategy)
-│   ├── services/                    # Annotation · Notification · Retrain · ECGBuffer
-│   ├── repositories/                # Annotation (Mongo) · User (MySQL) — Repository Pattern
-│   ├── models/                      # Pydantic (Mongo) + SQLAlchemy ORM (MySQL)
-│   ├── ai/                          # script di training + modelli .pkl
-│   ├── db/                          # client Mongo/MySQL (Singleton) + utility TLS
-│   └── simulation/                  # simulatore di stream paziente per test end-to-end
-└── dashboard/
-    ├── index.html / medico.html     # login + dashboard clinica
-    └── static/app.js                # MQTT WebSocket + polling REST
+└── backend/
+    ├── fastapi_server.py            # REST API + JWT auth
+    ├── mqtt_subscriber.py           # pipeline classificazione + persistenza
+    ├── retrain_scheduler.py         # job notturno APScheduler
+    ├── classifiers/                 # ECG · Postura · Temperatura (Strategy)
+    ├── services/                    # Annotation · Notification · Retrain · ECGBuffer
+    ├── repositories/                # Annotation (Mongo) · User (MySQL) — Repository Pattern
+    ├── models/                      # Pydantic (Mongo) + SQLAlchemy ORM (MySQL)
+    ├── ai/                          # script di training + modelli .pkl
+    ├── db/                          # client Mongo/MySQL (Singleton) + utility TLS
+    └── simulation/                  # simulatore di stream paziente per test end-to-end
 ```
 
 ### Repository collegati
 
 | Repository | Contenuto | Stato |
 |---|---|---|
-| **CardioSense** *(questo repo)* | Backend, classificazione, API, dashboard medico | Privato |
+| **CardioSense** *(questo repo)* | Backend, classificazione, API, persistenza, notifiche | Privato |
+| **cardiosense-dashboard** *(repo separato)* | Dashboard medico in React (Vite) — porting della dashboard originariamente vanilla HTML/CSS/JS, stessa identità visiva e logica applicativa | Privato |
 | **IIT BioDataAcq** *(repo separato)* | App Kivy di acquisizione segnali via dongle USB/BLE, proprietà IIT, con layer di integrazione MQTT (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`) | Repository distinto, non incluso qui |
 
-Il layer di integrazione lato paziente è descritto in questo README a scopo di documentazione architetturale (sezione [App paziente](#app-paziente)), ma il relativo codice sorgente risiede esclusivamente nel repository IIT BioDataAcq.
+Il layer di integrazione lato paziente è descritto in questo README a scopo di documentazione architetturale (sezione [App paziente](#app-paziente)), ma il relativo codice sorgente risiede esclusivamente nel repository IIT BioDataAcq. Allo stesso modo, la sezione [Dashboard medico](#dashboard-medico) qui sotto descrive le funzionalità esposte dalla dashboard React, il cui codice risiede nel repository `cardiosense-dashboard`.
+
+> La dashboard HTML/CSS/JS vanilla usata in precedenza (cartella `dashboard/` di questo repository) è stata dismessa in favore del porting React. Resta consultabile nella cronologia Git di questo repository, ma non è più mantenuta né distribuita.
 
 ---
 
@@ -197,6 +198,8 @@ Tutte le comunicazioni di rete del sistema sono cifrate:
 
 Per l'ambiente di sviluppo/demo locale, i certificati sono generati con **[mkcert](https://github.com/FiloSottile/mkcert)**, che installa una CA root correttamente strutturata (`basicConstraints = CA:TRUE`) nel trust store del sistema operativo — eliminando i prompt di sicurezza ricorrenti tipici dei certificati self-signed generati con OpenSSL "a mano". Uno script di fallback (`genera_certificati.sh`) basato su OpenSSL puro resta disponibile per chi necessiti di un metodo portabile multi-macchina.
 
+I certificati generati (`.crt`/`.key`) non sono versionati in nessuno dei repository, compreso quello della dashboard React: quest'ultima li referenzia tramite percorso assoluto configurato in variabile d'ambiente (`VITE_TLS_CERT`/`VITE_TLS_KEY`), puntando agli stessi file usati da Mosquitto e FastAPI in questo repository, invece di duplicarli.
+
 > ⚠️ La CA generata da mkcert è di fiducia solo sulla macchina su cui è stata installata. Per la riproducibilità su altre macchine, rigenerare i certificati localmente con `mkcert -install`.
 
 ---
@@ -208,6 +211,7 @@ Per l'ambiente di sviluppo/demo locale, i certificati sono generati con **[mkcer
 - Python 3.10–3.12
 - Docker + Docker Compose
 - [mkcert](https://github.com/FiloSottile/mkcert) (per TLS locale)
+- Node.js 18+ (solo se si vuole avviare anche la dashboard React — vedi repo `cardiosense-dashboard`)
 
 ### 1. Infrastruttura
 
@@ -234,23 +238,35 @@ python backend/mqtt_subscriber.py   # terminale 3
 
 ```
 
-## 3. Dashboard medico
+### 3. Dashboard medico
 
-Servire la cartella `dashboard/` con l'estensione **Live Server** di VS Code, configurata per servire in HTTPS con i certificati mkcert.
+La dashboard medico **non è più contenuta in questo repository**: è stata portata a React e vive nel repository separato **`cardiosense-dashboard`**.
 
-In `.vscode/settings.json`:
-
-```json
-{
-  "liveServer.settings.https": {
-    "enable": true,
-    "cert": "<percorso-assoluto-a>/mosquitto/certs/server.crt",
-    "key": "<percorso-assoluto-a>/mosquitto/certs/server.key"
-  }
-}
+```bash
+git clone <url-repo-cardiosense-dashboard>   # repository separato
+cd cardiosense-dashboard
+npm install
+cp .env.example .env.local
 ```
 
-> ℹ️ Usando gli stessi certificati mkcert già generati per FastAPI e Mosquitto, il browser li riconosce come fidati (grazie a `mkcert -install`) senza bisogno di un certificato separato per la dashboard. Navigare quindi su `https://localhost:5500` (o la porta configurata) anziché `http://`.
+In `.env.local`, valorizzare i percorsi verso gli **stessi certificati mkcert** già usati da Mosquitto/FastAPI in questo repository (cartella `mosquitto/certs/` qui sopra):
+
+```bash
+VITE_API_URL=https://localhost:8443
+VITE_BROKER_URL=wss://localhost:9002
+VITE_TLS_CERT=/percorso/assoluto/a/mosquitto/certs/server.crt
+VITE_TLS_KEY=/percorso/assoluto/a/mosquitto/certs/server.key
+```
+
+Poi:
+
+```bash
+npm run dev
+```
+
+Il dev server parte su `https://localhost:5173`. Per i dettagli completi (struttura del progetto, test end-to-end, note di porting) fare riferimento al README del repository `cardiosense-dashboard`.
+
+> ℹ️ Non serve nessuna modifica al backend per far funzionare la dashboard React in locale: CORS in `fastapi_server.py` è già configurato per accettare l'origine del dev server Vite. In produzione, `allow_origins` va invece ristretto al dominio reale della dashboard deployata.
 
 ### 4. Test senza dispositivo fisico
 
@@ -281,7 +297,7 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 2. `mqtt_bridge.py` pubblica un messaggio al secondo su `cardiosense/dati` (solo se acquisizione attiva e paziente loggato), convertendo i conteggi raw del dongle nelle stesse unità fisiche usate in training (accelerazione in m/s², velocità angolare in °/s)
 3. `mqtt_subscriber.py` riceve, classifica con i due modelli, salva su MongoDB
 4. Se l'ECG è anomalo → `NotificationService` pubblica su `cardiosense/allarmi`
-5. La dashboard medico riceve l'allarme via WebSocket (notifica istantanea) **e** aggiorna la lista completa via polling REST ogni 8s
+5. La dashboard medico (React, repo separato) riceve l'allarme via WebSocket (notifica istantanea) **e** aggiorna la lista completa via polling REST ogni 8s
 6. Il medico valida l'episodio (vero positivo / falso allarme + note) → scritto su MongoDB
 7. Ogni notte, `retrain_scheduler.py` ri-addestra `ECGClassifier` sulle annotazioni validate, sovrascrivendo il modello in modo atomico (hot-reload via `mtime`, zero downtime)
 
@@ -289,11 +305,15 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 
 ## Dashboard medico
 
+> Codice in repository separato (`cardiosense-dashboard`, React + Vite) — sezione descrittiva a scopo architetturale.
+
 - **Panoramica**: KPI in tempo reale (pazienti monitorati, anomalie in attesa, validazioni del giorno)
 - **Anomalie**: coda di episodi da validare, raggruppati clinicamente
 - **Pazienti**: creazione e gestione, con generazione automatica del codice di accesso
 - **Storico**: episodi passati per paziente, validati e in attesa, con traccia ECG e note cliniche
 - **Notifiche desktop**: Web Notifications API + allarme sonoro via Web Audio API
+
+La dashboard consuma esclusivamente le API REST esposte da `fastapi_server.py` e il topic MQTT `cardiosense/allarmi` via WebSocket (porta `9002`), esattamente come faceva la precedente versione vanilla: nessuna API o comportamento del backend è stato modificato per supportare il porting.
 
 ## App paziente
 
@@ -321,8 +341,9 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 
 - **Badge anomalie paziente non persistente tra sessioni**: il contatore lato app paziente è in-memory (azzerato al riavvio), mentre il badge medico è basato su query REST persistenti su MongoDB. Scelta di design motivata da semplicità/basso overhead lato dispositivo; lo storico completo resta sempre accessibile e corretto. Estendibile con polling REST periodico anche lato paziente.
 - **Soglia di classificazione ECG** (0.5) calibrata empiricamente; suscettibile di affinamento con dataset più ampi o tecniche di calibrazione delle probabilità.
-- **Portabilità certificati TLS**: la CA mkcert non è multi-macchina; per deployment distribuiti è necessaria una CA condivisa o certificati firmati da un'autorità riconosciuta.
+- **Portabilità certificati TLS**: la CA mkcert non è multi-macchina; per deployment distribuiti è necessaria una CA condivisa o certificati firmati da un'autorità riconosciuta. Questo vale anche per la dashboard React, che referenzia gli stessi certificati via percorso assoluto.
 - **`PosturaClassifier` mono-buffer**: `mqtt_subscriber.py` istanzia un solo `PosturaClassifier` condiviso da tutti i messaggi in arrivo sul topic `cardiosense/dati`; il buffer interno per la sliding window non è per-paziente. Con un solo paziente di test non è un problema, ma con più pazienti simultanei i campioni IMU di pazienti diversi finirebbero mescolati nella stessa finestra. Da correggere (buffer keyed per `paziente_id`) prima di un deployment multi-paziente.
+- **CORS in sviluppo**: `allow_origins` in `fastapi_server.py` è configurato per l'origine locale della dashboard React in sviluppo; prima di un deployment pubblico va ristretto esplicitamente al dominio di produzione della dashboard, evitando wildcard combinati con `allow_credentials=True`.
 
 ---
 
