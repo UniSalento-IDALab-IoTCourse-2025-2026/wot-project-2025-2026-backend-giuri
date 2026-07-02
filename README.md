@@ -89,7 +89,7 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
          │ MongoDB (annotazioni)           │            │ Dashboard Web (medico)       │
          │ MySQL (profili medico/paziente) │            │ React (Vite) · repo separato │
          └─────────────────────────────────┘            │ MQTT via WebSocket           │
-                          │ retrain notturno            └──────────────────────────────┘
+                          │ retrain notturno              └──────────────────────────────┘
                           ▲
               ┌──────────────────────┐
               │ retrain_scheduler.py │
@@ -148,6 +148,10 @@ Tutti i classificatori implementano un'interfaccia comune (`BaseClassifier.predi
 ### Nota sulle unità fisiche del segnale IMU
 
 Il dataset MHEALTH esprime esplicitamente l'accelerazione in **m/s²** e la velocità angolare in **°/s** ([documentazione ufficiale UCI](https://archive.ics.uci.edu/dataset/319/mhealth+dataset)). Tutta la pipeline che alimenta `PosturaClassifier` — sia i dati reali (`mqtt_bridge.py`, che converte i conteggi raw ADC del dongle in unità fisiche) sia i dati simulati (`backend/simulation/simulate_stream.py`) — è tenuta coerente con queste stesse unità: qualunque discrepanza di scala (es. accelerazione lasciata in *g* invece che convertita in m/s², oppure ampiezze di movimento non plausibili rispetto ai reali range MHEALTH) fa sì che il Random Forest, addestrato su una distribuzione di valori diversa, sottostimi sistematicamente l'energia del segnale e classifichi movimento reale come posture a bassa energia (es. `sdraiato`). Questo vincolo va preservato in ogni futura modifica ai generatori di dati di test o al layer di acquisizione.
+
+### Nota sull'isolamento per-paziente del buffer IMU
+
+`PosturaClassifier` viene istanziato una sola volta e condiviso da `mqtt_subscriber.py` per tutti i pazienti connessi (stesso motivo per cui esiste un solo `ECGClassifier`/`TemperaturaClassifier` globale: evitare di ricaricare il modello ad ogni messaggio). Poiché il modello richiede finestre di 2s con overlap 50% mentre ogni messaggio MQTT porta solo ~1s di IMU, il classificatore deve mantenere uno stato tra un messaggio e l'altro — a differenza dell'ECG, dove ogni messaggio porta già una finestra `rr_intervals` completa e autosufficiente. Buffer, ultima label e ultimo score sono quindi tenuti in dizionari indicizzati per `paziente_id` (protetti da un lock), così i campioni IMU di pazienti diversi non vengono mai mescolati nella stessa finestra, anche con più pazienti connessi simultaneamente.
 
 ---
 
@@ -342,7 +346,7 @@ La dashboard consuma esclusivamente le API REST esposte da `fastapi_server.py` e
 - **Badge anomalie paziente non persistente tra sessioni**: il contatore lato app paziente è in-memory (azzerato al riavvio), mentre il badge medico è basato su query REST persistenti su MongoDB. Scelta di design motivata da semplicità/basso overhead lato dispositivo; lo storico completo resta sempre accessibile e corretto. Estendibile con polling REST periodico anche lato paziente.
 - **Soglia di classificazione ECG** (0.5) calibrata empiricamente; suscettibile di affinamento con dataset più ampi o tecniche di calibrazione delle probabilità.
 - **Portabilità certificati TLS**: la CA mkcert non è multi-macchina; per deployment distribuiti è necessaria una CA condivisa o certificati firmati da un'autorità riconosciuta. Questo vale anche per la dashboard React, che referenzia gli stessi certificati via percorso assoluto.
-- **`PosturaClassifier` mono-buffer**: `mqtt_subscriber.py` istanzia un solo `PosturaClassifier` condiviso da tutti i messaggi in arrivo sul topic `cardiosense/dati`; il buffer interno per la sliding window non è per-paziente. Con un solo paziente di test non è un problema, ma con più pazienti simultanei i campioni IMU di pazienti diversi finirebbero mescolati nella stessa finestra. Da correggere (buffer keyed per `paziente_id`) prima di un deployment multi-paziente.
+- **`PosturaClassifier` — nessun cleanup automatico dei buffer per paziente**: dopo la fix del buffer mono-istanza (ora keyed per `paziente_id`, vedi [Modelli di Machine Learning](#modelli-di-machine-learning)), lo stato interno di ogni paziente resta in memoria per l'intera vita del processo `mqtt_subscriber.py`, anche dopo la disconnessione. È disponibile un metodo `dimentica_paziente(paziente_id)` per liberarlo esplicitamente, ma nessun chiamante lo invoca ancora automaticamente. Irrilevante con un numero limitato di pazienti; da valutare (es. cleanup su timeout di inattività) per deployment con molti pazienti diversi nel tempo.
 - **CORS in sviluppo**: `allow_origins` in `fastapi_server.py` è configurato per l'origine locale della dashboard React in sviluppo; prima di un deployment pubblico va ristretto esplicitamente al dominio di produzione della dashboard, evitando wildcard combinati con `allow_credentials=True`.
 
 ---
