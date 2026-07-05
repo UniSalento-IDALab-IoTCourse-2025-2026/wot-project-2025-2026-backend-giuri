@@ -48,7 +48,7 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 
 > 📦 **Nota sui repository**: questo repository contiene **solo il backend** (classificazione, API, persistenza, notifiche). La **dashboard medico** è stata portata a React e vive ora in un repository separato — vedi [Repository collegati](#repository-collegati). L'app paziente **IIT BioDataAcq** — di proprietà dell'Istituto Italiano di Tecnologia — risiede anch'essa in un repository separato, non incluso qui. In questo repo viene solo documentato a livello architetturale il layer di integrazione MQTT che si aggancia ad essa (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`), citato a scopo descrittivo ma non distribuito in questo codice.
 
-> 🩺 **Closed-loop**: ogni anomalia rilevata automaticamente viene validata da un medico (vero positivo / falso allarme); queste validazioni rientrano nel dataset di addestramento per ri-calibrare periodicamente il classificatore ECG, chiudendo il ciclo tra IA e giudizio clinico.
+> 🩺 **Closed-loop**: ogni anomalia rilevata automaticamente viene validata da un medico (vero positivo / falso allarme); queste validazioni **si aggiungono** al dataset chfdb (non lo sostituiscono) per ri-calibrare periodicamente il classificatore ECG su un insieme che unisce la base statistica originale e il segnale clinico specifico dei pazienti monitorati, chiudendo il ciclo tra IA e giudizio clinico.
 
 ---
 
@@ -94,6 +94,7 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
               ┌──────────────────────┐
               │ retrain_scheduler.py │
               │ + RetrainService     │
+              │ (chfdb + validazioni)│
               └──────────────────────┘
 ```
 
@@ -129,7 +130,7 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 - 📊 **Raggruppamento clinico in episodi**: letture anomale consecutive (gap < 10s) vengono unite in un singolo episodio da validare, invece di mostrare decine di righe per lo stesso evento
 - ✅ **Validazione medica**: ogni episodio può essere classificato come *vero positivo* o *falso allarme*, con note cliniche opzionali
 - 📈 **Traccia ECG estesa**: finestra di ±15s intorno al picco anomalo, costruita in modo asincrono e visualizzata come grafico SVG nel modal di validazione
-- 🔁 **Retraining automatico notturno** del modello ECG sulla base delle validazioni accumulate, con hot-reload basato su `mtime` del file del modello (nessun downtime, nessun riavvio dei processi in produzione)
+- 🔁 **Retraining automatico notturno** del modello ECG sull'**unione di chfdb e delle validazioni mediche accumulate** (chfdb resta sempre la base statistica; le validazioni aggiungono segnale clinico specifico, non sostituiscono il dataset originale), con hot-reload basato su `mtime` del file del modello (nessun downtime, nessun riavvio dei processi in produzione)
 - 🗂️ **Storico anomalie per paziente**, consultabile sia da medico che da paziente
 - 📱 **App paziente**: badge anomalie in tempo reale, popup dettagliato con esito medico
 
@@ -139,11 +140,17 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
 
 | Classificatore | Algoritmo | Dataset di training | Feature |
 |---|---|---|---|
-| **ECGClassifier** | Random Forest (`class_weight='balanced'`) | [chfdb](https://physionet.org/content/chfdb/) (PhysioNet) | media, std, min, max, range degli intervalli R-R su finestre di 10 battiti |
+| **ECGClassifier** | Random Forest (`class_weight='balanced'`) | [chfdb](https://physionet.org/content/chfdb/) (PhysioNet) + validazioni mediche accumulate (retraining incrementale) | media, std, min, max, range degli intervalli R-R su finestre di 10 battiti |
 | **PosturaClassifier** | Random Forest (`class_weight='balanced'`) | [MHEALTH](https://archive.ics.uci.edu/dataset/319/mhealth+dataset) (UCI) | media, std, min, max per asse + Signal Magnitude Area, su finestre a 6 assi (accelerometro X/Y/Z + giroscopio X/Y/Z) del sensore da polso/braccio — 100 campioni in training (2s @ 50Hz, overlap 50%), 208 campioni a runtime (2s @ 104Hz, hop 1s, per allinearsi al sample rate reale del sensore IMU del dongle) |
 | **TemperaturaClassifier** | Regole deterministiche (soglie cliniche) | — | valore di temperatura corporea |
 
 Tutti i classificatori implementano un'interfaccia comune (`BaseClassifier.predict()`), secondo il **Strategy Pattern**, rendendo intercambiabile la logica di classificazione senza impatto sul resto del sistema.
+
+### Nota sul retraining incrementale di ECGClassifier
+
+`RetrainService` non ri-addestra il modello ECG da zero solo sulle annotazioni validate dal medico: combina le feature di **chfdb** (lette da una cache locale — `backend/ai/trained/chfdb_features_cache.npz` — per evitare di riscaricare i 15 record da PhysioNet ad ogni ciclo notturno) con le feature estratte dalle validazioni mediche accumulate su MongoDB, addestrando il Random Forest sull'insieme combinato. Questo evita che poche decine di validazioni (statisticamente fragili) sovrascrivano la conoscenza di base appresa da chfdb: le validazioni **aggiungono** segnale clinico specifico ai pazienti reali monitorati, non sostituiscono il dataset originale.
+
+Un numero minimo di nuove validazioni (soglia configurabile in `RetrainService`, default 10) è comunque richiesto per attivare il retrain — non come dimensione del training set, ma come condizione minima per giustificare un nuovo ciclo notturno ("è arrivato abbastanza segnale clinico nuovo da valerne la pena?"). Ogni ciclo di retrain valuta le proprie performance su uno split di holdout prima di salvare il modello finale (addestrato sull'intero dataset combinato), loggando un `classification_report` per consentire di monitorare nel tempo l'effetto delle nuove validazioni.
 
 ### Nota sulle unità fisiche del segnale IMU
 
@@ -173,7 +180,7 @@ cardiosense/
     ├── services/                    # Annotation · Notification · Retrain · ECGBuffer
     ├── repositories/                # Annotation (Mongo) · User (MySQL) — Repository Pattern
     ├── models/                      # Pydantic (Mongo) + SQLAlchemy ORM (MySQL)
-    ├── ai/                          # script di training + modelli .pkl
+    ├── ai/                          # script di training + modelli .pkl + cache feature chfdb
     ├── db/                          # client Mongo/MySQL (Singleton) + utility TLS
     └── simulation/                  # simulatore di stream paziente per test end-to-end
 ```
@@ -230,7 +237,8 @@ cd backend
 python -m venv venv && source venv/bin/activate   # o .\venv\Scripts\activate su Windows
 pip install -r requirements.txt
 
-# Training dei modelli (una tantum)
+# Training dei modelli (una tantum) — genera anche la cache
+# delle feature chfdb usata dal retraining notturno incrementale
 python ai/train_ecg.py
 python ai/train_postura.py
 
@@ -241,6 +249,8 @@ cd ..
 python backend/mqtt_subscriber.py   # terminale 3
 
 ```
+
+> ⚠️ **Attenzione**: `python ai/train_ecg.py` sovrascrive incondizionatamente `ecg_model.pkl`. È pensato per il **setup iniziale una tantum**: una volta che `retrain_scheduler.py` è in produzione e ha già incorporato validazioni mediche nel modello, rilanciare questo script manualmente ripristina un modello addestrato solo su chfdb, perdendo silenziosamente il contributo delle validazioni già accumulate.
 
 ### 3. Dashboard medico
 
@@ -303,7 +313,7 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 4. Se l'ECG è anomalo → `NotificationService` pubblica su `cardiosense/allarmi`
 5. La dashboard medico (React, repo separato) riceve l'allarme via WebSocket (notifica istantanea) **e** aggiorna la lista completa via polling REST ogni 8s
 6. Il medico valida l'episodio (vero positivo / falso allarme + note) → scritto su MongoDB
-7. Ogni notte, `retrain_scheduler.py` ri-addestra `ECGClassifier` sulle annotazioni validate, sovrascrivendo il modello in modo atomico (hot-reload via `mtime`, zero downtime)
+7. Ogni notte, `retrain_scheduler.py` ri-addestra `ECGClassifier` sull'**unione di chfdb (via cache locale) e delle annotazioni validate** — non sulle sole validazioni — sovrascrivendo il modello in modo atomico (hot-reload via `mtime`, zero downtime)
 
 ---
 
@@ -345,6 +355,7 @@ La dashboard consuma esclusivamente le API REST esposte da `fastapi_server.py` e
 
 - **Badge anomalie paziente non persistente tra sessioni**: il contatore lato app paziente è in-memory (azzerato al riavvio), mentre il badge medico è basato su query REST persistenti su MongoDB. Scelta di design motivata da semplicità/basso overhead lato dispositivo; lo storico completo resta sempre accessibile e corretto. Estendibile con polling REST periodico anche lato paziente.
 - **Soglia di classificazione ECG** (0.5) calibrata empiricamente; suscettibile di affinamento con dataset più ampi o tecniche di calibrazione delle probabilità.
+- **Retraining incrementale ECG — dipendenza dalla cache chfdb**: il retrain notturno combina chfdb (via cache su disco, `chfdb_features_cache.npz`) con le validazioni mediche. Se la cache non esiste ancora e PhysioNet non è raggiungibile al momento del job, il retrain viene saltato in modo sicuro (nessuna eccezione propagata) piuttosto che addestrare il modello sulle sole validazioni. La soglia minima di nuove validazioni richiesta per attivare un retrain (default 10) è una guardia empirica contro cicli notturni inutili, non una garanzia di robustezza statistica del contributo aggiunto — un numero di validazioni molto sbilanciato tra le due classi resta comunque possibile e andrebbe monitorato nel tempo tramite il `classification_report` loggato ad ogni ciclo.
 - **Portabilità certificati TLS**: la CA mkcert non è multi-macchina; per deployment distribuiti è necessaria una CA condivisa o certificati firmati da un'autorità riconosciuta. Questo vale anche per la dashboard React, che referenzia gli stessi certificati via percorso assoluto.
 - **`PosturaClassifier` — nessun cleanup automatico dei buffer per paziente**: dopo la fix del buffer mono-istanza (ora keyed per `paziente_id`, vedi [Modelli di Machine Learning](#modelli-di-machine-learning)), lo stato interno di ogni paziente resta in memoria per l'intera vita del processo `mqtt_subscriber.py`, anche dopo la disconnessione. È disponibile un metodo `dimentica_paziente(paziente_id)` per liberarlo esplicitamente, ma nessun chiamante lo invoca ancora automaticamente. Irrilevante con un numero limitato di pazienti; da valutare (es. cleanup su timeout di inattività) per deployment con molti pazienti diversi nel tempo.
 - **CORS in sviluppo**: `allow_origins` in `fastapi_server.py` è configurato per l'origine locale della dashboard React in sviluppo; prima di un deployment pubblico va ristretto esplicitamente al dominio di produzione della dashboard, evitando wildcard combinati con `allow_credentials=True`.
