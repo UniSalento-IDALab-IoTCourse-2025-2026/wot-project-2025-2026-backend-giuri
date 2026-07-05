@@ -2,6 +2,7 @@ import wfdb
 import numpy as np
 import joblib
 import os
+from pathlib import Path
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
@@ -23,6 +24,26 @@ PHYSIONET_DIR = 'chfdb'
 
 # Dove salvare il modello addestrato
 MODEL_PATH = 'backend/ai/trained/ecg_model.pkl'
+
+# --------------------------------------------------------
+# Cache locale delle feature chfdb già estratte (X, y).
+#
+# Ancorata alla posizione di QUESTO file (backend/ai/) invece che alla
+# cwd del processo che lo importa, per lo stesso motivo già documentato
+# in db/mqtt_tls.py: retrain_scheduler.py viene lanciato da backend/,
+# ma altri entry point potrebbero girare da directory diverse. Un path
+# relativo tipo 'backend/ai/trained/...' risolverebbe in modo diverso
+# (e nella maggior parte dei casi sbagliato, creando una cartella
+# backend/backend/...) a seconda di da dove viene lanciato lo script.
+# --------------------------------------------------------
+_AI_DIR = Path(__file__).resolve().parent
+CACHE_FEATURES_PATH = str(_AI_DIR / "trained" / "chfdb_features_cache.npz")
+
+# Incrementare se cambia la logica di estrazione feature (estrai_rr):
+# la cache viene invalidata automaticamente se il numero di versione
+# non combacia, evitando che RetrainService continui silenziosamente
+# a usare feature calcolate con una logica ormai superata.
+FEATURE_VERSION = 1
 
 # ============================================================
 # STEP 1 — ESTRAZIONE INTERVALLI R-R
@@ -125,6 +146,42 @@ def carica_dataset() -> tuple[np.ndarray, np.ndarray]:
     return X_totale, y_totale
 
 
+def carica_dataset_con_cache(forza_refresh: bool = False) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Variante di carica_dataset() con cache su disco (CACHE_FEATURES_PATH).
+
+    Usata da RetrainService per evitare di riscaricare ~15 record da
+    PhysioNet e ricalcolare le finestre R-R ad ogni retrain notturno:
+    la prima chiamata popola la cache, le successive la leggono
+    direttamente. La cache viene invalidata automaticamente se
+    FEATURE_VERSION non combacia (es. dopo una modifica a estrai_rr).
+
+    Args:
+        forza_refresh: se True, ignora la cache esistente e ricalcola
+            comunque da PhysioNet (utile per rigenerarla manualmente).
+    """
+    if not forza_refresh and os.path.exists(CACHE_FEATURES_PATH):
+        try:
+            dati = np.load(CACHE_FEATURES_PATH)
+            if int(dati.get('version', -1)) == FEATURE_VERSION:
+                print(f"Carico feature chfdb dalla cache: {CACHE_FEATURES_PATH}")
+                return dati['X'], dati['y']
+            print("Cache chfdb obsoleta (FEATURE_VERSION cambiata), ricalcolo...")
+        except Exception as e:
+            print(f"Cache chfdb illeggibile ({e}), ricalcolo da PhysioNet...")
+
+    X, y = carica_dataset()
+
+    cartella_cache = os.path.dirname(CACHE_FEATURES_PATH)
+    if cartella_cache and not os.path.exists(cartella_cache):
+        os.makedirs(cartella_cache)
+
+    np.savez(CACHE_FEATURES_PATH, X=X, y=y, version=FEATURE_VERSION)
+    print(f"Feature chfdb salvate in cache: {CACHE_FEATURES_PATH}")
+
+    return X, y
+
+
 # ============================================================
 # STEP 3 — TRAINING DEL MODELLO
 # ============================================================
@@ -178,6 +235,16 @@ def train():
         
     joblib.dump(modello, MODEL_PATH)
     print(f"\nModello salvato in: {MODEL_PATH}")
+
+    # Popola subito anche la cache delle feature chfdb: il primo
+    # retrain notturno (retrain_scheduler.py) non dovrà quindi
+    # ricontattare PhysioNet, a patto di aver eseguito questo script
+    # almeno una volta durante il setup iniziale del progetto.
+    cartella_cache = os.path.dirname(CACHE_FEATURES_PATH)
+    if cartella_cache and not os.path.exists(cartella_cache):
+        os.makedirs(cartella_cache)
+    np.savez(CACHE_FEATURES_PATH, X=X, y=y, version=FEATURE_VERSION)
+    print(f"Cache feature chfdb aggiornata in: {CACHE_FEATURES_PATH}")
 
 
 # ============================================================
