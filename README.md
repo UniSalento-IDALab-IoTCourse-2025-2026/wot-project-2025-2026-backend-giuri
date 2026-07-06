@@ -87,7 +87,7 @@ Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di
          │ MongoDB (annotazioni)           │            │ Dashboard Web (medico)       │
          │ MySQL (profili medico/paziente) │            │ React (Vite) · repo separato │
          └─────────────────────────────────┘            │ MQTT via WebSocket           │
-                          │ retrain notturno              └──────────────────────────────┘
+                          │ retrain notturno            └──────────────────────────────┘
                           ▲
               ┌──────────────────────┐
               │ retrain_scheduler.py │
