@@ -248,7 +248,6 @@ La dashboard medico **non è più contenuta in questo repository**: è stata por
 git clone https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-dashboard-giuri.git
 cd wot-project-2025-2026-dashboard-giuri
 npm install
-cp .env.example .env.local
 ```
 
 In `.env.local`, valorizzare i percorsi verso gli **stessi certificati mkcert** già usati da Mosquitto/FastAPI in questo repository (cartella `mosquitto/certs/` qui sopra):
