@@ -7,6 +7,7 @@ from enum import Enum
 class ECGLabel(str, Enum):
     NORMALE = "normale"
     ANOMALO = "anomalo"
+    SEGNALE_ASSENTE = "segnale_assente"
 
 
 class TemperaturaLabel(str, Enum):
