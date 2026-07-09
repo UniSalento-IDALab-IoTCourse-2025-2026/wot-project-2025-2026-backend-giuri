@@ -183,6 +183,7 @@ smartcare/
 | **[SmartCare — Backend](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-backend-giuri)** *(questo repo)* | Backend, classificazione, API, persistenza, notifiche
 | **[smartcare-dashboard](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-dashboard-giuri)** | Dashboard medico in React (Vite) — porting della dashboard originariamente vanilla HTML/CSS/JS, stessa identità visiva e logica applicativa
 | **[IIT BioDataAcq](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-patient-app-giuri)** | App Kivy di acquisizione segnali via dongle USB/BLE — base fornita da IIT, di cui è stata autorizzata la modifica per questo progetto — con layer di integrazione MQTT (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`)
+| **[wot-project-2025-2026-presentation-giuri](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-presentation-giuri)** | Sito di presentazione (GitHub Page)
 
 Il layer di integrazione lato paziente è descritto in questo README a scopo di documentazione architetturale (sezione [App paziente](#app-paziente)), ma il relativo codice sorgente — insieme al core dell'app IIT su cui si appoggia — risiede nel repository `IIT BioDataAcq` linkato sopra. Allo stesso modo, la sezione [Dashboard medico](#dashboard-medico) qui sotto descrive le funzionalità esposte dalla dashboard React, il cui codice risiede nel repository `smartcare-dashboard`.
 
