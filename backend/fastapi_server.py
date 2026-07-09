@@ -57,13 +57,13 @@ async def lifespan(app: FastAPI):
     # aprire una connessione MQTT ad ogni richiesta sarebbe inutile overhead.
     ml_models["notifier"] = NotificationService()
 
-    print("CardioSense API avviata e modelli IA caricati correttamente")
+    print("SmartCare API avviata e modelli IA caricati correttamente")
 
     yield
 
     # --- SHUTDOWN ---
     ml_models.clear()
-    print("CardioSense API spenta")
+    print("SmartCare API spenta")
 
 
 # ============================================================
@@ -71,7 +71,7 @@ async def lifespan(app: FastAPI):
 # ============================================================
 
 app = FastAPI(
-    title="CardioSense API",
+    title="SmartCare API",
     description="API per il monitoraggio dello scompenso cardiaco",
     version="1.0.0",
     lifespan=lifespan
@@ -484,7 +484,7 @@ def valida_episodio(
     singola lettura, cambia solo l'azione che il medico deve compiere.
 
     Dopo l'aggiornamento pubblica un evento MQTT su
-    cardiosense/validazioni, così l'app paziente notifica l'esito in
+    smartcare/validazioni, così l'app paziente notifica l'esito in
     tempo reale senza dover fare polling sullo storico.
     """
     db = get_db()

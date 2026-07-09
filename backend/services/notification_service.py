@@ -17,8 +17,8 @@ class NotificationService:
     campi (es. ecg_score) che non hanno senso per un evento di validazione.
     """
 
-    TOPIC_ALLARMI = "cardiosense/allarmi"
-    TOPIC_VALIDAZIONI = "cardiosense/validazioni"
+    TOPIC_ALLARMI = "smartcare/allarmi"
+    TOPIC_VALIDAZIONI = "smartcare/validazioni"
 
     def __init__(self):
         self.client = mqtt.Client(

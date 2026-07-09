@@ -24,7 +24,7 @@ class MongoDBClient:
                 tzinfo=timezone.utc
             )
             cls._instance._db = cls._instance._client[
-                os.getenv("MONGO_DB", "cardiosense")
+                os.getenv("MONGO_DB", "smartcare")
             ]
         return cls._instance
 

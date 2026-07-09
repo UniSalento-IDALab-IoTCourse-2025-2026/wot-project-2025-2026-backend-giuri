@@ -18,8 +18,8 @@ load_dotenv()
 # CONFIGURAZIONE
 # ============================================================
 
-TOPIC_DATI = "cardiosense/dati"
-PAZIENTE_ID = "QMQUGLKD"  # codice paziente di test
+TOPIC_DATI = "smartcare/dati"
+PAZIENTE_ID = "XJQT7NF8"  # codice paziente di test
 
 # Frequenza di campionamento ECG in Hz
 ECG_SAMPLE_RATE = 250
@@ -453,7 +453,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="CardioSense — Simulatore streaming dati paziente"
+        description="SmartCare — Simulatore streaming dati paziente"
     )
     parser.add_argument(
         "--scenario",
@@ -504,7 +504,7 @@ if __name__ == "__main__":
     print("-" * 60)
 
     client = mqtt.Client(
-        client_id="cardiosense_simulator",
+        client_id="smartcare_simulator",
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2
     )
     client.on_connect = on_connect

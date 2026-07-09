@@ -2,7 +2,7 @@ services:
 
   mosquitto:
     image: eclipse-mosquitto:2.0
-    container_name: cardiosense-mosquitto
+    container_name: smartcare-mosquitto
     ports:
       - "1883:1883"  # MQTT in chiaro (solo debug locale)
       - "8883:8883"  # MQTT sicuro con TLS (App / Backend)
@@ -16,27 +16,27 @@ services:
 
   mongodb:
     image: mongo:7.0
-    container_name: cardiosense-mongodb
+    container_name: smartcare-mongodb
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: cardiosense2026
-      MONGO_INITDB_DATABASE: cardiosense
+      MONGO_INITDB_ROOT_PASSWORD: smartcare2026
+      MONGO_INITDB_DATABASE: smartcare
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
 
   mysql:
     image: mysql:8.0
-    container_name: cardiosense-mysql
+    container_name: smartcare-mysql
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: cardiosense2026
-      MYSQL_DATABASE: cardiosense
-      MYSQL_USER: cardiosense
-      MYSQL_PASSWORD: cardiosense2026
+      MYSQL_ROOT_PASSWORD: smartcare2026
+      MYSQL_DATABASE: smartcare
+      MYSQL_USER: smartcare
+      MYSQL_PASSWORD: smartcare2026
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped

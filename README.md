@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="favicon.svg" width="80" height="80" alt="CardioSense logo">
+<img src="favicon.svg" width="80" height="80" alt="SmartCare logo">
 
-# CardioSense - Backend
+# SmartCare - Backend
 
 ### Sistema IoT real-time per il monitoraggio closed-loop di pazienti con scompenso cardiaco
 
@@ -40,7 +40,7 @@
 
 ## Panoramica
 
-**CardioSense** è un sistema IoT end-to-end per il monitoraggio in tempo reale di pazienti affetti da **insufficienza cardiaca congestizia**. Il sistema acquisisce segnali fisiologici (ECG, postura tramite IMU a 6 assi — accelerometro + giroscopio, temperatura corporea) da un dispositivo wearable, li classifica tramite modelli di Machine Learning per rilevare anomalie cliniche, e mette in comunicazione diretta **paziente** e **medico** attraverso un'architettura event-driven basata su MQTT, con persistenza su database e validazione clinica delle anomalie rilevate.
+**SmartCare** è un sistema IoT end-to-end per il monitoraggio in tempo reale di pazienti affetti da **insufficienza cardiaca congestizia**. Il sistema acquisisce segnali fisiologici (ECG, postura tramite IMU a 6 assi — accelerometro + giroscopio, temperatura corporea) da un dispositivo wearable, li classifica tramite modelli di Machine Learning per rilevare anomalie cliniche, e mette in comunicazione diretta **paziente** e **medico** attraverso un'architettura event-driven basata su MQTT, con persistenza su database e validazione clinica delle anomalie rilevate.
 
 Il progetto nasce con l'obiettivo di costruire — partendo da un dispositivo di acquisizione biomedicale esistente (**IIT BioDataAcq**) — un sistema cloud-like completo: dall'acquisizione del segnale grezzo fino alla dashboard clinica, passando per classificazione automatica, notifiche in tempo reale e un ciclo di **retraining periodico** dei modelli sulla base delle validazioni mediche.
 
@@ -158,7 +158,7 @@ Il dataset MHEALTH esprime esplicitamente l'accelerazione in **m/s²** e la velo
 > Questo repository contiene **solo il backend**. La dashboard medico (React) e l'app paziente IIT BioDataAcq vivono in repository a parte — vedi [Repository collegati](#repository-collegati).
 
 ```
-cardiosense/
+smartcare/
 ├── docker-compose.yml
 ├── mosquitto/
 │   ├── config/mosquitto.conf       # listener TLS 8883 + WSS 9002
@@ -180,11 +180,11 @@ cardiosense/
 
 | Repository | Contenuto
 |---|---
-| **[CardioSense — Backend](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-backend-giuri)** *(questo repo)* | Backend, classificazione, API, persistenza, notifiche
-| **[cardiosense-dashboard](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-dashboard-giuri)** | Dashboard medico in React (Vite) — porting della dashboard originariamente vanilla HTML/CSS/JS, stessa identità visiva e logica applicativa
+| **[SmartCare — Backend](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-backend-giuri)** *(questo repo)* | Backend, classificazione, API, persistenza, notifiche
+| **[smartcare-dashboard](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-dashboard-giuri)** | Dashboard medico in React (Vite) — porting della dashboard originariamente vanilla HTML/CSS/JS, stessa identità visiva e logica applicativa
 | **[IIT BioDataAcq](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-patient-app-giuri)** | App Kivy di acquisizione segnali via dongle USB/BLE — base fornita da IIT, di cui è stata autorizzata la modifica per questo progetto — con layer di integrazione MQTT (`mqtt_bridge.py`, `patient_login.py`, `patient_session.py`, `patient_anomalies.py`)
 
-Il layer di integrazione lato paziente è descritto in questo README a scopo di documentazione architetturale (sezione [App paziente](#app-paziente)), ma il relativo codice sorgente — insieme al core dell'app IIT su cui si appoggia — risiede nel repository `IIT BioDataAcq` linkato sopra. Allo stesso modo, la sezione [Dashboard medico](#dashboard-medico) qui sotto descrive le funzionalità esposte dalla dashboard React, il cui codice risiede nel repository `cardiosense-dashboard`.
+Il layer di integrazione lato paziente è descritto in questo README a scopo di documentazione architetturale (sezione [App paziente](#app-paziente)), ma il relativo codice sorgente — insieme al core dell'app IIT su cui si appoggia — risiede nel repository `IIT BioDataAcq` linkato sopra. Allo stesso modo, la sezione [Dashboard medico](#dashboard-medico) qui sotto descrive le funzionalità esposte dalla dashboard React, il cui codice risiede nel repository `smartcare-dashboard`.
 
 > La dashboard HTML/CSS/JS vanilla usata in precedenza (cartella `dashboard/` di questo repository) è stata dismessa in favore del porting React. Resta consultabile nella cronologia Git di questo repository, ma non è più mantenuta né distribuita.
 
@@ -213,7 +213,7 @@ I certificati generati (`.crt`/`.key`) non sono versionati in nessuno dei reposi
 - Python 3.10–3.12
 - Docker + Docker Compose
 - [mkcert](https://github.com/FiloSottile/mkcert) (per TLS locale)
-- Node.js 18+ (solo se si vuole avviare anche la dashboard React — vedi repo `cardiosense-dashboard`)
+- Node.js 18+ (solo se si vuole avviare anche la dashboard React — vedi repo `smartcare-dashboard`)
 
 ### 1. Infrastruttura
 
@@ -242,7 +242,7 @@ python backend/mqtt_subscriber.py   # terminale 3
 
 ### 3. Dashboard medico
 
-La dashboard medico **non è più contenuta in questo repository**: è stata portata a React e vive nel repository separato **`cardiosense-dashboard`**.
+La dashboard medico **non è più contenuta in questo repository**: è stata portata a React e vive nel repository separato **`smartcare-dashboard`**.
 
 ```bash
 git clone https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-dashboard-giuri.git
@@ -266,7 +266,7 @@ Poi:
 npm run dev
 ```
 
-Il dev server parte su `https://localhost:5173`. Per i dettagli completi (struttura del progetto, test end-to-end, note di porting) fare riferimento al README del repository `cardiosense-dashboard`.
+Il dev server parte su `https://localhost:5173`. Per i dettagli completi (struttura del progetto, test end-to-end, note di porting) fare riferimento al README del repository `smartcare-dashboard`.
 
 > ℹ️ Non serve nessuna modifica al backend per far funzionare la dashboard React in locale: CORS in `fastapi_server.py` è già configurato per accettare l'origine del dev server Vite. In produzione, `allow_origins` va invece ristretto al dominio reale della dashboard deployata.
 
@@ -296,9 +296,9 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 ## Flusso dati
 
 1. Il dispositivo wearable trasmette via BLE → l'app paziente acquisisce ECG, IMU (accelerometro + giroscopio) e temperatura
-2. `mqtt_bridge.py` pubblica un messaggio al secondo su `cardiosense/dati` (solo se acquisizione attiva e paziente loggato), convertendo i conteggi raw del dongle nelle stesse unità fisiche usate in training (accelerazione in m/s², velocità angolare in °/s)
+2. `mqtt_bridge.py` pubblica un messaggio al secondo su `smartcare/dati` (solo se acquisizione attiva e paziente loggato), convertendo i conteggi raw del dongle nelle stesse unità fisiche usate in training (accelerazione in m/s², velocità angolare in °/s)
 3. `mqtt_subscriber.py` riceve, classifica con i due modelli, salva su MongoDB
-4. Se l'ECG è anomalo → `NotificationService` pubblica su `cardiosense/allarmi`
+4. Se l'ECG è anomalo → `NotificationService` pubblica su `smartcare/allarmi`
 5. La dashboard medico (React, repo separato) riceve l'allarme via WebSocket (notifica istantanea) **e** aggiorna la lista completa via polling REST ogni 8s
 6. Il medico valida l'episodio (vero positivo / falso allarme + note) → scritto su MongoDB
 7. Ogni notte, `retrain_scheduler.py` ri-addestra `ECGClassifier` sulle annotazioni validate, sovrascrivendo il modello in modo atomico (hot-reload via `mtime`, zero downtime)
@@ -307,7 +307,7 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 
 ## Dashboard medico
 
-> Codice in repository separato ([`cardiosense-dashboard`](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-dashboard-giuri), React + Vite) — sezione descrittiva a scopo architetturale.
+> Codice in repository separato ([`smartcare-dashboard`](https://github.com/UniSalento-IDALab-IoTCourse-2025-2026/wot-project-2025-2026-dashboard-giuri), React + Vite) — sezione descrittiva a scopo architetturale.
 
 - **Panoramica**: KPI in tempo reale (pazienti monitorati, anomalie in attesa, validazioni del giorno)
 - **Anomalie**: coda di episodi da validare, raggruppati clinicamente
@@ -315,7 +315,7 @@ Assicurarsi che il file `.env` dell'app paziente punti allo stesso broker Mosqui
 - **Storico**: episodi passati per paziente, validati e in attesa, con traccia ECG e note cliniche
 - **Notifiche desktop**: Web Notifications API + allarme sonoro via Web Audio API
 
-La dashboard consuma esclusivamente le API REST esposte da `fastapi_server.py` e il topic MQTT `cardiosense/allarmi` via WebSocket (porta `9002`), esattamente come faceva la precedente versione vanilla: nessuna API o comportamento del backend è stato modificato per supportare il porting.
+La dashboard consuma esclusivamente le API REST esposte da `fastapi_server.py` e il topic MQTT `smartcare/allarmi` via WebSocket (porta `9002`), esattamente come faceva la precedente versione vanilla: nessuna API o comportamento del backend è stato modificato per supportare il porting.
 
 ## App paziente
 
@@ -360,12 +360,12 @@ L'app di acquisizione dati **"IIT BioDataAcq"**, su cui è stato costruito il la
 
 ---
 
-## Licenza & Copyright
+## ## Licenza & Autore
 
 ```
-CardioSense — Sistema IoT per il monitoraggio dello scompenso cardiaco
+SmartCare — Sistema IoT per il monitoraggio dello scompenso cardiaco
 
-Copyright © 2026 Francesco Giuri
+Francesco Giuri
 Università del Salento
 
 Sviluppato in collaborazione con:

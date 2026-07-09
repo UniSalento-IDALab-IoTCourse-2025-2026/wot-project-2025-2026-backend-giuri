@@ -82,7 +82,7 @@ def esegui_retrain():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="CardioSense — Scheduler retrain ECG"
+        description="SmartCare — Scheduler retrain ECG"
     )
     parser.add_argument(
         "--now",
@@ -110,7 +110,7 @@ if __name__ == "__main__":
 
     scheduler.start()
 
-    print("CardioSense Retrain Scheduler avviato.")
+    print("SmartCare Retrain Scheduler avviato.")
     print(f"Prossimo retrain pianificato ogni giorno alle {RETRAIN_ORA:02d}:{RETRAIN_MINUTO:02d} UTC.")
     print("Premi CTRL+C per fermare.\n")
 

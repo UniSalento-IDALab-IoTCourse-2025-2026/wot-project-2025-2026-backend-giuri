@@ -22,8 +22,8 @@ load_dotenv()
 # CONFIGURAZIONE
 # ============================================================
 
-TOPIC_DATI = "cardiosense/dati"
-TOPIC_ALLARMI = "cardiosense/allarmi"
+TOPIC_DATI = "smartcare/dati"
+TOPIC_ALLARMI = "smartcare/allarmi"
 
 ECG_MODEL_PATH = "backend/ai/trained/ecg_model.pkl"
 POSTURA_MODEL_PATH = "backend/ai/trained/postura_model.pkl"
@@ -130,7 +130,7 @@ signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == "__main__":
     client = mqtt.Client(
-        client_id="cardiosense_subscriber",
+        client_id="smartcare_subscriber",
         callback_api_version=mqtt.CallbackAPIVersion.VERSION2
     )
 
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     client.on_message = on_message
     client.on_disconnect = on_disconnect
 
-    print("Avvio CardioSense MQTT Subscriber...")
+    print("Avvio SmartCare MQTT Subscriber...")
     client.connect(
         os.getenv("MQTT_BROKER", "localhost"),
         get_mqtt_port(),
