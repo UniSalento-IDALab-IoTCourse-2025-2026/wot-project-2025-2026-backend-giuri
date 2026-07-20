@@ -18,7 +18,7 @@ class PosturaClassifier(BaseClassifier):
     NOTA SUL SAMPLE RATE (Bug #2): MHEALTH è campionato a 50Hz, ma il
     sensore IMU reale del dongle campiona a 104Hz. Le feature statistiche
     (media, std, min, max, SMA) devono essere calcolate su una finestra
-    la cui *durata* corrisponde a quella vista in training (2s, overlap
+    la cui durata corrisponde a quella vista in training (2s, overlap
     1s) — non sullo stesso numero di campioni. Per questo WINDOW_SIZE e
     STEP_SIZE qui sono derivati da IMU_RUNTIME_RATE (104Hz) e NON
     ricalcano i 100/50 campioni di train_postura.py, che restano

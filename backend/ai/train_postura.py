@@ -104,7 +104,7 @@ def estrai_feature_finestra(segnali_grezzi: np.ndarray, labels_grezze: np.ndarra
         maxs = np.max(finestra, axis=0)
         
         # Signal Magnitude Area (SMA) -> Ottimo indicatore di energia motoria complessiva.
-        # Calcolata sulla somma di TUTTI gli assi disponibili (ora anche il giroscopio),
+        # Calcolata sulla somma di TUTTI gli assi disponibili,
         # quindi cattura sia intensità del movimento lineare che rotazionale del polso.
         sma = np.mean(np.sum(np.abs(finestra), axis=1))
         

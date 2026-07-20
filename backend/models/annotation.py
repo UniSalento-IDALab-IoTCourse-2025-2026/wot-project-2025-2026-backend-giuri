@@ -7,7 +7,6 @@ from enum import Enum
 class ECGLabel(str, Enum):
     NORMALE = "normale"
     ANOMALO = "anomalo"
-    SEGNALE_ASSENTE = "segnale_assente"
 
 
 class TemperaturaLabel(str, Enum):
@@ -20,9 +19,9 @@ class TemperaturaLabel(str, Enum):
 
 class TipoAnnotazione(str, Enum):
     AUTOMATICA = "automatica"
-    CLINICA = "clinica"
-    SINTOMATICA = "sintomatica"
-    PRESCRITTA = "prescritta"
+    #CLINICA = "clinica"
+    #SINTOMATICA = "sintomatica"
+    #PRESCRITTA = "prescritta"
 
 
 class EsitoMedico(str, Enum):
@@ -42,15 +41,20 @@ class Annotation(BaseModel):
     ecg_score: float
     rr_intervals: Optional[list[float]] = None
 
-    # Istantanea ECG raw per visualizzazione clinica nel modal di validazione.
-    # Contiene i campioni grezzi (normalizzati in float) della finestra di
-    # acquisizione centrata sull'evento — tipicamente 250 campioni (1s a 250Hz).
+    # LEGACY — non più utilizzato dal frontend. Era l'anteprima immediata
+    # (1s, snapshot centrato sull'evento) mostrata nel modal prima che
+    # fosse introdotta la finestra estesa ecg_window (±15s, costruita in
+    # modo asincrono da ECGBufferManager). Il campo continua a essere
+    # calcolato e persistito ad ogni lettura ma non è più letto da
+    # nessun componente della dashboard (vedi EcgChart.jsx, che usa solo
+    # ecg_window).
     ecg_raw_snapshot: Optional[list[float]] = None
 
     postura_label: Optional[str] = None
     postura_score: Optional[float] = None
     temperatura_label: TemperaturaLabel
-    temperatura_valore: float
+    #temperatura_valore: float
+    temperatura_valore: Optional[float] = None
 
     # Tipo di annotazione
     tipo_annotazione: TipoAnnotazione = TipoAnnotazione.AUTOMATICA
@@ -62,8 +66,7 @@ class Annotation(BaseModel):
 
     # Finestra ECG estesa (≥30s, prima e dopo l'anomalia), popolata in modo
     # asincrono da AnnotationService non appena il buffer accumula anche
-    # i campioni successivi all'evento. Finché non è pronta, il medico
-    # vede solo ecg_raw_snapshot (1s) come anteprima immediata.
+    # i campioni successivi all'evento.
     ecg_window: Optional[list[float]] = None
     ecg_window_sample_rate: int = 250
     ecg_window_anomalia_index: Optional[int] = None

@@ -6,8 +6,8 @@ from repositories.annotation_repository import AnnotationRepository
 from classifiers.ecg_classifier import ECGClassifier
 from classifiers.postura_classifier import PosturaClassifier
 from classifiers.temperatura_classifier import TemperaturaClassifier
+from models.annotation import Annotation, TipoAnnotazione, EsitoMedico
 from services.ecg_buffer_manager import ECGBufferManager
-from models.annotation import Annotation, TipoAnnotazione, EsitoMedico, ECGLabel
 
 
 class AnnotationService:
@@ -19,19 +19,6 @@ class AnnotationService:
     """
 
     ECG_SAMPLE_RATE = 250
-
-    # Limiti fisiologici per un intervallo R-R plausibile:
-    # 0.3s ≈ 200 bpm (tachicardia estrema ma possibile),
-    # 2.0s ≈ 30 bpm (bradicardia estrema ma possibile).
-    # Intervalli fuori da questo range sono quasi certamente rumore
-    # elettrico da un canale ECG scollegato/floating, non battiti reali.
-    RR_MIN_PLAUSIBILE = 0.3
-    RR_MAX_PLAUSIBILE = 2.0
-
-    # Numero minimo di intervalli R-R plausibili richiesti per fidarsi
-    # del segnale e passarlo al classificatore. Sotto questa soglia il
-    # "segnale" è considerato rumore/sensore assente.
-    MIN_RR_PLAUSIBILI = 5
 
     def __init__(
         self,
@@ -73,23 +60,6 @@ class AnnotationService:
             (picchi[i + 1] - picchi[i]) / self.ECG_SAMPLE_RATE
             for i in range(len(picchi) - 1)
         ]
-    
-    def _filtra_rr_plausibili(self, rr_intervals: list) -> list:
-        """
-        Scarta gli intervalli R-R fuori dal range fisiologico plausibile.
-        Un ECG scollegato/floating capta rumore elettrico che, passato
-        dal rilevatore di picchi, genera intervalli molto piccoli e
-        irregolari (frequenze cardiache implicite di migliaia di bpm) —
-        dati su cui il classificatore (addestrato solo su chfdb, mai
-        esposto a questo tipo di rumore) produce output instabile e privo
-        di significato clinico.
-        """
-        if not rr_intervals:
-            return []
-        return [
-            rr for rr in rr_intervals
-            if self.RR_MIN_PLAUSIBILE <= rr <= self.RR_MAX_PLAUSIBILE
-        ]
 
     def _normalizza(self, campioni: list) -> list:
         """Normalizzazione lineare in [-1, 1] per rendering SVG coerente."""
@@ -107,33 +77,14 @@ class AnnotationService:
         rr_intervals = payload.get("rr_intervals")
         ecg_raw = payload.get("ecg_raw", [])
 
-        """ # --- DEBUG TEMPORANEO ---
-        if ecg_raw:
-            arr = np.array(ecg_raw, dtype=float)
-            print(f"[DEBUG ECG] n_campioni={len(arr)} "
-                f"min={arr.min()} max={arr.max()} "
-                f"std={arr.std():.6f} "
-                f"primi_10={arr[:10].tolist()} "
-                f"valori_unici={len(np.unique(arr))}")
-        # --- FINE DEBUG --- """
-
         if not rr_intervals:
             rr_intervals = self._estrai_rr_da_raw(ecg_raw)
-
-        rr_plausibili = self._filtra_rr_plausibili(rr_intervals)
-
-        if len(rr_plausibili) < self.MIN_RR_PLAUSIBILI:
-            # Segnale insufficiente/non plausibile: niente inferenza ML,
-            # niente falsi allarmi/falsi normali dal rumore.
-            ecg_result = {"label": ECGLabel.SEGNALE_ASSENTE.value, "score": 0.0}
-        else:
-            ecg_result = self.ecg.predict({"rr_intervals": rr_plausibili})
 
         ecg_raw_snapshot = None
         if ecg_raw and len(ecg_raw) >= 10:
             ecg_raw_snapshot = self._normalizza(ecg_raw)
 
-        #ecg_result = self.ecg.predict({"rr_intervals": rr_intervals})
+        ecg_result = self.ecg.predict({"rr_intervals": rr_intervals})
 
         # Finestra IMU completa (~1s di campioni a 104Hz), non il singolo
         # ultimo valore: PosturaClassifier.predict_batch() accoda tutti i

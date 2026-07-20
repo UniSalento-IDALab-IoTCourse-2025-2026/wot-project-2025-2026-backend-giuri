@@ -79,7 +79,7 @@ class ECGBufferManager:
     def estrai_finestra(self, paziente_id: str, indice_anomalia: int) -> tuple[list, int]:
         """
         Estrae dal buffer la porzione di segnale intorno all'anomalia
-        (pre_samples prima, post_samples dopo, quanto disponibile).
+        (pre_samples prima, post_samples dopo, quando disponibile).
         Restituisce (campioni_finestra, indice_anomalia_relativo_alla_finestra).
         """
         with self._lock:
