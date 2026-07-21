@@ -199,7 +199,7 @@ Tutte le comunicazioni di rete del sistema sono cifrate:
 - **WebSocket** (dashboard browser → broker): TLS su porta `9002`
 - **REST API** (dashboard/app → FastAPI): HTTPS su porta `8443`
 
-Per l'ambiente di sviluppo/demo locale, i certificati sono generati con **[mkcert](https://github.com/FiloSottile/mkcert)**, che installa una CA root correttamente strutturata (`basicConstraints = CA:TRUE`) nel trust store del sistema operativo — eliminando i prompt di sicurezza ricorrenti tipici dei certificati self-signed generati con OpenSSL "a mano". Uno script di fallback (`genera_certificati.sh`) basato su OpenSSL puro resta disponibile per chi necessiti di un metodo portabile multi-macchina.
+Per l'ambiente di sviluppo/demo locale, i certificati sono generati con **[mkcert](https://github.com/FiloSottile/mkcert)**, che installa una CA root correttamente strutturata (`basicConstraints = CA:TRUE`) nel trust store del sistema operativo — eliminando i prompt di sicurezza ricorrenti tipici dei certificati self-signed generati con OpenSSL "a mano".
 
 I certificati generati (`.crt`/`.key`) non sono versionati in nessuno dei repository, compreso quello della dashboard React: quest'ultima li referenzia tramite percorso assoluto configurato in variabile d'ambiente (`VITE_TLS_CERT`/`VITE_TLS_KEY`), puntando agli stessi file usati da Mosquitto e FastAPI in questo repository, invece di duplicarli.
 
@@ -360,7 +360,7 @@ L'app di acquisizione dati **"IIT BioDataAcq"**, su cui è stato costruito il la
 
 ---
 
-## ## Licenza & Autore
+## Autore
 
 ```
 SmartCare — Sistema IoT per il monitoraggio dello scompenso cardiaco
