@@ -1,7 +1,9 @@
 import time
+from collections import deque
 from datetime import datetime, timezone
 from typing import Optional
 import numpy as np
+from wfdb.processing import xqrs_detect
 from repositories.annotation_repository import AnnotationRepository
 from classifiers.ecg_classifier import ECGClassifier
 from classifiers.postura_classifier import PosturaClassifier
@@ -19,6 +21,21 @@ class AnnotationService:
     """
 
     ECG_SAMPLE_RATE = 250
+
+    # Secondi di segnale ECG grezzo da accumulare per paziente prima di
+    # tentare l'estrazione dei picchi R. Un singolo messaggio MQTT porta
+    # solo ~1s di segnale (250 campioni a 250Hz), fisiologicamente
+    # insufficiente per contenere i 10 intervalli R-R richiesti da
+    # ECGClassifier.predict (a 60-100 bpm, in 1s c'è al più 1 battito,
+    # quindi al più 1 intervallo R-R). Un buffer di alcuni secondi
+    # garantisce invece 8-13 battiti reali, sufficienti a estrarre
+    # almeno gli ultimi 10 intervalli R-R richiesti dal classificatore.
+    #
+    # NOTA: non va confuso con ECGBufferManager (self.ecg_buffer), che
+    # serve a un compito diverso — costruire la finestra estesa ±15s
+    # attorno a un'anomalia GIÀ rilevata, non a rilevare i battiti prima
+    # ancora di poter classificare.
+    ECG_RR_BUFFER_SECONDS = 10.0
 
     def __init__(
         self,
@@ -42,24 +59,68 @@ class AnnotationService:
         # anomalie già salvate ma per cui la finestra estesa non è ancora pronta
         self._estrazioni_in_attesa: dict[str, list] = {}
 
+        # Buffer scorrevole di campioni ECG grezzi PER PAZIENTE, usato
+        # esclusivamente per l'estrazione degli intervalli R-R prima
+        # della classificazione (vedi _estrai_rr_con_buffer).
+        self._ecg_rr_buffers: dict[str, deque] = {}
+
+    def _estrai_rr_con_buffer(self, paziente_id: str, ecg_raw: list) -> list:
+        """
+        Accoda i nuovi campioni ECG grezzi al buffer scorrevole del
+        paziente (fino a ECG_RR_BUFFER_SECONDS secondi), poi esegue il
+        beat detection sull'INTERO buffer accumulato — non sul solo
+        ultimo messaggio (~1s) — così da avere abbastanza battiti reali
+        per calcolare almeno 10 intervalli R-R.
+
+        Isolato per paziente_id, sullo stesso pattern già usato in
+        PosturaClassifier: campioni di pazienti diversi non vengono mai
+        mescolati nello stesso buffer.
+        """
+        if not paziente_id or not ecg_raw:
+            return []
+
+        buffer = self._ecg_rr_buffers.setdefault(
+            paziente_id,
+            deque(maxlen=int(self.ECG_RR_BUFFER_SECONDS * self.ECG_SAMPLE_RATE))
+        )
+        buffer.extend(ecg_raw)
+
+        return self._estrai_rr_da_raw(list(buffer))
+
     def _estrai_rr_da_raw(self, ecg_raw: list) -> list:
-        if len(ecg_raw) < 3:
+        """
+        Rileva i picchi R sul segnale ECG grezzo tramite XQRS
+        (wfdb.processing) — soglie adattive e refrattarietà temporale,
+        a differenza di un confronto a tre punti (massimo locale): è
+        robusto al rumore elettrico e non genera intervalli R-R
+        fisiologicamente impossibili da picchi troppo ravvicinati.
+        """
+        if len(ecg_raw) < 10:
             return []
 
         signal = np.array(ecg_raw, dtype=float)
 
-        picchi = []
-        for i in range(1, len(signal) - 1):
-            if signal[i] > signal[i - 1] and signal[i] > signal[i + 1]:
-                picchi.append(i)
+        try:
+            picchi = xqrs_detect(sig=signal, fs=self.ECG_SAMPLE_RATE, verbose=False)
+        except Exception:
+            # XQRS può fallire su segmenti troppo corti/rumorosi/degeneri
+            # (es. segnale piatto): meglio nessun RR che propagare
+            # un'eccezione che interromperebbe processa_lettura().
+            return []
 
         if len(picchi) < 2:
             return []
 
-        return [
+        rr = [
             (picchi[i + 1] - picchi[i]) / self.ECG_SAMPLE_RATE
             for i in range(len(picchi) - 1)
         ]
+
+        # Teniamo solo gli ultimi 10 intervalli: coerente con la
+        # finestra usata in training (train_ecg.py, WINDOW_SIZE=10), ed
+        # evita che il classificatore riceva una finestra di lunghezza
+        # variabile e via via crescente man mano che il buffer si riempie.
+        return rr[-10:]
 
     def _normalizza(self, campioni: list) -> list:
         """Normalizzazione lineare in [-1, 1] per rendering SVG coerente."""
@@ -78,7 +139,8 @@ class AnnotationService:
         ecg_raw = payload.get("ecg_raw", [])
 
         if not rr_intervals:
-            rr_intervals = self._estrai_rr_da_raw(ecg_raw)
+            rr_intervals = self._estrai_rr_con_buffer(paziente_id, ecg_raw)
+            #print(f"  [DEBUG] RR estratti: {len(rr_intervals)} → {rr_intervals}")
 
         ecg_raw_snapshot = None
         if ecg_raw and len(ecg_raw) >= 10:

@@ -48,22 +48,56 @@ GRAVITA_MS2 = 9.81
 # ============================================================
 # GENERATORI ECG RAW REALISTICI
 # ============================================================
+#
+# STATO DELL'OROLOGIO ECG (fix continuità di fase)
+# --------------------------------------------------------
+# Ogni messaggio MQTT porta solo ECG_WINDOW_SEC secondi (1.0s = 250
+# campioni) di segnale. Se ogni chiamata a genera_ecg_raw_normale()/
+# genera_ecg_raw_anomalo() calcolasse il tempo localmente (t = i / fs,
+# ripartendo da 0 ad ogni chiamata), la fase cardiaca si resetterebbe
+# ad ogni messaggio: con rr=0.80s e finestra di 1.0s, ogni chiamata
+# conterrebbe sempre UN solo picco R nella stessa posizione relativa,
+# indipendentemente dal vero rr simulato. Concatenando i messaggi nel
+# buffer lato server, la distanza osservata tra due picchi consecutivi
+# diventerebbe quindi l'intervallo tra i messaggi (1.0s), non il vero
+# rr fisiologico (0.80s) — un artefatto puramente dovuto al reset di
+# fase, non un problema di rilevamento (XQRS rileva correttamente i
+# picchi che il segnale contiene, ma il segnale stesso concatenato non
+# contiene mai la vera cadenza a 0.80s prevista).
+#
+# La correzione mantiene un orologio assoluto e continuo tra una
+# chiamata e l'altra (stesso pattern già usato per _movimento_stato
+# nei generatori IMU), così che il segnale generato messaggio dopo
+# messaggio sia fisicamente continuo una volta concatenato, e XQRS
+# possa rilevare tutti i battiti realmente presenti (~12-13 su un
+# buffer di 10s con rr=0.80s, invece dei ~9-10 osservati con la fase
+# che si azzerava ad ogni chiamata).
+_ecg_clock = {
+    "t_normale": 0.0,                  # tempo assoluto continuo, scenario normale
+    "t_anomalo": 0.0,                  # tempo assoluto continuo, scenario anomalo
+    "prossimo_battito_anomalo": None,  # tempo assoluto (s) del prossimo battito FA
+}
+
 
 def genera_ecg_raw_normale(n_campioni: int = None) -> list:
     """
-    Simula una finestra ECG normale a 250Hz.
+    Simula una finestra ECG normale a 250Hz, in continuità di fase con
+    le chiamate precedenti (vedi nota su _ecg_clock sopra).
 
     Modella le onde P, QRS (con Q negativa, R positiva, S negativa) e T
     per un ritmo sinusale regolare a ~75 bpm (RR ≈ 0.80s).
     """
+    global _ecg_clock
+
     if n_campioni is None:
         n_campioni = int(ECG_SAMPLE_RATE * ECG_WINDOW_SEC)
 
     segnale = []
     rr = 0.80  # RR nominale in secondi
+    t0 = _ecg_clock["t_normale"]
 
     for i in range(n_campioni):
-        t = i / ECG_SAMPLE_RATE
+        t = t0 + i / ECG_SAMPLE_RATE
         # Fase normalizzata all'interno del ciclo cardiaco corrente [0, 1)
         fase = (t % rr) / rr
 
@@ -90,12 +124,19 @@ def genera_ecg_raw_normale(n_campioni: int = None) -> list:
         v += random.gauss(0, 0.018)
         segnale.append(round(v, 4))
 
+    _ecg_clock["t_normale"] = t0 + n_campioni / ECG_SAMPLE_RATE
     return segnale
 
 
 def genera_ecg_raw_anomalo(n_campioni: int = None) -> list:
     """
-    Simula una finestra ECG con fibrillazione atriale a 250Hz.
+    Simula una finestra ECG con fibrillazione atriale a 250Hz, in
+    continuità con le chiamate precedenti: il tempo del "prossimo
+    battito" viene portato avanti tra una chiamata e l'altra invece di
+    essere ripescato a caso ad ogni finestra (vedi nota su _ecg_clock
+    sopra) — altrimenti, esattamente come nello scenario normale, la
+    cadenza osservata concatenando i messaggi non rifletterebbe quella
+    realmente generata.
 
     Caratteristiche cliniche riprodotte:
     - Assenza di onda P (attività atriale caotica → baseline ondulata)
@@ -103,31 +144,43 @@ def genera_ecg_raw_anomalo(n_campioni: int = None) -> list:
     - Complessi QRS variabili in ampiezza
     - Onda T anomala
     """
+    global _ecg_clock
+
     if n_campioni is None:
         n_campioni = int(ECG_SAMPLE_RATE * ECG_WINDOW_SEC)
 
     durata = n_campioni / ECG_SAMPLE_RATE
+    t0 = _ecg_clock["t_anomalo"]
 
-    # Genera posizioni temporali dei battiti con RR irregolare
+    prossimo = _ecg_clock["prossimo_battito_anomalo"]
+    if prossimo is None:
+        prossimo = t0 + random.uniform(0.05, 0.15)  # offset iniziale casuale
+
+    # Genera i tempi assoluti dei battiti che cadono in questa finestra,
+    # portando avanti "prossimo" oltre il bordo finestra: verrà riusato
+    # come punto di partenza dalla prossima chiamata, garantendo RR
+    # continui anche a cavallo tra due messaggi consecutivi.
     battiti = []
-    t_corrente = random.uniform(0.05, 0.15)  # offset iniziale casuale
-    while t_corrente < durata:
-        battiti.append(t_corrente)
-        t_corrente += random.uniform(0.30, 0.90)  # RR caotico tipico di FA
+    while prossimo < t0 + durata:
+        battiti.append(prossimo)
+        prossimo += random.uniform(0.30, 0.90)  # RR caotico tipico di FA
+
+    _ecg_clock["prossimo_battito_anomalo"] = prossimo
+    _ecg_clock["t_anomalo"] = t0 + durata
 
     segnale = []
     for i in range(n_campioni):
-        t = i / ECG_SAMPLE_RATE
+        t_abs = t0 + i / ECG_SAMPLE_RATE
 
         # Baseline ondulata che simula l'attività atriale caotica (fibrillazione)
         # Somma di sinusoidi a frequenze diverse per aspetto irregolare
-        v = (0.04 * math.sin(2 * math.pi * 6.2 * t) +
-             0.03 * math.sin(2 * math.pi * 8.7 * t + 1.1) +
-             0.02 * math.sin(2 * math.pi * 11.3 * t + 2.4))
+        v = (0.04 * math.sin(2 * math.pi * 6.2 * t_abs) +
+             0.03 * math.sin(2 * math.pi * 8.7 * t_abs + 1.1) +
+             0.02 * math.sin(2 * math.pi * 11.3 * t_abs + 2.4))
 
         # Complessi QRS per ogni battito
         for tb in battiti:
-            dt = t - tb
+            dt = t_abs - tb
             if 0 < dt < 0.04:
                 # Onda Q anomala
                 v -= 0.12 * math.sin(math.pi * dt / 0.04)
@@ -397,7 +450,11 @@ class GeneratoreMisto:
         return self.stato
 
 
-def costruisci_payload_misto(generatore: GeneratoreMisto, delta_t: float = INTERVALLO_PUBBLICAZIONE) -> dict:
+def costruisci_payload_misto(
+    generatore: GeneratoreMisto,
+    delta_t: float = INTERVALLO_PUBBLICAZIONE,
+    includi_rr: bool = True
+) -> dict:
     """
     Costruisce un payload usando lo scenario corrente del generatore
     a episodi (normale/anomalia_ecg alternati con durate variabili).
@@ -405,34 +462,52 @@ def costruisci_payload_misto(generatore: GeneratoreMisto, delta_t: float = INTER
     generazione dei singoli campi.
     """
     scenario_corrente = generatore.prossimo_scenario(delta_t)
-    return costruisci_payload(scenario_corrente)
+    return costruisci_payload(scenario_corrente, includi_rr=includi_rr)
 
 
 # ============================================================
 # COSTRUZIONE PAYLOAD
 # ============================================================
 
-def costruisci_payload(scenario: str) -> dict:
+def costruisci_payload(scenario: str, includi_rr: bool = True) -> dict:
     """
     Costruisce il payload MQTT passando correttamente IMU_SAMPLE_RATE (104).
+
+    Args:
+        scenario: chiave in SCENARI da usare per generare i segnali.
+        includi_rr: se True (default), il payload contiene anche
+            "rr_intervals" già pronti (generati sinteticamente da
+            rr_fn), che annotation_service.py userà direttamente
+            bypassando l'estrazione da ecg_raw.
+            Se False, "rr_intervals" viene omesso dal payload: il
+            server sarà quindi costretto a ricavarli dal solo
+            ecg_raw grezzo tramite il buffer per-paziente + beat
+            detector XQRS — lo stesso percorso realmente esercitato
+            dall'app paziente, che non invia mai rr_intervals
+            precalcolati. Utile per testare quel percorso con un
+            segnale ECG fisiologicamente plausibile e in continuità
+            di fase tra messaggi (vedi _ecg_clock).
     """
     s = SCENARI[scenario]
-    
+
     # Chiama la funzione passando la costante (104) per avere campioni realistici
     imu_window = s["imu_fn"](n_campioni=IMU_SAMPLE_RATE)
     ultimo_campione = imu_window[-1]
 
-    ecg_raw = s["ecg_fn"]()        
-    rr_intervals = s["rr_fn"]()    
+    ecg_raw = s["ecg_fn"]()
 
-    return {
+    payload = {
         "paziente_id":  PAZIENTE_ID,
         "ecg_raw":      ecg_raw,
-        "rr_intervals": rr_intervals,
         "imu_window":   imu_window,   # Serie temporale densa inviata al server
         **ultimo_campione,            # Campi flat per la dashboard live
         "temperatura":  s["temp_fn"]()
     }
+
+    if includi_rr:
+        payload["rr_intervals"] = s["rr_fn"]()
+
+    return payload
 
 # ============================================================
 # CALLBACKS MQTT
@@ -481,9 +556,19 @@ if __name__ == "__main__":
         help="Solo con --scenario misto: percentuale di tempo totale "
              "(0.0-1.0) passato in episodi di anomalia ECG (default: 0.2)"
     )
+    parser.add_argument(
+        "--no-rr",
+        action="store_true",
+        help="Omette rr_intervals dal payload, forzando il server a "
+             "estrarli dal segnale ecg_raw grezzo tramite il buffer "
+             "per-paziente + beat detector XQRS (stesso percorso usato "
+             "dall'app paziente reale), invece di usare gli RR "
+             "sintetici già pronti generati da questo simulatore."
+    )
     args = parser.parse_args()
 
     is_misto = args.scenario == "misto"
+    includi_rr = not args.no_rr
 
     if is_misto:
         descrizione = (
@@ -501,6 +586,9 @@ if __name__ == "__main__":
     print(f"Intervallo: {args.intervallo}s")
     print(f"Paziente ID: {PAZIENTE_ID}")
     print(f"Campioni ECG per messaggio: {int(ECG_SAMPLE_RATE * ECG_WINDOW_SEC)}")
+    if not includi_rr:
+        print("Modalità: --no-rr attivo → rr_intervals NON incluso nel payload "
+              "(il server li estrarrà da ecg_raw tramite buffer + XQRS)")
     print("-" * 60)
 
     client = mqtt.Client(
@@ -521,10 +609,12 @@ if __name__ == "__main__":
     try:
         while time.time() - inizio < args.durata:
             if is_misto:
-                payload = costruisci_payload_misto(generatore_misto, delta_t=args.intervallo)
+                payload = costruisci_payload_misto(
+                    generatore_misto, delta_t=args.intervallo, includi_rr=includi_rr
+                )
                 scenario_label = generatore_misto.stato
             else:
-                payload = costruisci_payload(args.scenario)
+                payload = costruisci_payload(args.scenario, includi_rr=includi_rr)
                 scenario_label = args.scenario
 
             client.publish(
@@ -533,10 +623,12 @@ if __name__ == "__main__":
                 qos=1
             )
             messaggi_inviati += 1
+
+            rr_info = f"RR: {payload['rr_intervals'][:3]}..." if includi_rr else "RR: (omesso, estrazione lato server)"
             print(
                 f"[{messaggi_inviati:3d}] ({scenario_label:13s}) Pubblicato — "
                 f"ECG campioni: {len(payload['ecg_raw'])}, "
-                f"RR: {payload['rr_intervals'][:3]}..., "
+                f"{rr_info}, "
                 f"Gyro: ({payload['gyro_x']:.1f}, {payload['gyro_y']:.1f}, {payload['gyro_z']:.1f}), "
                 f"Temp: {payload['temperatura']}°C"
             )
